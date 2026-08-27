@@ -1,0 +1,555 @@
+﻿#nullable enable
+
+using System;
+using System.ComponentModel;
+using System.Threading;
+using CommunityToolkit.Diagnostics;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.WinUI;
+using Odeon.Controls;
+using Odeon.Core.Enums;
+using Odeon.Core.ViewModels;
+using Odeon.Helpers;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.System;
+using Windows.UI.Core;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Animation;
+using Windows.UI.Xaml.Navigation;
+
+// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
+
+namespace Odeon.Pages;
+
+/// <summary>
+/// An empty page that can be used on its own or navigated to within a Frame.
+/// </summary>
+public sealed partial class PlayerPage : Page
+{
+    internal PlayerPageViewModel ViewModel => (PlayerPageViewModel)DataContext;
+
+    private readonly DispatcherQueueTimer _controlsAutoHideTimer;
+    private readonly DispatcherQueueTimer _titleBarHoverTimer;
+    private CancellationTokenSource? _animationCancellationTokenSource;
+    private bool _startup;
+
+    public PlayerPage()
+    {
+        this.InitializeComponent();
+        DataContext = Ioc.Default.GetRequiredService<PlayerPageViewModel>();
+        ViewModel.GetVolumeChangeStatusMessage = Odeon.Strings.Resources.VolumeChangeStatusMessage;
+        _controlsAutoHideTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _titleBarHoverTimer = DispatcherQueue.GetForCurrentThread().CreateTimer();
+
+        RegisterSeekBarPointerHandlers();
+        UpdatePreviewType();
+
+        ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
+        AlbumArtImage.RegisterPropertyChangedCallback(ImageBrush.ImageSourceProperty, AlbumArtImageOnSourceChanged);
+        LayoutRoot.ActualThemeChanged += OnActualThemeChanged;
+    }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        UpdateBackgroundAcrylicOpacity(ActualTheme);
+
+        // DO NOT SET CONTENT VISUAL STATE HERE
+        // It will cause element theme to not propagate correctly
+        // VisualStateManager.GoToState(this, "Video", false);
+
+        if (e.Parameter is true)
+        {
+            LayoutRoot.Transitions.Clear();
+            ViewModel.PlayerVisibility = PlayerVisibilityState.Visible;
+            ViewModel.OnFileLaunched();
+            _startup = true;
+        }
+    }
+
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
+    {
+        if (ViewModel.PlayerVisibility != PlayerVisibilityState.Visible)
+        {
+            base.OnKeyDown(e);
+            return;
+        }
+
+        // Handle Tab to open properties directly (prevent focus cycling)
+        if (e.OriginalKey == VirtualKey.Tab)
+        {
+            e.Handled = true;
+            if (Windows.UI.Xaml.Media.VisualTreeHelper.GetOpenPopups(Window.Current).Count == 0)
+            {
+                if (ViewModel.Media != null)
+                {
+                    var command = Application.Current.Resources["ShowPropertiesCommand"] as System.Windows.Input.ICommand;
+                    if (command != null && command.CanExecute(ViewModel.Media))
+                    {
+                        command.Execute(ViewModel.Media);
+                    }
+                }
+            }
+            return;
+        }
+
+        bool shouldHideControls = ViewModel is { ControlsHidden: false, ViewMode: WindowViewMode.Default };
+
+        switch (e.Key)
+        {
+            case VirtualKey.GamepadY when ViewModel.ViewMode != WindowViewMode.Compact:
+                ViewModel.ControlsHidden = false;
+                PlayerControls.GetPlayQueueFlyout().ShowAt(PlayerControls,
+                    new FlyoutShowOptions { Placement = GlobalizationHelper.MirrorWhenRightToLeft(FlyoutPlacementMode.TopEdgeAlignedRight) });
+                break;
+            case VirtualKey.GamepadMenu:
+                VideoView.ContextFlyout.ShowAt(PlayerControls,
+                    new FlyoutShowOptions { Placement = GlobalizationHelper.MirrorWhenRightToLeft(FlyoutPlacementMode.TopEdgeAlignedRight) });
+                break;
+            case VirtualKey.GamepadB when shouldHideControls:
+                ViewModel.TryHideControls(true);
+                break;
+            default:
+                base.OnKeyDown(e);
+                return;
+        }
+    }
+
+    private void AlbumArtImageOnSourceChanged(DependencyObject sender, DependencyProperty dp)
+    {
+        PlayBackgroundArtChangeCrossFadeAnimation();
+    }
+
+    private void OnLoading(FrameworkElement sender, object args)
+    {
+        if (ViewModel.PlayerVisibility == PlayerVisibilityState.Hidden)
+            VisualStateManager.GoToState(this, "Hidden", false);
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.PlayerVisibility == PlayerVisibilityState.Visible)
+        {
+            // Focus can fail if player is file activated
+            // Controls are disabled by default until playback is ready
+            PlayerControls.FocusFirstButton();
+        }
+    }
+
+    private void BackgroundElementOnSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        double overshoot = 200;   // extra space for animation
+        double edgeLength = Math.Max(e.NewSize.Width, e.NewSize.Height) + overshoot;
+        BackgroundArt.Width = edgeLength;
+        BackgroundArt.Height = edgeLength;
+    }
+
+    private void RegisterSeekBarPointerHandlers()
+    {
+        SeekBar? seekBar = PlayerControls.FindDescendant<SeekBar>();
+        Guard.IsNotNull(seekBar, nameof(seekBar));
+        seekBar.AddHandler(PointerPressedEvent, (PointerEventHandler)SeekBarPointerPressedOrEnteredEventHandler, true);
+        seekBar.AddHandler(PointerReleasedEvent, (PointerEventHandler)SeekBarPointerReleasedEventHandler, true);
+        seekBar.AddHandler(PointerCanceledEvent, (PointerEventHandler)SeekBarPointerReleasedEventHandler, true);
+        seekBar.AddHandler(PointerEnteredEvent, (PointerEventHandler)SeekBarPointerPressedOrEnteredEventHandler, false);
+        seekBar.AddHandler(PointerExitedEvent, (PointerEventHandler)SeekBarPointerExitedEventHandler, false);
+    }
+
+    private void SeekBarPointerPressedOrEnteredEventHandler(object s, PointerRoutedEventArgs e)
+    {
+        ViewModel.SeekBarPointerInteracting = true;
+    }
+
+    private void SeekBarPointerReleasedEventHandler(object s, PointerRoutedEventArgs e)
+    {
+        ViewModel.SeekBarPointerInteracting = false;
+        if (ViewModel.PlayerVisibility == PlayerVisibilityState.Visible)
+            PlayerControls.FocusFirstButton();
+    }
+
+    private void SeekBarPointerExitedEventHandler(object s, PointerRoutedEventArgs e)
+    {
+        ViewModel.SeekBarPointerInteracting = false;
+    }
+
+    private void OnLayoutVisualStateChanged(object _, VisualStateChangedEventArgs args)
+    {
+        bool expanding = args.OldState?.Name == nameof(MiniPlayer) || (args.OldState?.Name == nameof(Hidden) &&
+            (args.NewState == null || args.NewState.Name == nameof(Normal)));
+
+        bool collapsing = args.OldState?.Name == nameof(Normal) && args.NewState?.Name == nameof(MiniPlayer);
+
+        if (expanding || collapsing) PlayerControls.FocusFirstButton();
+        UpdateRootTheme();
+    }
+
+    private void ViewModelOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(PlayerPageViewModel.ControlsHidden):
+                VisualStateManager.GoToState(this, ViewModel.ControlsHidden ? "ControlsHidden" : "ControlsVisible", true);
+                if (!ViewModel.ControlsHidden)
+                {
+                    PlayerControls.FocusFirstButton();
+                }
+
+                break;
+            case nameof(PlayerPageViewModel.ViewMode):
+                switch (ViewModel.ViewMode)
+                {
+                    case WindowViewMode.Default:
+                        VisualStateManager.GoToState(this, "Normal", true);
+                        break;
+                    case WindowViewMode.Compact:
+                        ViewModel.PlayerVisibility = PlayerVisibilityState.Visible;
+                        VisualStateManager.GoToState(this, "CompactOverlay", true);
+                        break;
+                    case WindowViewMode.FullScreen:
+                        ViewModel.PlayerVisibility = PlayerVisibilityState.Visible;
+                        VisualStateManager.GoToState(this, "Fullscreen", true);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                UpdateContentState();
+                break;
+            case nameof(PlayerPageViewModel.AudioOnly):
+                UpdateContentState();
+                UpdateRootTheme();
+                UpdatePreviewType();
+                break;
+            case nameof(PlayerPageViewModel.PlayerVisibility):
+                switch (ViewModel.PlayerVisibility)
+                {
+                    case PlayerVisibilityState.Visible:
+                        VisualStateManager.GoToState(this, "NoPreview", true);
+                        VisualStateManager.GoToState(this, "Normal", true);
+                        break;
+                    case PlayerVisibilityState.Minimal:
+                        VisualStateManager.GoToState(this, "MiniPlayer", true);
+                        break;
+                    case PlayerVisibilityState.Hidden:
+                        VisualStateManager.GoToState(this, "Hidden", true);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                UpdatePreviewType();
+                UpdateContentState();
+                UpdateRootTheme();
+                UpdatePreviewType();
+                UpdateMiniPlayerMargin();
+                break;
+            case nameof(PlayerPageViewModel.NavigationViewDisplayMode) when ViewModel.ViewMode == WindowViewMode.Default:
+                UpdateMiniPlayerMargin();
+                break;
+            case nameof(PlayerPageViewModel.IsPlaying):
+                if (ViewModel.IsPlaying)
+                {
+                    if (_startup)
+                    {
+                        // Only when the app is file activated
+                        // Wait till playback starts then focus the player controls
+                        _startup = false;
+                        PlayerControls.FocusFirstButton();
+                    }
+
+                    BackgroundArtAnimation.Resume();
+                }
+                else
+                {
+                    BackgroundArtAnimation.Pause();
+                }
+
+                break;
+            case nameof(PlayerPageViewModel.ShouldClosePlayQueueFlyout) when ViewModel.ShouldClosePlayQueueFlyout:
+                if (PlayerControls.GetPlayQueueFlyout().IsOpen)
+                {
+                    PlayerControls.GetPlayQueueFlyout().Hide();
+                }
+
+                ViewModel.ShouldClosePlayQueueFlyout = false;
+                break;
+        }
+    }
+
+    private async void PlayBackgroundArtChangeCrossFadeAnimation()
+    {
+        // AnimationSet does not throw exception on cancellation
+        _animationCancellationTokenSource?.Cancel();
+        if (BackgroundElement.Visibility == Visibility.Collapsed ||
+        BackgroundArt.Visibility == Visibility.Collapsed)
+        {
+            BackgroundImage.Source = AlbumArtImage.ImageSource;
+            return;
+        }
+
+        using CancellationTokenSource cts = _animationCancellationTokenSource = new CancellationTokenSource();
+        if (ViewModel.Media == null)
+        {
+            await BackgroundArtFadeOutAnimation.StartAsync(cts.Token);
+            BackgroundImage.Source = null;
+        }
+        else if (BackgroundImage.Source == null)
+        {
+            BackgroundImageNext.Visibility = Visibility.Collapsed;
+            BackgroundImage.GetVisual().Opacity = 0;
+            BackgroundImage.Source = AlbumArtImage.ImageSource;
+            await BackgroundArtFadeInAnimation.StartAsync(cts.Token);
+        }
+        else
+        {
+            BackgroundImageNext.Visibility = Visibility.Visible;
+            await BackgroundArtFadeOutAnimation.StartAsync(cts.Token);
+            BackgroundImage.Source = AlbumArtImage.ImageSource;
+            await BackgroundArtFadeInAnimation.StartAsync(cts.Token);
+            BackgroundImageNext.Visibility = Visibility.Collapsed;
+        }
+
+        if (cts == _animationCancellationTokenSource)
+            _animationCancellationTokenSource = null;
+    }
+
+    private void UpdateContentState()
+    {
+        var contentVisualStateName = ViewModel.AudioOnly
+            ? "AudioOnly"
+            : "Video";
+        VisualStateManager.GoToState(this, contentVisualStateName, true);
+    }
+
+    private void UpdatePreviewType()
+    {
+        if (ViewModel.PlayerVisibility == PlayerVisibilityState.Visible || ViewModel.ViewMode == WindowViewMode.Compact)
+        {
+            VisualStateManager.GoToState(this, "NoPreview", true);
+        }
+        else
+        {
+            VisualStateManager.GoToState(this, ViewModel.AudioOnly ? "AudioPreview" : "VideoPreview", true);
+        }
+    }
+
+    private void UpdateMiniPlayerMargin()
+    {
+        if (ViewModel.PlayerVisibility == PlayerVisibilityState.Visible || ViewModel.ViewMode == WindowViewMode.Compact)
+        {
+            VisualStateManager.GoToState(this, "NoMargin", false);
+        }
+        else
+        {
+            switch (ViewModel.NavigationViewDisplayMode)
+            {
+                case NavigationViewDisplayMode.Minimal when ViewModel.PlayerVisibility == PlayerVisibilityState.Hidden:
+                    VisualStateManager.GoToState(this, "HiddenMinimalMargin", false);
+                    break;
+                case NavigationViewDisplayMode.Minimal:
+                    VisualStateManager.GoToState(this, "MinimalMargin", false);
+                    break;
+                case NavigationViewDisplayMode.Compact when ViewModel.PlayerVisibility == PlayerVisibilityState.Hidden:
+                case NavigationViewDisplayMode.Expanded when ViewModel.PlayerVisibility == PlayerVisibilityState.Hidden:
+                    VisualStateManager.GoToState(this, "HiddenNormalMargin", false);
+                    break;
+                case NavigationViewDisplayMode.Compact:
+                case NavigationViewDisplayMode.Expanded:
+                    VisualStateManager.GoToState(this, "NormalMargin", false);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+
+    private void UpdateRootTheme()
+    {
+        bool isDark = !ViewModel.AudioOnly && ViewModel.PlayerVisibility == PlayerVisibilityState.Visible;
+        LayoutRoot.RequestedTheme = isDark
+            ? ElementTheme.Dark
+            : ElementTheme.Default;
+
+        if (Window.Current.Content is Frame rootFrame)
+        {
+            App.SetupTitleBarColors(isDark ? ElementTheme.Dark : rootFrame.ActualTheme);
+        }
+    }
+
+    private void OnActualThemeChanged(FrameworkElement sender, object args)
+    {
+        UpdateBackgroundAcrylicOpacity(ActualTheme);
+    }
+
+    private void UpdateBackgroundAcrylicOpacity(ElementTheme theme)
+    {
+        // Set in code due to XAML compiler not setting it in Release
+        BackgroundAcrylicBrush.TintLuminosityOpacity = theme == ElementTheme.Light ? 0.5 : 0.4;
+    }
+
+    private void PlayerControlsBackground_OnTapped(object sender, TappedRoutedEventArgs e)
+    {
+        PlayerControls.FocusFirstButton(FocusState.Pointer);
+        e.Handled = true;
+    }
+
+    private async void PlayQueueFlyout_OnOpened(object sender, object e)
+    {
+        if (PlayQueue == null) return;
+        await PlayQueue.SmoothScrollActiveItemIntoViewAsync();
+    }
+
+    private void PlayQueueFlyout_OnOpening(object sender, object e)
+    {
+        FindName(nameof(PlayQueue));
+    }
+
+    private void PlayQueueButton_OnDragEnter(object sender, DragEventArgs e)
+    {
+        if (!e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.StorageItems)) return;
+    }
+
+    private void PlayQueueButton_OnDragLeave(object sender, DragEventArgs e)
+    {
+    }
+
+    private async void VideoView_OnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
+    {
+        // Reset focus after manipulation
+        // Must be queued in Dispatcher or risk losing focus right after
+        await Dispatcher.RunAsync(CoreDispatcherPriority.Low,
+            () => PlayerControls.FocusFirstButton(FocusState.Programmatic));
+    }
+
+    private void ControlsVisibilityStates_OnCurrentStateChanged(object sender, VisualStateChangedEventArgs e)
+    {
+        if (e.NewState.Name == nameof(ControlsHidden))
+        {
+            // Handle Space key when the controls are not visible.
+            // Also hide tooltip if there is any.
+            HiddenButton.Focus(FocusState.Programmatic);
+        }
+    }
+
+    private void VideoView_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (!ViewModel.OnPlayerClick())
+        {
+            PlayerControls.FocusFirstButton();
+        }
+    }
+
+    private void OnDragOver(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        e.AcceptedOperation = DataPackageOperation.Link;
+        if (e.DragUIOverride != null) e.DragUIOverride.Caption = Strings.Resources.Play;
+    }
+
+    private async void OnDrop(object sender, DragEventArgs e)
+    {
+        e.Handled = true;
+        await ViewModel.OnDropAsync(e.DataView);
+    }
+
+    private void LayoutRoot_OnPreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        // Enter = fullscreen toggle
+        if (e.OriginalKey == VirtualKey.Enter && !e.KeyStatus.IsMenuKeyDown)
+        {
+            PlayerControls.ViewModel.ToggleFullscreenCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        // Alt+Enter = minimize immersive view
+        if (e.OriginalKey == VirtualKey.Enter && e.KeyStatus.IsMenuKeyDown)
+        {
+            ViewModel.GoBackCommand.Execute(null);
+            e.Handled = true;
+            return;
+        }
+
+        if (e.OriginalKey == VirtualKey.Space &&
+            !KeyboardAcceleratorHelper.IsControlKeyDown &&
+            !KeyboardAcceleratorHelper.IsShiftKeyDown &&
+            !e.KeyStatus.IsMenuKeyDown)
+        {
+            e.Handled = true;
+            ViewModel.ProcessSpaceKeyDown();
+        }
+    }
+
+    private void LayoutRoot_OnPreviewKeyUp(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.OriginalKey == VirtualKey.Space &&
+            !KeyboardAcceleratorHelper.IsControlKeyDown &&
+            !KeyboardAcceleratorHelper.IsShiftKeyDown &&
+            !e.KeyStatus.IsMenuKeyDown)
+        {
+            e.Handled = true;
+            ViewModel.ProcessSpaceKeyUp();
+        }
+    }
+
+    private void ChangeVolumeKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = ViewModel.ProcessChangeVolumeKeyDown(args.KeyboardAccelerator.Key);
+    }
+
+    private void SeekKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        ViewModel.ProcessSeekKeyDown(args.KeyboardAccelerator.Key, args.KeyboardAccelerator.Modifiers);
+        args.Handled = true;
+    }
+
+    private void FrameSteppingKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = ViewModel.ProcessFrameSteppingKeyDown(args.KeyboardAccelerator.Key);
+    }
+
+    private void PlaybackRateKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = ViewModel.ProcessTogglePlaybackRateKeyDown(args.KeyboardAccelerator.Key, args.KeyboardAccelerator.Modifiers);
+    }
+
+    private void WindowResizeKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        double? scale = ViewModel.ProcessResizeKeyDown(args.KeyboardAccelerator.Key, args.KeyboardAccelerator.Modifiers);
+        args.Handled = scale.HasValue;
+        if (scale.HasValue)
+        {
+            ViewModel.SendStatusMessage(Odeon.Strings.Resources.ScaleStatus($"{scale.Value * 100:0.##}%"));
+        }
+    }
+
+    private void SeekToPercentageKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = ViewModel.ProcessPercentJumpKeyDown(args.KeyboardAccelerator.Key);
+    }
+
+    private void EscapeKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (Windows.UI.Xaml.Media.VisualTreeHelper.GetOpenPopups(Window.Current).Count > 0)
+        {
+            args.Handled = true;
+            return;
+        }
+
+        switch (ViewModel.ViewMode)
+        {
+            case WindowViewMode.Compact:
+            case WindowViewMode.FullScreen:
+                ViewModel.GoBack();
+                args.Handled = true;
+                break;
+            case WindowViewMode.Default:
+                ViewModel.TryHideControls();
+                args.Handled = true;
+                break;
+        }
+    }
+
+}

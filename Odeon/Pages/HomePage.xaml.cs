@@ -1,0 +1,57 @@
+﻿#nullable enable
+
+using System.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Odeon.Commands;
+using Odeon.Core.ViewModels;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Navigation;
+
+// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=234238
+
+namespace Odeon.Pages;
+
+/// <summary>
+/// An empty page that can be used on its own or navigated to within a Frame.
+/// </summary>
+public sealed partial class HomePage : Page
+{
+    internal HomePageViewModel ViewModel => (HomePageViewModel)DataContext;
+
+    internal CommonViewModel Common { get; }
+
+    private readonly SelectDeselectAllCommand _selectionCommand;
+
+    public HomePage()
+    {
+        this.InitializeComponent();
+        DataContext = Ioc.Default.GetRequiredService<HomePageViewModel>();
+        Common = Ioc.Default.GetRequiredService<CommonViewModel>();
+        _selectionCommand = new SelectDeselectAllCommand();
+    }
+
+    private void SelectDeselectAllKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (ViewModel.Recent.Count > 0 && _selectionCommand.CanToggleSelection(RecentFilesGridView))
+        {
+            ViewModel.Selection.IsSelectionModeActive = true;
+            _selectionCommand.ToggleSelection(RecentFilesGridView);
+            args.Handled = true;
+        }
+    }
+
+    private void RemoveSelectedKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        if (ViewModel.Recent.Count == 0) return;
+
+        var cmd = ViewModel.RemoveSelectedCommand;
+        var parameter = RecentFilesGridView.SelectedItems;
+        if (cmd.CanExecute(parameter))
+        {
+            cmd.Execute(parameter);
+            args.Handled = true;
+        }
+    }
+}

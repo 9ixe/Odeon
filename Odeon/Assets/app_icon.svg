@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Solid Navy Blue Background Tile (#132247) -->
+  <rect width="512" height="512" rx="112" fill="#132247" />
+
+  <!-- Clean Flat Pure White Play Triangle (No Shadow) -->
+  <path d="M 214 146.8 C 190.7 132.4 158 149.1 158 176.5 V 335.5 C 158 362.9 190.7 379.6 214 365.2 L 344 286 C 366.2 272.3 366.2 239.7 344 226 L 214 146.8 Z" 
+        fill="#FFFFFF" />
+</svg>

@@ -1,6 +1,6 @@
-# 🎬 Contributing to Screenbox
+﻿# 🎬 Contributing to Odeon
 
-Thank you for your interest in contributing to Screenbox! This guide will help you get started with developing and contributing to the project.
+Thank you for your interest in contributing to Odeon! This guide will help you get started with developing and contributing to the project.
 
 ## 📋 Table of Contents
 
@@ -45,17 +45,17 @@ Before you begin, ensure you have the following installed:
    - Select "Clone Repository..." from the File menu
    - Enter your fork's URL, replace `YOUR-USERNAME` with your GitHub username:
      ```
-     https://github.com/YOUR-USERNAME/Screenbox.git
+     https://github.com/9ixe/Odeon.git
      ```
    
      Or, if you are familiar with Git:
      ```bash
-     git clone https://github.com/YOUR-USERNAME/Screenbox.git
+     git clone https://github.com/9ixe/Odeon.git
      ```
 
 ### 2. Open and Build the Solution
 
-1. **Open the solution** in Visual Studio: `Screenbox.sln`
+1. **Open the solution** in Visual Studio: `Odeon.sln`
 2. **Set the platform** to match your machine's architecture (typically x64)
 3. **Build the solution** to restore NuGet packages: `F6`
 4. **Start debugging**: `F5`
@@ -67,9 +67,9 @@ Visual Studio's built-in Git integration should be sufficient for most developme
 The solution contains two main projects:
 
 ```
-Screenbox.sln
-├── Screenbox/           # Main UWP application (UI layer)
-└── Screenbox.Core/      # Core business logic library
+Odeon.sln
+├── Odeon/           # Main UWP application (UI layer)
+└── Odeon.Core/      # Core business logic library
 ```
 
 ### Key Architecture Patterns
@@ -81,16 +81,16 @@ Screenbox.sln
 
 ### Main Directories
 
-- `Screenbox/Pages/`: XAML pages
-- `Screenbox/Controls/`: Custom controls and user interface components
-- `Screenbox/Converters/`: Data binding converters
-- `Screenbox/Helpers/`: Utility and helper classes
-- `Screenbox/Strings/`: Localization resources
-- `Screenbox.Core/ViewModels/`: Presentation logic and data binding
-- `Screenbox.Core/Services/`: Business logic and data access services
-- `Screenbox.Core/Models/`: Data structures and entities
-- `Screenbox.Core/Messages/`: MVVM Toolkit messenger message types
-- `Screenbox.Core/Playback/`: Media playback logic and components
+- `Odeon/Pages/`: XAML pages
+- `Odeon/Controls/`: Custom controls and user interface components
+- `Odeon/Converters/`: Data binding converters
+- `Odeon/Helpers/`: Utility and helper classes
+- `Odeon/Strings/`: Localization resources
+- `Odeon.Core/ViewModels/`: Presentation logic and data binding
+- `Odeon.Core/Services/`: Business logic and data access services
+- `Odeon.Core/Models/`: Data structures and entities
+- `Odeon.Core/Messages/`: MVVM Toolkit messenger message types
+- `Odeon.Core/Playback/`: Media playback logic and components
 
 For a detailed breakdown of the entire codebase architecture, see the [Project Structure documentation](docs/PROJECT_STRUCTURE.md).
 
@@ -170,7 +170,7 @@ While not required, testing on different architectures (x64, x86, ARM64) and pla
 
 When adding features that require new user-facing text:
 
-1. **Only add new strings to the `.resw` files** in the `Screenbox/Strings/en-US/` directory
+1. **Only add new strings to the `.resw` files** in the `Odeon/Strings/en-US/` directory
 2. **Use ReswPlus features** for pluralization and advanced formatting when needed
 3. **Follow existing naming conventions** for resource keys
 
@@ -182,15 +182,15 @@ The main resource files are:
 ### Contributing Translations
 
 For translating the app to other languages:
-- **Crowdin (Recommended)**: [crowdin.com/project/screenbox](https://crowdin.com/project/screenbox)
+- **Crowdin (Recommended)**: [crowdin.com/project/Odeon](https://crowdin.com/project/Odeon)
 - **Local translation**: Only recommended for languages not available on Crowdin
 
 #### Local Translation Workflow
 
 If your language isn't available on Crowdin, you can either request its addition or proceed with local translation. Just follow these steps: 
 
-- Under `Screenbox/Strings`, create a new sub-folder, for example "fr-FR" for French (France), using the [BCP-47 language tag](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements#supported-languages) for the folder name.
-- Copy the contents of the `Screenbox/Strings/en-US/` folder into your language folder and translate them.
+- Under `Odeon/Strings`, create a new sub-folder, for example "fr-FR" for French (France), using the [BCP-47 language tag](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/app-package-requirements#supported-languages) for the folder name.
+- Copy the contents of the `Odeon/Strings/en-US/` folder into your language folder and translate them.
 
 For detailed guidance on the translation workflow and language support, see:
 - [Translation section in the main README](README.md#translation).
@@ -207,4 +207,4 @@ That's it! The maintainers will review your contribution and provide feedback if
 
 ## 🎉 Thank You!
 
-Every contribution helps make Screenbox better for everyone. Whether you're fixing bugs, adding features, improving documentation, or translating the app, your efforts are appreciated! 🙏
+Every contribution helps make Odeon better for everyone. Whether you're fixing bugs, adding features, improving documentation, or translating the app, your efforts are appreciated! 🙏

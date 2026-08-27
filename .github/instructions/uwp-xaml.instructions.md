@@ -1,4 +1,4 @@
----
+﻿---
 description: 'Guidelines for XAML development in UWP applications'
 applyTo: '**/*.xaml'
 ---
@@ -67,7 +67,7 @@ applyTo: '**/*.xaml'
     AutomationProperties.Name="{x:Bind PlayPauseButton.(extensions:AcceleratorService.ToolTip), Mode=OneWay}"
     Command="{x:Bind ViewModel.PlayPauseCommand}"
     Style="{StaticResource PlayerButtonStyle}">
-    <FontIcon FontFamily="{StaticResource ScreenboxSymbolThemeFontFamily}" Glyph="{x:Bind converters:GlyphConverter.ToPlayPauseGlyph(ViewModel.IsPlaying), Mode=OneWay}" />
+    <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" Glyph="{x:Bind converters:GlyphConverter.ToPlayPauseGlyph(ViewModel.IsPlaying), Mode=OneWay}" />
     <Button.KeyboardAccelerators>
         <KeyboardAccelerator Key="P" Invoked="PlayPauseKeyboardAccelerator_OnInvoked" />
     </Button.KeyboardAccelerators>

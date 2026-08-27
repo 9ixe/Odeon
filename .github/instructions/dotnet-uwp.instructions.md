@@ -1,4 +1,4 @@
----
+﻿---
 description: 'Guidelines for building .NET UWP applications'
 applyTo: '**/*.cs'
 ---
@@ -46,16 +46,16 @@ applyTo: '**/*.cs'
 
 ### Main Directories
 
-- `Screenbox/Pages/`: XAML pages
-- `Screenbox/Controls/`: Custom controls and user interface components
-- `Screenbox/Converters/`: Data binding converters
-- `Screenbox/Helpers/`: Utility and helper classes
-- `Screenbox/Strings/`: Localization resources
-- `Screenbox.Core/ViewModels/`: Presentation logic and data binding
-- `Screenbox.Core/Services/`: Business logic and data access services
-- `Screenbox.Core/Models/`: Data structures and entities
-- `Screenbox.Core/Messages/`: MVVM Toolkit messenger message types
-- `Screenbox.Core/Playback/`: Media playback logic and components
+- `Odeon/Pages/`: XAML pages
+- `Odeon/Controls/`: Custom controls and user interface components
+- `Odeon/Converters/`: Data binding converters
+- `Odeon/Helpers/`: Utility and helper classes
+- `Odeon/Strings/`: Localization resources
+- `Odeon.Core/ViewModels/`: Presentation logic and data binding
+- `Odeon.Core/Services/`: Business logic and data access services
+- `Odeon.Core/Models/`: Data structures and entities
+- `Odeon.Core/Messages/`: MVVM Toolkit messenger message types
+- `Odeon.Core/Playback/`: Media playback logic and components
 
 ## Nullable Reference Types
 

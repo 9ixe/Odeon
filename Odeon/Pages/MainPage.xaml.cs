@@ -1,0 +1,390 @@
+﻿#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Odeon.Core;
+using Odeon.Core.Models;
+using Odeon.Core.ViewModels;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.System;
+using Windows.UI.Core;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media.Animation;
+using Windows.UI.Xaml.Navigation;
+
+using NavigationView = Microsoft.UI.Xaml.Controls.NavigationView;
+using NavigationViewBackRequestedEventArgs = Microsoft.UI.Xaml.Controls.NavigationViewBackRequestedEventArgs;
+using NavigationViewDisplayMode = Microsoft.UI.Xaml.Controls.NavigationViewDisplayMode;
+using NavigationViewDisplayModeChangedEventArgs = Microsoft.UI.Xaml.Controls.NavigationViewDisplayModeChangedEventArgs;
+using NavigationViewItem = Microsoft.UI.Xaml.Controls.NavigationViewItem;
+using NavigationViewSelectionChangedEventArgs = Microsoft.UI.Xaml.Controls.NavigationViewSelectionChangedEventArgs;
+
+namespace Odeon.Pages
+{
+    public sealed partial class MainPage : Page, IContentFrame
+    {
+        public Type ContentSourcePageType => ContentFrame.SourcePageType;
+
+        public object? FrameContent => ContentFrame.Content;
+
+        public bool CanGoBack => ContentFrame.CanGoBack;
+
+        private MainPageViewModel ViewModel => (MainPageViewModel)DataContext;
+
+        private readonly Dictionary<string, Type> _pages;
+
+        public MainPage()
+        {
+            InitializeComponent();
+
+            _pages = new Dictionary<string, Type>
+            {
+                { "home", typeof(HomePage) },
+                { "playlists", typeof(PlaylistsPage) },
+                { "videos", typeof(VideosPage) },
+                { "music", typeof(MusicPage) },
+                { "network", typeof(NetworkPage) },
+                { "settings", typeof(SettingsPage) }
+            };
+
+            DataContext = Ioc.Default.GetRequiredService<MainPageViewModel>();
+            ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            ViewModel.Playlists.CollectionChanged += Playlists_CollectionChanged;
+            SyncPlaylistsMenu();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            PlayerFrame.Navigate(typeof(PlayerPage), e.Parameter);
+            if (e.Parameter is true)
+            {
+                ViewModel.PlayerVisible = true;
+            }
+
+            // NavView remembers if the pane was open last time
+            ViewModel.IsPaneOpen = NavView.IsPaneOpen;
+        }
+
+        protected override void OnKeyDown(KeyRoutedEventArgs e)
+        {
+            ViewModel.ProcessGamepadKeyDown(e.Key);
+            base.OnKeyDown(e);
+        }
+
+        public void GoBack()
+        {
+            TryGoBack();
+        }
+
+        public void NavigateContent(Type pageType, object? parameter)
+        {
+            ViewModel.PlayerVisible = false;
+            ContentFrame.Navigate(pageType, parameter, new SuppressNavigationTransitionInfo());
+        }
+
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            Window.Current.Dispatcher.AcceleratorKeyActivated += CoreDispatcher_AcceleratorKeyActivated;
+            SystemNavigationManager.GetForCurrentView().BackRequested += System_BackRequested;
+            Window.Current.CoreWindow.PointerPressed += CoreWindow_PointerPressed;
+            ViewModel.NavigationViewDisplayMode = (Windows.UI.Xaml.Controls.NavigationViewDisplayMode)NavView.DisplayMode;
+            if (!ViewModel.PlayerVisible)
+            {
+                NavView.SelectedItem = NavView.MenuItems[0];
+                _ = ViewModel.FetchLibraries();
+            }
+        }
+
+        private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ViewModel.PlayerVisible))
+            {
+                if (!ViewModel.PlayerVisible)
+                {
+                    if (ContentFrame.Content == null)
+                    {
+                        NavView.SelectedItem = NavView.MenuItems[0];
+                        _ = ViewModel.FetchLibraries();
+                    }
+                }
+
+                UpdateNavigationViewState(NavView.DisplayMode, NavView.IsPaneOpen);
+            }
+        }
+
+        private void ContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)
+        {
+            throw new Exception("Failed to load Page " + e.SourcePageType.FullName, e.Exception);
+        }
+
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (args.IsSettingsSelected)
+            {
+                NavView_Navigate("settings");
+            }
+            else if (args.SelectedItem is PlaylistViewModel playlist)
+            {
+                ContentFrame.Navigate(typeof(PlaylistDetailsPage), playlist, new SuppressNavigationTransitionInfo());
+            }
+            else if (args.SelectedItem is NavigationViewItem navItem && navItem.DataContext is PlaylistViewModel playlistFromContext)
+            {
+                ContentFrame.Navigate(typeof(PlaylistDetailsPage), playlistFromContext, new SuppressNavigationTransitionInfo());
+            }
+            else if (args.SelectedItemContainer != null)
+            {
+                var navItemTag = args.SelectedItemContainer.Tag?.ToString();
+                if (!string.IsNullOrEmpty(navItemTag))
+                {
+                    NavView_Navigate(navItemTag);
+                }
+            }
+        }
+
+        private void NavView_Navigate(string navItemTag)
+        {
+            Type pageType = navItemTag == "settings" ? typeof(SettingsPage) : _pages.GetValueOrDefault(navItemTag);
+            // Get the page type before navigation so you can prevent duplicate
+            // entries in the backstack.
+            Type? preNavPageType = ContentFrame.CurrentSourcePageType;
+
+            // Only navigate if the selected page isn't currently loaded.
+            if (!(pageType is null) && !Type.Equals(preNavPageType, pageType))
+            {
+                ContentFrame.Navigate(pageType, null, new SuppressNavigationTransitionInfo());
+            }
+        }
+
+        private void CoreDispatcher_AcceleratorKeyActivated(CoreDispatcher sender, AcceleratorKeyEventArgs args)
+        {
+            if (args is
+                {
+                    EventType: CoreAcceleratorKeyEventType.SystemKeyDown,
+                    VirtualKey: VirtualKey.Left,
+                    KeyStatus.IsMenuKeyDown: true,
+                    Handled: false
+                })
+            {
+                args.Handled = TryGoBack();
+            }
+        }
+
+        private void System_BackRequested(object sender, BackRequestedEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                e.Handled = TryGoBack();
+            }
+        }
+
+        private void NavView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
+        {
+            TryGoBack();
+        }
+
+        private void CoreWindow_PointerPressed(CoreWindow sender, PointerEventArgs e)
+        {
+            // Handle mouse back button.
+            if (e.CurrentPoint.Properties.IsXButton1Pressed)
+            {
+                e.Handled = TryGoBack();
+            }
+        }
+
+        private bool TryGoBack()
+        {
+            // Don't go back if the nav pane is overlayed.
+            if (NavView.IsPaneOpen &&
+                NavView.DisplayMode is NavigationViewDisplayMode.Compact or NavigationViewDisplayMode.Minimal)
+                NavView.IsPaneOpen = false;
+
+            if (ViewModel.PlayerVisible && PlayerFrame.Content is PlayerPage { ViewModel: { } vm })
+            {
+                vm.GoBack();
+                return true;
+            }
+
+            if (ContentFrame.Content is IContentFrame { CanGoBack: true } page)
+            {
+                page.GoBack();
+                return true;
+            }
+
+            if (!ContentFrame.CanGoBack)
+                return false;
+
+            ContentFrame.GoBack();
+            return true;
+        }
+
+        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            NavView.IsBackEnabled = ContentFrame.CanGoBack;
+
+            if (ContentFrame.SourcePageType == typeof(SettingsPage))
+            {
+                // SettingsItem is not part of NavView.MenuItems, and doesn't have a Tag.
+                NavView.SelectedItem = (NavigationViewItem)NavView.SettingsItem;
+            }
+            else if (ContentFrame.SourcePageType != null)
+            {
+                NavigationViewItem? selectedItem = GetNavigationItemForPageType(e.SourcePageType);
+
+                if (selectedItem == null && ViewModel.TryGetPageTypeFromParameter(e.Parameter, out Type pageType))
+                {
+                    selectedItem = GetNavigationItemForPageType(pageType);
+                }
+
+                NavView.SelectedItem = selectedItem;
+            }
+        }
+
+        private NavigationViewItem? GetNavigationItemForPageType(Type pageType)
+        {
+            KeyValuePair<string, Type> item = _pages.FirstOrDefault(p => p.Value == pageType);
+
+            NavigationViewItem? selectedItem = NavView.MenuItems
+                .OfType<NavigationViewItem>()
+                .FirstOrDefault(n => n.Tag.Equals(item.Key));
+
+            return selectedItem;
+        }
+
+        private void NavView_OnDisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
+        {
+            UpdateNavigationViewState(args.DisplayMode, NavView.IsPaneOpen);
+            ViewModel.NavigationViewDisplayMode = (Windows.UI.Xaml.Controls.NavigationViewDisplayMode)args.DisplayMode;
+        }
+
+        private void UpdateNavigationViewState(NavigationViewDisplayMode displayMode, bool paneOpen)
+        {
+            if (ViewModel.PlayerVisible)
+            {
+                VisualStateManager.GoToState(this, "Hidden", true);
+                return;
+            }
+
+            switch (displayMode)
+            {
+                case NavigationViewDisplayMode.Minimal:
+                    VisualStateManager.GoToState(this, "Minimal", true);
+                    break;
+                case NavigationViewDisplayMode.Compact when paneOpen:
+                    VisualStateManager.GoToState(this, "CompactPaneOverlay", true);
+                    break;
+                case NavigationViewDisplayMode.Expanded when paneOpen:
+                    VisualStateManager.GoToState(this, "Expanded", true);
+                    break;
+                case NavigationViewDisplayMode.Expanded:
+                case NavigationViewDisplayMode.Compact:
+                    VisualStateManager.GoToState(this, "Compact", true);
+                    break;
+            }
+        }
+
+        private void NavView_OnPaneOpening(NavigationView sender, object args)
+        {
+            UpdateNavigationViewState(sender.DisplayMode, sender.IsPaneOpen);
+        }
+
+        private void NavView_OnPaneClosing(NavigationView sender, object args)
+        {
+            // Deferred to ensure IsPaneOpen reports the correct state
+            // when closing the pane via gamepad.
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal,
+                () => UpdateNavigationViewState(sender.DisplayMode, sender.IsPaneOpen));
+        }
+
+        private void NavViewSearchBox_OnTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        {
+            if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+            {
+                ViewModel.UpdateSearchSuggestions(sender.Text);
+            }
+        }
+
+        private void NavViewSearchBox_OnSuggestionChosen(AutoSuggestBox sender, AutoSuggestBoxSuggestionChosenEventArgs args)
+        {
+            // Update the text box when navigating through the suggestion list using the keyboard.
+            if (args.SelectedItem is SearchSuggestion suggestion)
+            {
+                // We set sender.Text directly instead of ViewModel.SearchQuery
+                // to avoid triggering TextChanged event.
+                sender.Text = suggestion.Text;
+            }
+        }
+
+        private void NavViewSearchBox_OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+        {
+            if (args.ChosenSuggestion is SearchSuggestion suggestion)
+            {
+                ViewModel.SelectSuggestion(suggestion);
+            }
+            else
+            {
+                ViewModel.SubmitSearch(args.QueryText);
+            }
+
+            ViewModel.SearchQuery = string.Empty;
+            ViewModel.SearchSuggestions.Clear();
+            if (NavView.IsPaneOpen && NavView.DisplayMode != NavigationViewDisplayMode.Expanded)
+            {
+                ViewModel.IsPaneOpen = false;
+            }
+        }
+
+        /// <summary>
+        /// Give the <see cref="NavViewSearchBox"/> text entry box focus ("Focused" visual state) through the keyboard shortcut combination.
+        /// </summary>
+        private void NavViewSearchBoxKeyboardAcceleratorFocus_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            NavViewSearchBox.Focus(FocusState.Keyboard);
+            args.Handled = true;
+        }
+
+        /// <summary>
+        /// Give the <see cref="NavViewSearchBox"/> text entry box focus ("Focused" visual state) through the access key combination.
+        /// </summary
+        private void NavViewSearchBox_OnAccessKeyInvoked(UIElement sender, AccessKeyInvokedEventArgs args)
+        {
+            NavViewSearchBox.Focus(FocusState.Keyboard);
+            args.Handled = true;
+        }
+
+        private void NavView_DragOver(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+            e.AcceptedOperation = DataPackageOperation.Link;
+            if (e.DragUIOverride != null) e.DragUIOverride.Caption = Strings.Resources.Play;
+        }
+
+        private void NavView_Drop(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+            ViewModel.OnDrop(e.DataView);
+        }
+        private void Playlists_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            SyncPlaylistsMenu();
+        }
+
+        private void SyncPlaylistsMenu()
+        {
+            PlaylistsNavItem.MenuItems.Clear();
+            foreach (var playlist in ViewModel.Playlists)
+            {
+                var item = new NavigationViewItem
+                {
+                    Content = playlist.Name,
+                    DataContext = playlist
+                };
+                PlaylistsNavItem.MenuItems.Add(item);
+            }
+        }
+    }
+}

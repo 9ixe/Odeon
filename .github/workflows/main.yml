@@ -51,7 +51,7 @@ jobs:
       env:
         APPCENTER_API_KEY: ${{ github.ref_type == 'tag' && secrets.APPCENTER_API_KEY || '' }}
         SENTRY_DSN: ${{ github.ref_type == 'tag' && secrets.SENTRY_DSN || '' }}
-      run: Get-Content Screenbox/Secrets.cs.template | .\gomplate.exe | Set-Content Screenbox/Secrets.cs
+      run: Get-Content Trackoplay/Secrets.cs.template | .\gomplate.exe | Set-Content Trackoplay/Secrets.cs
 
     - name: Get tag version
       id: get-tag-version
@@ -70,9 +70,9 @@ jobs:
         BuildPlatforms: x86|x64|arm64
         PackageDir: C:\DeployOutput
         SENTRY_ORG: starpine
-        SENTRY_PROJECT: screenbox
+        SENTRY_PROJECT: Trackoplay
         SENTRY_URL: https://sentry.io/
-        SENTRY_RELEASE : screenbox@${{ steps.get-tag-version.outputs.version }}
+        SENTRY_RELEASE : Trackoplay@${{ steps.get-tag-version.outputs.version }}
         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       run: |
         if ('${{ github.ref_type }}' -eq 'tag') {
@@ -83,7 +83,7 @@ jobs:
                         "-p:SentryCreateRelease=true", `
                         "-p:SentrySetCommits=true"
         }
-        msbuild Screenbox.sln `
+        msbuild Trackoplay.sln `
           -p:RestoreConfigFile=nuget.config `
           -p:Configuration=Release `
           -p:Platform=x64 `
@@ -106,7 +106,7 @@ jobs:
     - name: Create sideload artifact
       uses: actions/upload-artifact@v7
       with:
-        name: Screenbox-sideload
+        name: Trackoplay-sideload
         path: |
           C:\DeployOutput\*_Test
 
@@ -117,17 +117,17 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v8
       with:
-        name: Screenbox-sideload
+        name: Trackoplay-sideload
         path: C:\Download\
     - name: Rename test folder
-      run: Get-ChildItem -Directory -Path C:\Download\Screenbox_*_Test | Rename-Item -NewName Screenbox
+      run: Get-ChildItem -Directory -Path C:\Download\Trackoplay_*_Test | Rename-Item -NewName Trackoplay
     - name: Rename test package
-      run: Get-ChildItem -Path C:\Download\Screenbox\*.msixbundle | Rename-Item -NewName Screenbox.msixbundle
+      run: Get-ChildItem -Path C:\Download\Trackoplay\*.msixbundle | Rename-Item -NewName Trackoplay.msixbundle
     - uses: huynhsontung/wack-certification@main
       with:
         name: 'WACK'
-        package-path: 'C:\Download\Screenbox\Screenbox.msixbundle'
-        report-name: 'Screenbox.Certification.xml'
+        package-path: 'C:\Download\Trackoplay\Trackoplay.msixbundle'
+        report-name: 'Trackoplay.Certification.xml'
         ignore-rules: '38'
 
   release:
@@ -141,7 +141,7 @@ jobs:
     - name: Download package
       uses: actions/download-artifact@v8
       with:
-        name: Screenbox-sideload
+        name: Trackoplay-sideload
         path: download/
 
     - name: Zip artifact

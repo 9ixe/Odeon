@@ -1,6 +1,6 @@
-# 📱 Screenbox Project Structure
+﻿# 📱 Odeon Project Structure
 
-This document provides a comprehensive overview of the Screenbox project's architecture, organization, and practical workflows for development.
+This document provides a comprehensive overview of the Odeon project's architecture, organization, and practical workflows for development.
 
 ## 📋 Table of Contents
 
@@ -24,7 +24,7 @@ This document provides a comprehensive overview of the Screenbox project's archi
 
 ## 📖 Overview
 
-Screenbox is a modern media player for Windows built using the Universal Windows Platform ([UWP](https://learn.microsoft.com/en-us/windows/uwp/get-started/universal-application-platform-guide)) and LibVLCSharp. The application follows the Model-View-ViewModel ([MVVM](https://learn.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm)) design pattern with dependency injection for maintainable and testable code.
+Odeon is a modern media player for Windows built using the Universal Windows Platform ([UWP](https://learn.microsoft.com/en-us/windows/uwp/get-started/universal-application-platform-guide)) and LibVLCSharp. The application follows the Model-View-ViewModel ([MVVM](https://learn.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm)) design pattern with dependency injection for maintainable and testable code.
 
 The architecture is built around clean separation of concerns:
 - **View Layer**: XAML-based UI components and user controls
@@ -36,24 +36,24 @@ The architecture is built around clean separation of concerns:
 The solution contains two main projects organized for clear separation of concerns:
 
 ```
-Screenbox.sln
-├── Screenbox/           # Main UWP application (UI layer)
-└── Screenbox.Core/      # Core business logic library
+Odeon.sln
+├── Odeon/           # Main UWP application (UI layer)
+└── Odeon.Core/      # Core business logic library
 ```
 
-### Main Project: Screenbox
+### Main Project: Odeon
 The primary UWP application containing all user interface components, platform-specific code, and XAML resources.
 
-### Core Library: Screenbox.Core
+### Core Library: Odeon.Core
 Contains the business logic, services, view models, and media playback components that can be shared across different platforms.
 
 ## 🎨 View Layer
 
-The View layer is contained in the Screenbox project. This project consists primarily of XAML files and custom controls that define the user interface. `App.xaml` and the `Styles` folder contain resources referenced throughout the application, while the `App.xaml.cs` file serves as the main entry point and handles dependency injection configuration.
+The View layer is contained in the Odeon project. This project consists primarily of XAML files and custom controls that define the user interface. `App.xaml` and the `Styles` folder contain resources referenced throughout the application, while the `App.xaml.cs` file serves as the main entry point and handles dependency injection configuration.
 
 ### Core UI Structure
 
-Screenbox uses a single-page application model with `MainPage.xaml` as the root container. The main page utilizes a `NavigationView` control for the navigation menu and houses content frames for different application modes:
+Odeon uses a single-page application model with `MainPage.xaml` as the root container. The main page utilizes a `NavigationView` control for the navigation menu and houses content frames for different application modes:
 
 ```
 MainPage.xaml (Root Container)
@@ -75,7 +75,7 @@ The application organizes its content into several main page categories:
 
 ### Custom Controls Architecture
 
-Screenbox implements numerous custom controls for specialized functionality:
+Odeon implements numerous custom controls for specialized functionality:
 
 #### Core Playback Controls
 - **`PlayerControls.xaml`**: Primary media control interface
@@ -94,11 +94,11 @@ Screenbox implements numerous custom controls for specialized functionality:
 
 ### Visual States
 
-[Visual States](https://learn.microsoft.com/en-us/windows/uwp/design/layout/layouts-with-xaml#adaptive-layouts-with-visual-states-and-state-triggers) enable adaptive layouts that respond to window size changes, device orientation, and user interaction modes. Screenbox uses visual states extensively to create responsive experiences across different form factors.
+[Visual States](https://learn.microsoft.com/en-us/windows/uwp/design/layout/layouts-with-xaml#adaptive-layouts-with-visual-states-and-state-triggers) enable adaptive layouts that respond to window size changes, device orientation, and user interaction modes. Odeon uses visual states extensively to create responsive experiences across different form factors.
 
 ### Data Binding
 
-Screenbox uses [data binding](https://learn.microsoft.com/en-us/windows/uwp/data-binding/data-binding-quickstart) extensively to create dynamic, responsive UI components. The application primarily uses the [x:Bind](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/x-bind-markup-extension) markup extension for performance benefits over the legacy [Binding](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/binding-markup-extension) syntax.
+Odeon uses [data binding](https://learn.microsoft.com/en-us/windows/uwp/data-binding/data-binding-quickstart) extensively to create dynamic, responsive UI components. The application primarily uses the [x:Bind](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/x-bind-markup-extension) markup extension for performance benefits over the legacy [Binding](https://learn.microsoft.com/en-us/windows/apps/develop/platform/xaml/binding-markup-extension) syntax.
 
 Example of x:Bind usage in media display:
 ```xml
@@ -110,7 +110,7 @@ The binding system enables automatic UI updates when media state changes, provid
 
 ### Navigation System
 
-Navigation in Screenbox is handled through a custom `NavigationService` that maps ViewModels to their corresponding Pages. This system is configured in `App.xaml.cs` and enables loose coupling between the ViewModel and View layers:
+Navigation in Odeon is handled through a custom `NavigationService` that maps ViewModels to their corresponding Pages. This system is configured in `App.xaml.cs` and enables loose coupling between the ViewModel and View layers:
 
 ```csharp
 new KeyValuePair<Type, Type>(typeof(HomePageViewModel), typeof(HomePage)),
@@ -120,11 +120,11 @@ new KeyValuePair<Type, Type>(typeof(MusicPageViewModel), typeof(MusicPage))
 
 ### Localization System
 
-Screenbox implements comprehensive multi-language support through the Windows and ReswPlus resource system, following [UWP localization guidelines](https://learn.microsoft.com/en-us/windows/uwp/design/globalizing/globalizing-portal) and [ReswPlus guides](https://github.com/DotNetPlus/ReswPlus/wiki) for efficient localized resource management.
+Odeon implements comprehensive multi-language support through the Windows and ReswPlus resource system, following [UWP localization guidelines](https://learn.microsoft.com/en-us/windows/uwp/design/globalizing/globalizing-portal) and [ReswPlus guides](https://github.com/DotNetPlus/ReswPlus/wiki) for efficient localized resource management.
 
 ## 🔄 ViewModel Layer
 
-The ViewModel layer is contained in the Screenbox.Core project and serves as the intermediary between the UI components and business logic. ViewModels provide data sources for UI binding and encapsulate presentation logic while remaining independent of specific UI implementations.
+The ViewModel layer is contained in the Odeon.Core project and serves as the intermediary between the UI components and business logic. ViewModels provide data sources for UI binding and encapsulate presentation logic while remaining independent of specific UI implementations.
 
 ### Key ViewModel Architecture
 
@@ -168,7 +168,7 @@ This enables automatic UI updates when ViewModel properties change, maintaining 
 
 ### Messaging System
 
-Screenbox uses the [CommunityToolkit.Mvvm messaging system](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/messenger) for decoupled communication between components. This allows ViewModels, Services, and other components to communicate without direct references.
+Odeon uses the [CommunityToolkit.Mvvm messaging system](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/messenger) for decoupled communication between components. This allows ViewModels, Services, and other components to communicate without direct references.
 
 #### Core Message Types
 
@@ -189,11 +189,11 @@ Screenbox uses the [CommunityToolkit.Mvvm messaging system](https://learn.micros
 
 ## 🔧 Model Layer
 
-The Model layer contains the core business logic and is primarily located in the Screenbox.Core project. This layer consists of services, media playback components, and data models that provide the foundation for the application functionality.
+The Model layer contains the core business logic and is primarily located in the Odeon.Core project. This layer consists of services, media playback components, and data models that provide the foundation for the application functionality.
 
 ### Services Architecture
 
-Screenbox implements a comprehensive service-oriented architecture using [Microsoft.Extensions.DependencyInjection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection) for service registration and resolution. Services are registered in `ServiceHelpers.cs` and injected throughout the application.
+Odeon implements a comprehensive service-oriented architecture using [Microsoft.Extensions.DependencyInjection](https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection) for service registration and resolution. Services are registered in `ServiceHelpers.cs` and injected throughout the application.
 
 #### Core Business Services
 

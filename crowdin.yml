@@ -9,11 +9,11 @@ commit_message: "l10n: New translations %original_file_name% (%language%)"
 append_commit_message: false
 preserve_hierarchy: true
 files:
-  - source: /Screenbox/Strings/en-US/*.resw
+  - source: /Odeon/Strings/en-US/*.resw
     ignore:
-      - /Screenbox/Strings/en-US/Keyboard*.resw
-    translation: /Screenbox/Strings/%locale%/%original_file_name%
+      - /Odeon/Strings/en-US/Keyboard*.resw
+    translation: /Odeon/Strings/%locale%/%original_file_name%
     update_option: update_as_unapproved
-  - source: /Screenbox/Strings/en-US/*.md
-    translation: /Screenbox/Strings/%locale%/%original_file_name%
+  - source: /Odeon/Strings/en-US/*.md
+    translation: /Odeon/Strings/%locale%/%original_file_name%
     update_option: update_as_unapproved

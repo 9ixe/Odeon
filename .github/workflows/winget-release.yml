@@ -13,6 +13,6 @@ jobs:
       - name: Submit to Winget
         uses: vedantmgoyal9/winget-releaser@v2
         with:
-          identifier: Starpine.Screenbox
+          identifier: Starpine.Trackoplay
           installers-regex: '\.msixbundle$'  # Match msixbundle files in release assets
           token: ${{ secrets.WINGET_TOKEN }}
