@@ -1,0 +1,26 @@
+﻿name: Build Odeon
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Restore NuGet packages
+      run: msbuild Odeon.sln -t:restore -p:Platform=x64 -p:Configuration=Release
+
+    - name: Build Odeon Solution (Release x64)
+      run: msbuild Odeon.sln -p:Platform=x64 -p:Configuration=Release
