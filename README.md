@@ -56,19 +56,23 @@ Odeon introduces a bespoke typographic and subtitle architecture:
 ### ✂️ Debloated Core & Distraction-Free Philosophy
 
 - **Zero Telemetry & 100% Offline:** All tracking and diagnostic SDKs (such as Microsoft App Center and Sentry) have been completely purged from the source code. Odeon never communicates with remote analytics servers or monitors your viewing habits.
-- **Stripped-Down Interface:** Removed cluttered casting overlays, PiP toggles, play queue drawers, and unnecessary controls. The interface only presents what you need during playback.
+- **Stripped-Down Interface:** Removed cluttered casting overlays, PiP toggles, and unnecessary controls. The interface only presents what you need during playback.
+- **Dedicated Side Panels:** Clean, slide-in panels for Subtitles, Audio Tracks, and Play Queue — each with pill-style selection indicators, smooth animations, and context menus for full control.
+- **Redesigned Play Queue:** Full drag-and-drop reorder, multi-select mode, bulk actions, and the ability to add files directly to the queue.
+- **Mini Player Controls:** Compact playback bar with subtitle, audio, and play queue toggles — all with matching pill-style buttons.
 - **Clean Context Menu:** The right-click menu has been redesigned to offer fast, direct access to critical playback actions without multi-tier submenus.
 - **Instant Playback Focus:** Launch video and audio files with near-zero latency, free from background indexing routines or resource-heavy library watchers.
-- **No Legacy Dependencies:** Odeon is built entirely on **libmpv** (`mpv-2.dll`) with Direct3D 11 composition — no LibVLC, no VLC dialogs, no renderer discovery overhead.
+- **No Legacy Dependencies:** Odeon is built entirely on **libmpv** (`mpv-2.dll`) with Direct3D 11 composition — no LibVLC, no VLC dialogs, no renderer discovery overhead. Side panels use WinUI acrylic backgrounds for a consistent, modern feel.
 
 ### ✨ Handcrafted Visual & Interactive Refinements
 
-- **Curated Monochrome Palette:** Replaced unpredictable OS system accent colors with a clean, high-contrast white and dark aesthetic that blends into the background during playback.
+- **Netflix-Style Red Accent:** A bold, cinematic red accent color that pops against dark backgrounds — inspired by premium streaming experiences.
+- **Glassmorphic Acrylic Backdrops:** Side panels and context menus use WinUI acrylic backgrounds with blur effects, creating depth and visual hierarchy throughout the interface.
 - **Smart Centered Titlebar:** Automatically parses video filenames, stripping file extensions (`.mkv`, `.mp4`, etc.) and brackets to display a clean, centered title across both windowed and fullscreen modes.
 - **Glassmorphic Properties HUD (`Tab`):** Pressing `Tab` at any moment reveals an instant frosted-glass overlay displaying the video's Title, Resolution, Bitrate, Duration, and File Size without interrupting playback.
 - **Dynamic Interactive Seekbar:** The progress bar features subtle spring physics that scale and expand dynamically during scrubbing, complete with smooth rounded track geometry.
-- **Dedicated Track Switchers:** Separate, dedicated controls for Audio Tracks and Subtitles allow for rapid, 1-click switching between language streams.
-- **Auto-Dismissing HUD:** Clean on-screen notifications for volume and seek adjustments that automatically dismiss after 1 second.
+- **Dedicated Track Switchers:** Separate, slide-in side panels for Audio Tracks and Subtitles with instant switching, plus a full Play Queue panel with drag-and-drop reorder.
+- **Auto-Dismissing HUD:** Clean on-screen notifications for volume and seek adjustments that automatically dismiss after 1 second. Controls hide on spacebar press or mouse click for an immersive experience.
 
 ### ⚡ Robust Playback Architecture
 
@@ -95,6 +99,8 @@ Underneath its minimalist exterior, Odeon is powered by **libmpv**, presenting i
 | **`M`** | Toggle Mute |
 | **`1` – `4`** | Window Resize Presets (50%, 100%, 150%, 200%) |
 | **`Esc`** | Exit Fullscreen / Dismiss Active Menus |
+| **`C`** | Toggle Subtitle Side Panel |
+| **`I`** | Restore from Mini Player |
 
 ---
 
