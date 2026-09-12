@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -254,10 +254,36 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
                 if (items.Count > 0)
                 {
                     if (items.Count == 1 && items[0] is StorageFile file && file.IsSupportedSubtitle() &&
-                        MediaPlayer is VlcMediaPlayer player && Media?.Item.Value != null)
+                        MediaPlayer is MpvMediaPlayer player && Media?.Item.Value != null)
                     {
                         Media.Item.Value.SubtitleTracks.AddExternalSubtitle(player, file, null, true);
+                        string mediaKey = player.PlaybackItem?.FilePath ?? string.Empty;
+                        if (!string.IsNullOrEmpty(mediaKey) && !string.IsNullOrEmpty(file.Path))
+                        {
+                            try
+                            {
+                                string extSubKey = $"MediaExtSub_{mediaKey.GetHashCode():X8}";
+                                Windows.Storage.ApplicationData.Current.LocalSettings.Values[extSubKey] = file.Path;
+                            }
+                            catch { }
+                        }
                         Messenger.Send(new SubtitleAddedNotificationMessage(file));
+                    }
+                    else if (items.Count == 1 && items[0] is StorageFile audioFile && audioFile.IsSupportedAudio() &&
+                        MediaPlayer is MpvMediaPlayer mpvAudioPlayer && Media?.Item.Value != null)
+                    {
+                        Media.Item.Value.AudioTracks.AddExternalAudio(mpvAudioPlayer, audioFile, true);
+                        string mediaKey = mpvAudioPlayer.PlaybackItem?.FilePath ?? string.Empty;
+                        if (!string.IsNullOrEmpty(mediaKey) && !string.IsNullOrEmpty(audioFile.Path))
+                        {
+                            try
+                            {
+                                string extAudioKey = $"MediaExtAudio_{mediaKey.GetHashCode():X8}";
+                                Windows.Storage.ApplicationData.Current.LocalSettings.Values[extAudioKey] = audioFile.Path;
+                            }
+                            catch { }
+                        }
+                        Messenger.Send(new UpdateStatusMessage($"Audio: {audioFile.Name}"));
                     }
                     else
                     {
@@ -647,17 +673,26 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
 
     partial void OnControlsHiddenChanged(bool value)
     {
-        if (value)
+        // Bring the cursor back as soon as the controls return. Hiding it is deferred to the
+        // ControlsVisibilityStates state change, so that it remains visible until the controls
+        // have actually moved out of view.
+        if (!value)
         {
-            _windowService.HideCursor();
-        }
-        else
-        {
-            _windowService.ShowCursor();
+            ShowCursor();
         }
 
         Messenger.Send(new PlayerControlsVisibilityChangedMessage(!value));
     }
+
+    /// <summary>
+    /// Hides the mouse cursor. Called once the player controls have finished moving out of view.
+    /// </summary>
+    public void HideCursor() => _windowService.HideCursor();
+
+    /// <summary>
+    /// Restores the mouse cursor. Called as soon as the player controls come back into view.
+    /// </summary>
+    public void ShowCursor() => _windowService.ShowCursor();
 
     partial void OnPlayerVisibilityChanged(PlayerVisibilityState value)
     {
@@ -699,6 +734,15 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
         _playPauseBadgeTimer.Debounce(() => ShowPlayPauseBadge = false, TimeSpan.FromMilliseconds(100));
     }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the audio or subtitle side panel is open.
+    /// </summary>
+    /// <remarks>
+    /// The panels are page overlays rather than popups, so unlike the play queue flyout they are not
+    /// reported by VisualTreeHelper.GetOpenPopups and have to block the control auto-hide explicitly.
+    /// </remarks>
+    public bool IsSidePanelOpen { get; set; }
+
     public bool TryHideControls(bool skipFocusCheck = false)
     {
         bool shouldCheckPlaying = _settingsService.PlayerShowControls && !IsPlaying;
@@ -712,9 +756,10 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
             // using arrow keys without affecting focus.
             if (focused is Slider { IsFocusEngaged: true }) return false;
 
-            // Do not hide controls while a popup is open.
+            // Do not hide controls while a popup or a side panel is open, otherwise the panel would
+            // be left on screen with the controls (and the cursor) moved out of view.
             bool isPopupOpen = VisualTreeHelper.GetOpenPopups(Window.Current).Any();
-            if (isPopupOpen) return false;
+            if (isPopupOpen || IsSidePanelOpen) return false;
         }
 
         ControlsHidden = true;

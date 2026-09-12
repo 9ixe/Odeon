@@ -4,12 +4,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vlcSharp="using:LibVLCSharp.Platforms.Windows"
     d:DesignHeight="300"
     d:DesignWidth="400"
+    Loaded="OnLoaded"
     Unloaded="OnUnloaded"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
-
     <Grid
         Background="{x:Bind Background, Mode=OneWay}"
         BorderBrush="{x:Bind BorderBrush, Mode=OneWay}"
@@ -37,16 +37,13 @@
         </UserControl>
 
         <!--  Use -1 bottom margin to avoid white line artifact  -->
-        <vlcSharp:VideoView
-            x:Name="VlcVideoView"
+        <SwapChainPanel
+            x:Name="VideoSurface"
             Margin="0,0,0,-1"
             Canvas.ZIndex="0"
             FlowDirection="LeftToRight"
-            Initialized="VlcVideoView_OnInitialized"
             IsHitTestVisible="False"
-            IsTabStop="False"
             KeyboardAcceleratorPlacementMode="Hidden"
-            MediaPlayer="{x:Bind ViewModel.VlcPlayer}"
-            SizeChanged="VlcVideoView_OnSizeChanged" />
+            SizeChanged="VideoSurface_OnSizeChanged" />
     </Grid>
 </UserControl>

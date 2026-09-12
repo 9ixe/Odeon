@@ -46,6 +46,15 @@ public sealed partial class CompositeTrackPicker : UserControl
     public static readonly DependencyProperty ShowSubtitleSectionProperty =
         DependencyProperty.Register(nameof(ShowSubtitleSection), typeof(bool), typeof(CompositeTrackPicker), new PropertyMetadata(true));
 
+    public PlayerControlsViewModel? PlayerControlsViewModel
+    {
+        get => (PlayerControlsViewModel?)GetValue(PlayerControlsViewModelProperty);
+        set => SetValue(PlayerControlsViewModelProperty, value);
+    }
+
+    public static readonly DependencyProperty PlayerControlsViewModelProperty =
+        DependencyProperty.Register(nameof(PlayerControlsViewModel), typeof(PlayerControlsViewModel), typeof(CompositeTrackPicker), new PropertyMetadata(null));
+
     /// <summary>
     /// View-level subtitle track list that prepends a localized "Disable" entry to
     /// <see cref="CompositeTrackPickerViewModel.SubtitleTracks"/> and applies "Track N"
@@ -67,8 +76,9 @@ public sealed partial class CompositeTrackPicker : UserControl
 
     public CompositeTrackPicker()
     {
-        this.InitializeComponent();
+        PlayerControlsViewModel = Ioc.Default.GetRequiredService<PlayerControlsViewModel>();
         DataContext = Ioc.Default.GetRequiredService<CompositeTrackPickerViewModel>();
+        this.InitializeComponent();
 
         ViewModel.SubtitleTracks.CollectionChanged += (_, _) => RebuildSubtitleDisplayList();
         ViewModel.AudioTracks.CollectionChanged += (_, _) => RebuildAudioDisplayList();

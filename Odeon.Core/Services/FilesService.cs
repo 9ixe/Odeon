@@ -1,10 +1,12 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using ProtoBuf;
 using Odeon.Core.Enums;
@@ -22,6 +24,15 @@ namespace Odeon.Core.Services;
 
 public sealed class FilesService : IFilesService
 {
+    /// <summary>
+    /// One gate per file. WinRT property providers reject a second identical query while the first
+    /// is still pending ("A previous call to this method is pending"), which used to make the
+    /// metadata of a file silently come back empty when several callers asked for it at once.
+    /// The gates are keyed per file so unrelated files still load in parallel.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> PropertyGates = new();
+
+
     public async Task<StorageFileQueryResult?> GetNeighboringFilesQueryAsync(StorageFile file, QueryOptions? options = null)
     {
         try
@@ -204,6 +215,24 @@ public sealed class FilesService : IFilesService
         MediaPlaybackType mediaType = FilesHelpers.GetMediaTypeForFile(file);
         if (!file.IsAvailable) return new MediaInfo(mediaType);
 
+        SemaphoreSlim gate = PropertyGates.GetOrAdd(file.Path ?? file.Name, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync();
+
+        try
+        {
+            return await ReadMediaInfoAsync(file, mediaType);
+        }
+        finally
+        {
+            gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Reads a file's metadata. Callers must already hold the file's gate from <see cref="PropertyGates"/>.
+    /// </summary>
+    private static async Task<MediaInfo> ReadMediaInfoAsync(StorageFile file, MediaPlaybackType mediaType)
+    {
         try
         {
             BasicProperties basicProperties = await file.GetBasicPropertiesAsync();
@@ -217,9 +246,10 @@ public sealed class FilesService : IFilesService
                     return new MediaInfo(basicProperties, musicProperties);
             }
         }
-        catch (Exception e) when (IsExpectedStoragePropertiesHResult(e.HResult))
+        catch (Exception e) when (e is InvalidOperationException || IsExpectedStoragePropertiesHResult(e.HResult))
         {
             // Expected transient WinRT failures while querying StorageFile properties:
+            //   InvalidOperationException          - previous call to method is pending (concurrent queries)
             //   0x800706BA RPC_S_SERVER_UNAVAILABLE - the RPC server is unavailable.
             //   0x8000000E E_ILLEGAL_METHOD_CALL    - file's property provider isn't ready
             //                                         (file became unavailable after IsAvailable,
@@ -240,9 +270,16 @@ public sealed class FilesService : IFilesService
         const int RPC_S_SERVER_UNAVAILABLE = unchecked((int)0x800706BA);
         const int E_ILLEGAL_METHOD_CALL = unchecked((int)0x8000000E);
         const int ERROR_NOT_FOUND = unchecked((int)0x80070490);
+        const int COR_E_INVALIDOPERATION = unchecked((int)0x80131509);
+        // 0x80270007: FILE_SYSTEM_LIMITATION — thrown by WinRT when querying properties or
+        // thumbnails for files in certain locations (e.g. Downloads folder) where the Windows
+        // indexer / thumbnail service cannot service the request in the AppContainer context.
+        const int FILE_SYSTEM_LIMITATION = unchecked((int)0x80270007);
         return hresult == RPC_S_SERVER_UNAVAILABLE
                || hresult == E_ILLEGAL_METHOD_CALL
-               || hresult == ERROR_NOT_FOUND;
+               || hresult == ERROR_NOT_FOUND
+               || hresult == COR_E_INVALIDOPERATION
+               || hresult == FILE_SYSTEM_LIMITATION;
     }
 
     private FileOpenPicker GetFilePickerForFormats(IReadOnlyCollection<string> formats)

@@ -33,8 +33,7 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
-# Local temporary folder
-willdeletelater/
+# Visual Studio local state
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
@@ -362,5 +361,27 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-# Local temporary staging folder
-willdelete/
+
+# libmpv playback engine (~115 MB native binary). Download it separately -
+# see "Building from Source" in the README.
+mpv-2.dll
+libmpv*.dll
+
+# MSIX / Windows app packaging output
+*.msix
+*.msixbundle
+*.msixupload
+*.appxrecipe
+*.appinstaller
+
+# AI coding agent workspaces
+.kilo/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp build logs
+log.md
+build_out.txt

@@ -1,17 +1,10 @@
-﻿namespace Odeon.Core.Enums;
+namespace Odeon.Core.Enums;
 
 public enum PlayerAutoResizeOption
 {
     Always,
     OnLaunch,
     Never
-}
-
-public enum VideoUpscaleOption
-{
-    Linear,
-    Point,
-    Super
 }
 
 public enum ThemeOption

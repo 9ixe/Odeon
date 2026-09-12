@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ public sealed partial class CommonViewModel : ObservableRecipient,
 {
     public Dictionary<Type, string> NavigationStates { get; }
 
-    public bool IsAdvancedModeEnabled => _settingsService.AdvancedMode;
+    public bool IsAdvancedModeEnabled => false;
 
     [ObservableProperty] private NavigationViewDisplayMode _navigationViewDisplayMode;
     [ObservableProperty] private Thickness _scrollBarMargin;

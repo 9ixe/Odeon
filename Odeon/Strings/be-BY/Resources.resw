@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Некаторыя опцыі могуць быць зададзены толькі глабальна.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>Даведка каманднага радка VLC</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Глядзіце {0} для поўнага спісу даступных опцый.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

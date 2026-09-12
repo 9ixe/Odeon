@@ -1,14 +1,18 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
+using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI;
 using Microsoft.UI.Xaml.Controls;
+using Odeon.Core.Messages;
 using Odeon.Core.ViewModels;
 using Odeon.Helpers;
 using Windows.System;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -38,7 +42,13 @@ public sealed partial class PlayerControls : UserControl
 
     internal CommonViewModel Common { get; }
 
+    /// <summary>
+    /// Fraction of the window height by which the seek bar is lifted in fullscreen.
+    /// </summary>
+    private const double FullscreenSeekBarOffsetRatio = 0.015;
+
     private readonly Windows.System.DispatcherQueueTimer _delayFlyoutOpenTimer;
+    private Window? _window;
 
     public PlayerControls()
     {
@@ -46,41 +56,84 @@ public sealed partial class PlayerControls : UserControl
         DataContext = Ioc.Default.GetRequiredService<PlayerControlsViewModel>();
         Common = Ioc.Default.GetRequiredService<CommonViewModel>();
         _delayFlyoutOpenTimer = Windows.System.DispatcherQueue.GetForCurrentThread().CreateTimer();
-        AudioTrackPicker.ShowSubtitleOptionsCommand = new RelayCommand(ShowSubtitleOptions);
-        AudioTrackPicker.ShowAudioOptionsCommand = new RelayCommand(ShowAudioOptions);
-        AudioTrackPicker.ShowVideoSection = false;
-        AudioTrackPicker.ShowSubtitleSection = false;
-        SubtitleTrackPicker.ShowSubtitleOptionsCommand = new RelayCommand(ShowSubtitleOptions);
-        SubtitleTrackPicker.ShowAudioOptionsCommand = new RelayCommand(ShowAudioOptions);
-        SubtitleTrackPicker.ShowVideoSection = false;
-        SubtitleTrackPicker.ShowAudioSection = false;
+
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
-    public Flyout GetPlayQueueFlyout() => PlayQueueFlyout;
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // The view model is a singleton, so the subscription is tied to the control's lifetime.
+        ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
 
-    private void PlayQueueFlyout_OnOpening(object sender, object e)
-    {
-        FindName(nameof(PlayQueue));
+        if (_window is null && Window.Current is { } window)
+        {
+            _window = window;
+            window.SizeChanged += Window_OnSizeChanged;
+        }
+
+        UpdateSeekBarOffset();
     }
-    
-    private async void PlayQueueFlyout_OnOpened(object sender, object e)
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        if (PlayQueue == null) return;
-        await PlayQueue.SmoothScrollActiveItemIntoViewAsync();
+        ViewModel.PropertyChanged -= ViewModelOnPropertyChanged;
+
+        if (_window is null) return;
+
+        _window.SizeChanged -= Window_OnSizeChanged;
+        _window = null;
+    }
+
+    private void Window_OnSizeChanged(object sender, WindowSizeChangedEventArgs e) => UpdateSeekBarOffset();
+
+    private void ViewModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PlayerControlsViewModel.IsFullscreen))
+        {
+            UpdateSeekBarOffset();
+        }
+    }
+
+    /// <summary>
+    /// Lifts the seek bar off the bottom edge of the screen in fullscreen. The offset is a fraction of
+    /// the window height rather than a fixed number of pixels so that it keeps the same visual weight
+    /// on any display size.
+    /// </summary>
+    private void UpdateSeekBarOffset()
+    {
+        if (ViewModel is not { } viewModel) return;
+
+        double windowHeight = _window?.Bounds.Height ?? 0;
+
+        SeekBarOffset.Y = viewModel.IsFullscreen && windowHeight > 0
+            ? -windowHeight * FullscreenSeekBarOffsetRatio
+            : 0;
+    }
+
+    private void PlayQueueButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        WeakReferenceMessenger.Default.Send(new TogglePlayQueueSidePanelMessage());
+    }
+
+    private void AudioButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        WeakReferenceMessenger.Default.Send(new ToggleAudioSidePanelMessage());
+    }
+
+    private void CaptionsButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        WeakReferenceMessenger.Default.Send(new ToggleSubtitleSidePanelMessage());
     }
 
     private void ShowSubtitleOptions()
     {
-        CaptionsFlyout.Hide();
-        Flyout flyout = (Flyout)Resources["SubtitleOptionsFlyout"];
-        flyout.ShowAt(CaptionsButton);
+        WeakReferenceMessenger.Default.Send(new ToggleSubtitleSidePanelMessage(true));
     }
 
     private void ShowAudioOptions()
     {
-        AudioFlyout.Hide();
-        Flyout flyout = (Flyout)Resources["AudioOptionsFlyout"];
-        flyout.ShowAt(AudioButton);
+        WeakReferenceMessenger.Default.Send(new ToggleAudioSidePanelMessage(true));
     }
 
     public void FocusFirstButton(FocusState value = FocusState.Programmatic)
@@ -179,13 +232,13 @@ public sealed partial class PlayerControls : UserControl
     private void AudioKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
         args.Handled = true;
-        AudioFlyout.ShowAt(AudioButton);
+        WeakReferenceMessenger.Default.Send(new ToggleAudioSidePanelMessage());
     }
 
     private void SubtitleKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
         args.Handled = true;
-        CaptionsFlyout.ShowAt(CaptionsButton);
+        WeakReferenceMessenger.Default.Send(new ToggleSubtitleSidePanelMessage());
     }
 
     private void PlayQueueButton_OnDragEnter(object sender, DragEventArgs e)

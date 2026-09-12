@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Odeon.Core;
+using Odeon.Core.Enums;
 using Odeon.Core.Models;
 using Odeon.Core.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
@@ -45,7 +46,7 @@ namespace Odeon.Pages
             _pages = new Dictionary<string, Type>
             {
                 { "home", typeof(HomePage) },
-                { "playlists", typeof(PlaylistsPage) },
+
                 { "videos", typeof(VideosPage) },
                 { "music", typeof(MusicPage) },
                 { "network", typeof(NetworkPage) },
@@ -54,8 +55,7 @@ namespace Odeon.Pages
 
             DataContext = Ioc.Default.GetRequiredService<MainPageViewModel>();
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-            ViewModel.Playlists.CollectionChanged += Playlists_CollectionChanged;
-            SyncPlaylistsMenu();
+
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -79,6 +79,16 @@ namespace Odeon.Pages
         public void GoBack()
         {
             TryGoBack();
+        }
+
+        public void EnsurePlayerVisible()
+        {
+            ViewModel.PlayerVisible = true;
+            if (PlayerFrame.Content is PlayerPage playerPage)
+            {
+                playerPage.ViewModel.PlayerVisibility = PlayerVisibilityState.Visible;
+                playerPage.ViewModel.OnFileLaunched();
+            }
         }
 
         public void NavigateContent(Type pageType, object? parameter)
@@ -128,18 +138,10 @@ namespace Odeon.Pages
             {
                 NavView_Navigate("settings");
             }
-            else if (args.SelectedItem is PlaylistViewModel playlist)
-            {
-                ContentFrame.Navigate(typeof(PlaylistDetailsPage), playlist, new SuppressNavigationTransitionInfo());
-            }
-            else if (args.SelectedItem is NavigationViewItem navItem && navItem.DataContext is PlaylistViewModel playlistFromContext)
-            {
-                ContentFrame.Navigate(typeof(PlaylistDetailsPage), playlistFromContext, new SuppressNavigationTransitionInfo());
-            }
             else if (args.SelectedItemContainer != null)
             {
                 var navItemTag = args.SelectedItemContainer.Tag?.ToString();
-                if (!string.IsNullOrEmpty(navItemTag))
+                if (navItemTag is { Length: > 0 })
                 {
                     NavView_Navigate(navItemTag);
                 }
@@ -368,23 +370,6 @@ namespace Odeon.Pages
             e.Handled = true;
             ViewModel.OnDrop(e.DataView);
         }
-        private void Playlists_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            SyncPlaylistsMenu();
-        }
 
-        private void SyncPlaylistsMenu()
-        {
-            PlaylistsNavItem.MenuItems.Clear();
-            foreach (var playlist in ViewModel.Playlists)
-            {
-                var item = new NavigationViewItem
-                {
-                    Content = playlist.Name,
-                    DataContext = playlist
-                };
-                PlaylistsNavItem.MenuItems.Add(item);
-            }
-        }
     }
 }

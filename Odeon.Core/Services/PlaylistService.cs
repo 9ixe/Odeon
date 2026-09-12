@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -44,7 +44,7 @@ public sealed class PlaylistService : IPlaylistService
                 // VM identity. Without this, GetOrCreate creates a new VM for the same file that is a
                 // different object reference. Playlist uses IndexOf (reference equality) to find
                 // CurrentItem in the new list; if it fails, CurrentIndex becomes -1, which causes
-                // LoadFromPlaylist to set PlaybackItem to null and call VlcPlayer.Stop() on the UI
+                // LoadFromPlaylist to set PlaybackItem to null and call player.Stop() on the UI
                 // thread, freezing the app.
                 int matchIndex = result.Items.FindIndex(vm =>
                     vm.Location.Equals(currentItem.Location, StringComparison.OrdinalIgnoreCase));

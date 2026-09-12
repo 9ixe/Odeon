@@ -1,14 +1,14 @@
-﻿#nullable enable
+#nullable enable
 
+using System;
 using CommunityToolkit.Mvvm.DependencyInjection;
-using LibVLCSharp.Platforms.Windows;
+using Odeon.Core.Playback;
+using Odeon.Core.Rendering;
 using Odeon.Core.ViewModels;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-
-// The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
 namespace Odeon.Controls;
 
@@ -28,6 +28,7 @@ public sealed partial class PlayerElement : UserControl
 
     private readonly GestureRecognizer _gestureRecognizer;
     private bool _shouldSuppressNextClick;
+    private D3D11SwapChainManager? _swapChainManager;
 
     public event RoutedEventHandler? Click;
 
@@ -46,24 +47,96 @@ public sealed partial class PlayerElement : UserControl
         _gestureRecognizer.Holding += GestureRecognizer_OnHolding;
     }
 
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        _swapChainManager = new D3D11SwapChainManager();
+        _swapChainManager.Initialize(VideoSurface);
+
+        if (VideoSurface.ActualWidth > 0 && VideoSurface.ActualHeight > 0)
+        {
+            float scaleX = (float)VideoSurface.CompositionScaleX;
+            float scaleY = (float)VideoSurface.CompositionScaleY;
+            int pixelWidth = (int)Math.Max(1, Math.Round(VideoSurface.ActualWidth * scaleX));
+            int pixelHeight = (int)Math.Max(1, Math.Round(VideoSurface.ActualHeight * scaleY));
+            _swapChainManager.Resize(pixelWidth, pixelHeight, scaleX, scaleY);
+        }
+
+        VideoSurface.CompositionScaleChanged += VideoSurface_OnCompositionScaleChanged;
+
+        ViewModel.MediaPlayerReady += ViewModel_OnMediaPlayerReady;
+        ViewModel.ClearViewRequested += ViewModel_OnClearViewRequested;
+
+        if (ViewModel.MpvPlayer != null)
+        {
+            _swapChainManager.AttachPlayer(ViewModel.MpvPlayer);
+        }
+
+        ViewModel.Initialize();
+    }
+
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        VideoSurface.CompositionScaleChanged -= VideoSurface_OnCompositionScaleChanged;
+        ViewModel.MediaPlayerReady -= ViewModel_OnMediaPlayerReady;
+        ViewModel.ClearViewRequested -= ViewModel_OnClearViewRequested;
+
         if (_gestureRecognizer is not null)
         {
             _gestureRecognizer.CompleteGesture();
             _gestureRecognizer.GestureSettings = GestureSettings.None;
             _gestureRecognizer.Holding -= GestureRecognizer_OnHolding;
         }
+
+        _swapChainManager?.Dispose();
+        _swapChainManager = null;
     }
 
-    private void VlcVideoView_OnInitialized(object sender, InitializedEventArgs e)
+    private void ViewModel_OnMediaPlayerReady(object? sender, IMediaPlayer? player)
     {
-        ViewModel.Initialize(e.SwapChainOptions);
+        if (player is MpvMediaPlayer mpvPlayer && _swapChainManager != null)
+        {
+            if (VideoSurface.ActualWidth > 0 && VideoSurface.ActualHeight > 0)
+            {
+                float scaleX = (float)VideoSurface.CompositionScaleX;
+                float scaleY = (float)VideoSurface.CompositionScaleY;
+                int pixelWidth = (int)Math.Max(1, Math.Round(VideoSurface.ActualWidth * scaleX));
+                int pixelHeight = (int)Math.Max(1, Math.Round(VideoSurface.ActualHeight * scaleY));
+                _swapChainManager.Resize(pixelWidth, pixelHeight, scaleX, scaleY);
+            }
+
+            _swapChainManager.AttachPlayer(mpvPlayer);
+        }
     }
 
-    private void VlcVideoView_OnSizeChanged(object sender, SizeChangedEventArgs e)
+    private void ViewModel_OnClearViewRequested(object? sender, EventArgs e)
+    {
+        _swapChainManager?.Clear();
+    }
+
+    private void VideoSurface_OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         ViewModel.UpdatePlayerViewSize(e.NewSize);
+
+        if (_swapChainManager != null && e.NewSize.Width > 0 && e.NewSize.Height > 0)
+        {
+            float scaleX = (float)VideoSurface.CompositionScaleX;
+            float scaleY = (float)VideoSurface.CompositionScaleY;
+            int pixelWidth = (int)Math.Max(1, Math.Round(e.NewSize.Width * scaleX));
+            int pixelHeight = (int)Math.Max(1, Math.Round(e.NewSize.Height * scaleY));
+            _swapChainManager.Resize(pixelWidth, pixelHeight, scaleX, scaleY);
+        }
+    }
+
+    private void VideoSurface_OnCompositionScaleChanged(SwapChainPanel sender, object args)
+    {
+        if (_swapChainManager != null && sender.ActualWidth > 0 && sender.ActualHeight > 0)
+        {
+            float scaleX = (float)sender.CompositionScaleX;
+            float scaleY = (float)sender.CompositionScaleY;
+            int pixelWidth = (int)Math.Max(1, Math.Round(sender.ActualWidth * scaleX));
+            int pixelHeight = (int)Math.Max(1, Math.Round(sender.ActualHeight * scaleY));
+            _swapChainManager.Resize(pixelWidth, pixelHeight, scaleX, scaleY);
+        }
     }
 
     private void VideoViewButton_OnTapped(object sender, TappedRoutedEventArgs e)

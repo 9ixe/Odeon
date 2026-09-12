@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Ορισμένες επιλογές μπορούν να οριστούν μόνο σε καθολικό επίπεδο.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>Βοήθεια γραμμής εντολών VLC</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Δείτε το {0} για την πλήρη λίστα των διαθέσιμων επιλογών.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

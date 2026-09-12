@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using LibVLCSharp.Shared;
 using Odeon.Core.Helpers;
 using Odeon.Core.Models;
 using Odeon.Core.ViewModels;
@@ -39,7 +38,7 @@ public sealed class MediaListFactory : IMediaListFactory
             switch (item)
             {
                 case StorageFile m3uFile when IsM3uPlaylist(m3uFile.FileType):
-                    // Parse M3U/M3U8 playlists directly without creating a LibVLC Media object.
+                    // Parse M3U/M3U8 playlists directly.
                     var m3uItems = await ParseM3uAsync(m3uFile, cancellationToken);
                     if (m3uItems.Count > 0)
                     {
@@ -75,7 +74,7 @@ public sealed class MediaListFactory : IMediaListFactory
 
     public async Task<NextMediaList> ParseMediaListAsync(MediaViewModel media, CancellationToken cancellationToken = default)
     {
-        // Handle M3U/M3U8 sources directly without going through LibVLC media parsing.
+        // Handle M3U/M3U8 sources directly
         var m3uFile = await TryGetM3uStorageFileAsync(media.Source);
         if (m3uFile is not null)
         {
@@ -84,36 +83,21 @@ public sealed class MediaListFactory : IMediaListFactory
                 return new NextMediaList(m3uItems[0], m3uItems);
         }
 
-        // The ordering of the conditional terms below is important
-        // Delay check Item as much as possible. Item is lazy init.
-        if ((media.Source is StorageFile file && !file.IsSupportedPlaylist())
-            || (media.Source is Uri uri && !IsUriLocalPlaylistFile(uri))
-            || media.Item.Value?.Media is { ParsedStatus: MediaParsedStatus.Done or MediaParsedStatus.Failed, SubItems.Count: 0 }
-            || await ParseSubMediaRecursiveAsync(media, cancellationToken) is not { Count: > 0 } playlist)
-        {
-            return new NextMediaList(media);
-        }
-
-        return new NextMediaList(playlist[0], playlist);
+        // For non-M3U playlists and single items, mpv handles playback directly
+        return new NextMediaList(media);
     }
 
     public async Task<NextMediaList> ParseMediaListAsync(StorageFile file, CancellationToken cancellationToken = default)
     {
         if (IsM3uPlaylist(file.FileType))
         {
-            // Parse M3U/M3U8 playlists directly without creating a LibVLC Media object.
+            // Parse M3U/M3U8 playlists directly
             var m3uItems = await ParseM3uAsync(file, cancellationToken);
             if (m3uItems.Count > 0)
                 return new NextMediaList(m3uItems[0], m3uItems);
         }
 
         var media = _mediaFactory.GetOrCreate(file);
-        if (file.IsSupportedPlaylist() && await ParseSubMediaRecursiveAsync(media, cancellationToken) is { Count: > 0 } items)
-        {
-            media = items[0];
-            return new NextMediaList(media, items);
-        }
-
         return new NextMediaList(media);
     }
 
@@ -121,7 +105,7 @@ public sealed class MediaListFactory : IMediaListFactory
     {
         if (IsUriLocalM3uFile(uri))
         {
-            // Convert local M3U/M3U8 URIs to StorageFile and parse directly without LibVLC.
+            // Convert local M3U/M3U8 URIs to StorageFile and parse directly
             var file = await FilesHelpers.TryGetFileFromPathAsync(uri.LocalPath);
             if (file is not null)
             {
@@ -132,33 +116,22 @@ public sealed class MediaListFactory : IMediaListFactory
         }
 
         var media = _mediaFactory.Create(uri);
-        if (await ParseSubMediaRecursiveAsync(media, cancellationToken) is { Count: > 0 } playlist)
-        {
-            media = playlist[0];
-            return new NextMediaList(media, playlist);
-        }
-
         return new NextMediaList(media);
     }
 
     public async Task<List<MediaViewModel>> ParseSubMediaRecursiveAsync(MediaViewModel source, CancellationToken cancellationToken = default)
     {
-        var items = await ParseSubMediaAsync(source, cancellationToken);
-        if (items.Count > 0)
+        var m3uFile = await TryGetM3uStorageFileAsync(source.Source);
+        if (m3uFile is not null)
         {
-            var nextItem = items[0];
-            while (items.Count == 1 && await ParseSubMediaAsync(nextItem, cancellationToken) is { Count: > 0 } nextSubItems)
-            {
-                nextItem = nextSubItems[0];
-                items = nextSubItems;
-            }
+            return await ParseM3uAsync(m3uFile, cancellationToken);
         }
 
-        return items;
+        return new List<MediaViewModel>();
     }
 
     /// <summary>
-    /// Parses an M3U or M3U8 playlist file directly, without invoking LibVLC media parsing.
+    /// Parses an M3U or M3U8 playlist file directly.
     /// Each non-comment, non-empty line is resolved as either an absolute URI or a path
     /// (absolute or relative to the playlist file's directory) and wrapped in a
     /// <see cref="MediaViewModel"/>. <c>#EXTINF</c> directives are parsed to pre-populate
@@ -322,28 +295,6 @@ public sealed class MediaListFactory : IMediaListFactory
         }
     }
 
-    private async Task<List<MediaViewModel>> ParseSubMediaAsync(MediaViewModel source, CancellationToken cancellationToken = default)
-    {
-        if (source.Item.Value == null) return new List<MediaViewModel>();
-
-        try
-        {
-            var media = source.Item.Value.Media;
-            if (!media.IsParsed || media.ParsedStatus is MediaParsedStatus.Skipped)
-            {
-                await media.ParseAsync(TimeSpan.FromSeconds(10), cancellationToken);
-            }
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var subItems = media.SubItems.Select(item => _mediaFactory.Create(item));
-            return subItems.ToList();
-        }
-        catch (OperationCanceledException)
-        {
-            return new List<MediaViewModel>();
-        }
-    }
 
     /// <summary>
     /// Returns the <see cref="StorageFile"/> for an M3U/M3U8 source object, if applicable.
@@ -375,12 +326,6 @@ public sealed class MediaListFactory : IMediaListFactory
         return IsM3uPlaylist(Path.GetExtension(uri.LocalPath));
     }
 
-    private static bool IsUriLocalPlaylistFile(Uri uri)
-    {
-        if (!uri.IsAbsoluteUri || !uri.IsLoopback || !uri.IsFile) return false;
-        var extension = Path.GetExtension(uri.LocalPath);
-        return FilesHelpers.SupportedPlaylistFormats.Contains(extension, StringComparer.OrdinalIgnoreCase);
-    }
 
     private static Task<StorageFile?> TryGetLocalFileFromUriAsync(Uri uri)
     {

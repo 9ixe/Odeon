@@ -1,4 +1,5 @@
 ﻿<UserControl
+    x:Name="Root"
     x:Class="Odeon.Controls.ChapterProgressBar"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,27 +10,47 @@
     xmlns:viewModels="using:Odeon.Core.ViewModels"
     d:DesignHeight="300"
     d:DesignWidth="400"
+    UseLayoutRounding="True"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ms-appx:///Styles/Progress.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="ProgressBarBackground" Color="#40FFFFFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
+
+            <DataTemplate x:Key="ItemTemplate" x:DataType="viewModels:ChapterViewModel">
+                <muxc:ProgressBar
+                    Width="{Binding Width}"
+                    Maximum="{Binding Maximum}"
+                    Minimum="{Binding Minimum}"
+                    MinHeight="{Binding ElementName=Root, Path=MinHeight}"
+                    Style="{StaticResource NoAnimationProgressBarStyle}"
+                    Padding="0"
+                    BorderThickness="0"
+                    Background="{ThemeResource ProgressBarBackground}"
+                    Foreground="{ThemeResource SystemControlHighlightAccentBrush}"
+                    Value="{Binding Value}">
+                    <muxc:ProgressBar.Resources>
+            <CornerRadius x:Key="ProgressBarCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="ProgressBarTrackCornerRadius">4</CornerRadius>
+                    </muxc:ProgressBar.Resources>
+                </muxc:ProgressBar>
+            </DataTemplate>
+
+            <muxc:StackLayout
+                x:Key="HorizontalStackLayout"
+                Orientation="Horizontal"
+                Spacing="2" />
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <muxc:ProgressBar
-        Maximum="{x:Bind Maximum, Mode=OneWay}"
-        Minimum="0"
-        Value="{x:Bind Value, Mode=OneWay}"
-        MinHeight="{x:Bind MinHeight, Mode=OneWay}"
-        Style="{StaticResource NoAnimationProgressBarStyle}"
-        Padding="0"
-        BorderThickness="0"
-        Foreground="Red">
-        <muxc:ProgressBar.Resources>
-            <CornerRadius x:Key="ProgressBarCornerRadius">0</CornerRadius>
-            <CornerRadius x:Key="ProgressBarTrackCornerRadius">0</CornerRadius>
-        </muxc:ProgressBar.Resources>
-    </muxc:ProgressBar>
+    <muxc:ItemsRepeater
+        x:Name="ChaptersRepeater"
+        ItemTemplate="{StaticResource ItemTemplate}"
+        ItemsSource="{x:Bind ProgressItems}"
+        Layout="{StaticResource HorizontalStackLayout}" />
 </UserControl>

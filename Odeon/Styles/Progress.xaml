@@ -7,6 +7,15 @@
 
     <!--  Increase track height to avoid visual artifact on Surface  -->
     <x:Double x:Key="ProgressBarTrackHeight">2</x:Double>
+    <x:Double x:Key="ProgressBarMinHeight">4</x:Double>
+    <CornerRadius x:Key="ProgressBarCornerRadius">4</CornerRadius>
+    <CornerRadius x:Key="ProgressBarTrackCornerRadius">4</CornerRadius>
+
+    <SolidColorBrush x:Key="ProgressBarBackground" Color="#40FFFFFF" />
+    <SolidColorBrush x:Key="ProgressBarForeground" Color="#FFE81123" />
+    <SolidColorBrush x:Key="SliderTrackFill" Color="#40FFFFFF" />
+    <SolidColorBrush x:Key="SliderTrackFillPointerOver" Color="#60FFFFFF" />
+    <SolidColorBrush x:Key="SliderTrackFillPressed" Color="#70FFFFFF" />
 
     <!--  ProgressBar without RepositionThemeAnimation  -->
     <!--  https://github.com/microsoft/microsoft-ui-xaml/blob/v2.8.7/dev/ProgressBar/ProgressBar_themeresources.xaml  -->
@@ -27,7 +36,7 @@
                         <Border
                             x:Name="ProgressBarRoot"
                             Padding="{TemplateBinding Padding}"
-                            contract7NotPresent:CornerRadius="{StaticResource ProgressBarCornerRadius}"
+                            contract7NotPresent:CornerRadius="2"
                             contract7Present:CornerRadius="{TemplateBinding CornerRadius}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -39,8 +48,8 @@
                                         Height="{TemplateBinding MinHeight}"
                                         VerticalAlignment="Center"
                                         Fill="{TemplateBinding Background}"
-                                        RadiusX="{Binding Source={StaticResource ProgressBarTrackCornerRadius}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        RadiusY="{Binding Source={StaticResource ProgressBarTrackCornerRadius}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}">
+                                        RadiusX="5"
+                                        RadiusY="5">
                                         <Rectangle.RenderTransform>
                                             <CompositeTransform />
                                         </Rectangle.RenderTransform>
@@ -48,18 +57,14 @@
                                     <Rectangle
                                         x:Name="DeterminateProgressBarIndicator"
                                         HorizontalAlignment="Left"
-                                        contract7NotPresent:RadiusX="{Binding Source={StaticResource ProgressBarCornerRadius}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        contract7NotPresent:RadiusY="{Binding Source={StaticResource ProgressBarCornerRadius}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}"
-                                        contract7Present:RadiusX="{Binding CornerRadius, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        contract7Present:RadiusY="{Binding CornerRadius, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}"
+                                        RadiusX="5"
+                                        RadiusY="5"
                                         Fill="{TemplateBinding Foreground}" />
                                     <Rectangle
                                         x:Name="IndeterminateProgressBarIndicator"
                                         HorizontalAlignment="Left"
-                                        contract7NotPresent:RadiusX="{Binding Source={StaticResource ProgressBarCornerRadius}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        contract7NotPresent:RadiusY="{Binding Source={StaticResource ProgressBarCornerRadius}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}"
-                                        contract7Present:RadiusX="{Binding CornerRadius, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        contract7Present:RadiusY="{Binding CornerRadius, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}"
+                                        RadiusX="5"
+                                        RadiusY="5"
                                         Fill="{TemplateBinding Foreground}"
                                         Opacity="0">
                                         <Rectangle.RenderTransform>
@@ -69,10 +74,8 @@
                                     <Rectangle
                                         x:Name="IndeterminateProgressBarIndicator2"
                                         HorizontalAlignment="Left"
-                                        contract7NotPresent:RadiusX="{Binding Source={StaticResource ProgressBarCornerRadius}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        contract7NotPresent:RadiusY="{Binding Source={StaticResource ProgressBarCornerRadius}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}"
-                                        contract7Present:RadiusX="{Binding CornerRadius, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource TopLeftCornerRadiusDoubleValueConverter}}"
-                                        contract7Present:RadiusY="{Binding CornerRadius, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BottomRightCornerRadiusDoubleValueConverter}}"
+                                        RadiusX="5"
+                                        RadiusY="5"
                                         Fill="{TemplateBinding Foreground}"
                                         Opacity="0">
                                         <Rectangle.RenderTransform>
@@ -306,6 +309,575 @@
                                 </VisualState>
                             </VisualStateGroup>
                         </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  Style for Sliders in Player (Subtitles, Audio, etc.) matching SeekBar color & spring animations  -->
+    <Style x:Key="PlayerSliderThumbStyle" TargetType="Thumb">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="#383838" />
+        <Setter Property="Foreground" Value="{ThemeResource SystemControlHighlightAccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid Width="22" Height="22">
+                        <!-- Outer Ring / Circle matching Image 2 -->
+                        <Ellipse
+                            Width="22"
+                            Height="22"
+                            Fill="{TemplateBinding Background}"
+                            Stroke="#40FFFFFF"
+                            StrokeThickness="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                        <!-- Inner Accent Dot matching Image 2 -->
+                        <Ellipse
+                            Width="10"
+                            Height="10"
+                            Fill="{TemplateBinding Foreground}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PlayerSliderStyle" TargetType="Slider">
+        <Setter Property="Background" Value="{ThemeResource SliderTrackFill}" />
+        <Setter Property="Foreground" Value="{ThemeResource SystemControlHighlightAccentBrush}" />
+        <Setter Property="IsThumbToolTipEnabled" Value="False" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Margin="{TemplateBinding Padding}">
+                        <Grid.Resources>
+                            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemAccentColor" Color="#FFE81123" />
+                        </Grid.Resources>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition To="Pressed">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalTrackRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="12.6"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalDecreaseRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="12.6"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleX"
+                                                To="1.25"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleY"
+                                                To="1.25"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </VisualTransition>
+                                    <VisualTransition To="Normal">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalTrackRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="5.6"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalDecreaseRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="5.6"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleX"
+                                                To="1"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleY"
+                                                To="1"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Target="HorizontalTrackRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalDecreaseRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalThumbScale.ScaleX" Value="1" />
+                                        <Setter Target="HorizontalThumbScale.ScaleY" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="HorizontalTrackRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalDecreaseRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalThumbScale.ScaleX" Value="1" />
+                                        <Setter Target="HorizontalThumbScale.ScaleY" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="HorizontalTrackRect.Height" Value="12.6" />
+                                        <Setter Target="HorizontalDecreaseRect.Height" Value="12.6" />
+                                        <Setter Target="HorizontalThumbScale.ScaleX" Value="1.25" />
+                                        <Setter Target="HorizontalThumbScale.ScaleY" Value="1.25" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="SliderContainer.Opacity" Value="0.5" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="HeaderStates">
+                                <VisualState x:Name="HeaderVisible" />
+                                <VisualState x:Name="HeaderCollapsed">
+                                    <VisualState.Setters>
+                                        <Setter Target="HeaderContentPresenter.Visibility" Value="Collapsed" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <ContentPresenter
+                            x:Name="HeaderContentPresenter"
+                            Grid.Row="0"
+                            Content="{TemplateBinding Header}"
+                            ContentTemplate="{TemplateBinding HeaderTemplate}"
+                            FontFamily="{TemplateBinding FontFamily}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Margin="0,0,0,4" />
+
+                        <Grid
+                            x:Name="SliderContainer"
+                            Grid.Row="1"
+                            Background="Transparent"
+                            UseLayoutRounding="True"
+                            Control.IsTemplateFocusTarget="True">
+                            <!-- Horizontal Template -->
+                            <Grid x:Name="HorizontalTemplate" MinHeight="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Rectangle
+                                    x:Name="HorizontalTrackRect"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="3"
+                                    Height="5.6"
+                                    Fill="{TemplateBinding Background}"
+                                    RadiusX="5"
+                                    RadiusY="5"
+                                    VerticalAlignment="Center" />
+
+                                <Rectangle
+                                    x:Name="HorizontalDecreaseRect"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Height="5.6"
+                                    Fill="{TemplateBinding Foreground}"
+                                    RadiusX="5"
+                                    RadiusY="5"
+                                    VerticalAlignment="Center" />
+
+                                <Thumb
+                                    x:Name="HorizontalThumb"
+                                    Grid.Row="0"
+                                    Grid.RowSpan="3"
+                                    Grid.Column="1"
+                                    Style="{StaticResource PlayerSliderThumbStyle}"
+                                    DataContext="{TemplateBinding Value}"
+                                    Width="22"
+                                    Height="22"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    AutomationProperties.AccessibilityView="Raw">
+                                    <Thumb.RenderTransform>
+                                        <ScaleTransform x:Name="HorizontalThumbScale" ScaleX="1" ScaleY="1" />
+                                    </Thumb.RenderTransform>
+                                </Thumb>
+                            </Grid>
+
+                            <!-- Vertical Template -->
+                            <Grid x:Name="VerticalTemplate" MinWidth="24" Visibility="Collapsed">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle
+                                    x:Name="VerticalTrackRect"
+                                    Grid.Column="1"
+                                    Grid.RowSpan="3"
+                                    Width="5.6"
+                                    Fill="{TemplateBinding Background}"
+                                    RadiusX="5"
+                                    RadiusY="5" />
+                                <Rectangle
+                                    x:Name="VerticalDecreaseRect"
+                                    Grid.Column="1"
+                                    Grid.Row="2"
+                                    Width="5.6"
+                                    Fill="{TemplateBinding Foreground}"
+                                    RadiusX="5"
+                                    RadiusY="5" />
+                                <Thumb
+                                    x:Name="VerticalThumb"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="3"
+                                    Style="{StaticResource PlayerSliderThumbStyle}"
+                                    DataContext="{TemplateBinding Value}"
+                                    Width="22"
+                                    Height="22" />
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="SidePanelSliderStyle" TargetType="Slider">
+        <Setter Property="Background" Value="{ThemeResource SliderTrackFill}" />
+        <Setter Property="Foreground" Value="{ThemeResource SystemControlHighlightAccentBrush}" />
+        <Setter Property="IsThumbToolTipEnabled" Value="False" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid Margin="{TemplateBinding Padding}">
+                        <Grid.Resources>
+                            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemAccentColor" Color="#FFE81123" />
+                        </Grid.Resources>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition To="Pressed">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalTrackRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="11.2"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalDecreaseRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="11.2"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleX"
+                                                To="1.20"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleY"
+                                                To="1.20"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </VisualTransition>
+                                    <VisualTransition To="Normal">
+                                        <Storyboard>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalTrackRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="5.6"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalDecreaseRect"
+                                                Storyboard.TargetProperty="Height"
+                                                To="5.6"
+                                                Duration="0:0:0.25"
+                                                EnableDependentAnimation="True">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleX"
+                                                To="1"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                            <DoubleAnimation
+                                                Storyboard.TargetName="HorizontalThumbScale"
+                                                Storyboard.TargetProperty="ScaleY"
+                                                To="1"
+                                                Duration="0:0:0.25">
+                                                <DoubleAnimation.EasingFunction>
+                                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                                </DoubleAnimation.EasingFunction>
+                                            </DoubleAnimation>
+                                        </Storyboard>
+                                    </VisualTransition>
+                                </VisualStateGroup.Transitions>
+
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Target="HorizontalTrackRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalDecreaseRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalThumbScale.ScaleX" Value="1" />
+                                        <Setter Target="HorizontalThumbScale.ScaleY" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="HorizontalTrackRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalDecreaseRect.Height" Value="5.6" />
+                                        <Setter Target="HorizontalThumbScale.ScaleX" Value="1" />
+                                        <Setter Target="HorizontalThumbScale.ScaleY" Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="HorizontalTrackRect.Height" Value="11.2" />
+                                        <Setter Target="HorizontalDecreaseRect.Height" Value="11.2" />
+                                        <Setter Target="HorizontalThumbScale.ScaleX" Value="1.20" />
+                                        <Setter Target="HorizontalThumbScale.ScaleY" Value="1.20" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="SliderContainer.Opacity" Value="0.5" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="HeaderStates">
+                                <VisualState x:Name="HeaderVisible" />
+                                <VisualState x:Name="HeaderCollapsed">
+                                    <VisualState.Setters>
+                                        <Setter Target="HeaderContentPresenter.Visibility" Value="Collapsed" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <ContentPresenter
+                            x:Name="HeaderContentPresenter"
+                            Grid.Row="0"
+                            Content="{TemplateBinding Header}"
+                            ContentTemplate="{TemplateBinding HeaderTemplate}"
+                            FontFamily="{TemplateBinding FontFamily}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Margin="0,0,0,4" />
+
+                        <Grid
+                            x:Name="SliderContainer"
+                            Grid.Row="1"
+                            Background="Transparent"
+                            UseLayoutRounding="True"
+                            Control.IsTemplateFocusTarget="True">
+                            <!-- Horizontal Template -->
+                            <Grid x:Name="HorizontalTemplate" MinHeight="24">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Rectangle
+                                    x:Name="HorizontalTrackRect"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="3"
+                                    Height="5.6"
+                                    Fill="{TemplateBinding Background}"
+                                    RadiusX="5"
+                                    RadiusY="5"
+                                    VerticalAlignment="Center" />
+
+                                <Rectangle
+                                    x:Name="HorizontalDecreaseRect"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Height="5.6"
+                                    Fill="{TemplateBinding Foreground}"
+                                    RadiusX="5"
+                                    RadiusY="5"
+                                    VerticalAlignment="Center" />
+
+                                <Thumb
+                                    x:Name="HorizontalThumb"
+                                    Grid.Row="0"
+                                    Grid.RowSpan="3"
+                                    Grid.Column="1"
+                                    Style="{StaticResource PlayerSliderThumbStyle}"
+                                    DataContext="{TemplateBinding Value}"
+                                    Width="22"
+                                    Height="22"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    RenderTransformOrigin="0.5,0.5"
+                                    AutomationProperties.AccessibilityView="Raw">
+                                    <Thumb.RenderTransform>
+                                        <ScaleTransform x:Name="HorizontalThumbScale" ScaleX="1" ScaleY="1" />
+                                    </Thumb.RenderTransform>
+                                </Thumb>
+                            </Grid>
+
+                            <!-- Vertical Template -->
+                            <Grid x:Name="VerticalTemplate" MinWidth="24" Visibility="Collapsed">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Rectangle
+                                    x:Name="VerticalTrackRect"
+                                    Grid.Column="1"
+                                    Grid.RowSpan="3"
+                                    Width="5.6"
+                                    Fill="{TemplateBinding Background}"
+                                    RadiusX="5"
+                                    RadiusY="5" />
+                                <Rectangle
+                                    x:Name="VerticalDecreaseRect"
+                                    Grid.Column="1"
+                                    Grid.Row="2"
+                                    Width="5.6"
+                                    Fill="{TemplateBinding Foreground}"
+                                    RadiusX="5"
+                                    RadiusY="5" />
+                                <Thumb
+                                    x:Name="VerticalThumb"
+                                    Grid.Row="1"
+                                    Grid.Column="0"
+                                    Grid.ColumnSpan="3"
+                                    Style="{StaticResource PlayerSliderThumbStyle}"
+                                    DataContext="{TemplateBinding Value}"
+                                    Width="22"
+                                    Height="22" />
+                            </Grid>
+                        </Grid>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

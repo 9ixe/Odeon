@@ -15,8 +15,8 @@
     xmlns:triggers="using:CommunityToolkit.WinUI"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:viewModels="using:Odeon.Core.ViewModels"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
-
     <Page.Resources>
         <ResourceDictionary>
             <MenuFlyout x:Key="ItemFlyout">

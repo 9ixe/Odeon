@@ -1,11 +1,14 @@
-<Application
+﻿<Application
     x:Class="Odeon.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:commands="using:Odeon.Commands"
     xmlns:converters="using:Odeon.Converters"
+    xmlns:contract13NotPresent="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractNotPresent(Windows.Foundation.UniversalApiContract,13)"
+    xmlns:contract13Present="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract,13)"
     xmlns:ctAnimations="using:CommunityToolkit.WinUI.Animations"
     xmlns:ctConverters="using:CommunityToolkit.WinUI.Converters"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:strings="using:Odeon.Strings">
 
@@ -13,34 +16,216 @@
         <muxc:XamlControlsResources>
             <muxc:XamlControlsResources.MergedDictionaries>
                 <ResourceDictionary>
-                    <!--  Brushes  -->
                     <ResourceDictionary.ThemeDictionaries>
                         <ResourceDictionary x:Key="Default">
-                            <!--  Default app font  -->
-                            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <StaticResource x:Key="AccentFillColorCustomBrush" ResourceKey="SystemAccentColorLight2" />
+                            <!--  App font — shared across all themes (defined here for StaticResource access)  -->
+                            <FontFamily x:Key="AppFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <!--  Symbol font — all glyph icons (FontIcon, toggles, checkboxes, etc.) use bundled Odeon glyph fonts  -->
+                            <contract13NotPresent:FontFamily x:Key="SymbolThemeFontFamily">Segoe MDL2 Assets</contract13NotPresent:FontFamily>
+                            <contract13Present:FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons</contract13Present:FontFamily>
+                            <Color x:Key="SystemAccentColor">#FFE81123</Color>
+                            <Color x:Key="SystemAccentColorDark1">#FFC50E1F</Color>
+                            <Color x:Key="SystemAccentColorDark2">#FFA20B19</Color>
+                            <Color x:Key="SystemAccentColorDark3">#FF7F0914</Color>
+                            <Color x:Key="SystemAccentColorLight1">#FFEA3848</Color>
+                            <Color x:Key="SystemAccentColorLight2">#FFEE606D</Color>
+                            <Color x:Key="SystemAccentColorLight3">#FFE81123</Color>
+                            <Color x:Key="AccentFillColorCustom">#FFE81123</Color>
+
+                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6E81123" />
+                            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CCE81123" />
+                            <SolidColorBrush x:Key="AccentFillColorCustomBrush" Color="#FFE81123" />
+
+                            <SolidColorBrush x:Key="AccentButtonBackground" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="AccentButtonForeground" Color="Black" />
+                            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="Black" />
+
+                            <Color x:Key="TextOnAccentFillColorPrimary">#FF000000</Color>
+                            <Color x:Key="TextOnAccentFillColorSecondary">#CC000000</Color>
+                            <Color x:Key="TextOnAccentFillColorDisabled">#66000000</Color>
+                            <Color x:Key="TextOnAccentFillColorSelectedText">#FF000000</Color>
+                            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FF000000" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="#CC000000" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorDisabledBrush" Color="#66000000" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorSelectedTextBrush" Color="#FF000000" />
+
+                            <!-- ToggleSwitch on-state brushes (Windows Accent Red) -->
+                            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#80E81123" />
+
+                            <!-- ToggleButton checked brushes -->
+                            <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="Black" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="Black" />
+                            <SolidColorBrush x:Key="ToggleButtonBorderBrushChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPressed" Color="#FFC50E1F" />
+
+                            <!-- CheckBox checked brushes -->
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="Black" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="Black" />
+
+                            <!-- RadioButton checked brushes -->
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillChecked" Color="Black" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPressed" Color="Black" />
+
+                            <media:AcrylicBrush
+                                x:Key="SidePanelBackgroundBrush"
+                                BackgroundSource="Backdrop"
+                                FallbackColor="#1E1E1E"
+                                TintColor="#141414"
+                                TintOpacity="0.88" />
+                            <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#33FFFFFF" />
                         </ResourceDictionary>
                         <ResourceDictionary x:Key="Light">
-                            <!--  Default app font  -->
-                            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI</FontFamily>
-                            <StaticResource x:Key="AccentFillColorCustomBrush" ResourceKey="SystemAccentColorDark1" />
+                            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                            <!--  Symbol font — all glyph icons (FontIcon, toggles, checkboxes, etc.) use bundled Odeon glyph fonts  -->
+                            <contract13NotPresent:FontFamily x:Key="SymbolThemeFontFamily">Segoe MDL2 Assets</contract13NotPresent:FontFamily>
+                            <contract13Present:FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons</contract13Present:FontFamily>
+
+                            <Color x:Key="SystemAccentColor">#FFE81123</Color>
+                            <Color x:Key="SystemAccentColorDark1">#FFC50E1F</Color>
+                            <Color x:Key="SystemAccentColorDark2">#FFA20B19</Color>
+                            <Color x:Key="SystemAccentColorDark3">#FF7F0914</Color>
+                            <Color x:Key="SystemAccentColorLight1">#FFEA3848</Color>
+                            <Color x:Key="SystemAccentColorLight2">#FFEE606D</Color>
+                            <Color x:Key="SystemAccentColorLight3">#FFE81123</Color>
+                            <Color x:Key="AccentFillColorCustom">#FFE81123</Color>
+
+                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6E81123" />
+                            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CCE81123" />
+                            <SolidColorBrush x:Key="AccentFillColorCustomBrush" Color="#FFE81123" />
+
+                            <SolidColorBrush x:Key="AccentButtonBackground" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="AccentButtonForeground" Color="Black" />
+                            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="Black" />
+
+                            <Color x:Key="TextOnAccentFillColorPrimary">#FF000000</Color>
+                            <Color x:Key="TextOnAccentFillColorSecondary">#CC000000</Color>
+                            <Color x:Key="TextOnAccentFillColorDisabled">#66000000</Color>
+                            <Color x:Key="TextOnAccentFillColorSelectedText">#FF000000</Color>
+                            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FF000000" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="#CC000000" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorDisabledBrush" Color="#66000000" />
+                            <SolidColorBrush x:Key="TextOnAccentFillColorSelectedTextBrush" Color="#FF000000" />
+
+                            <!-- ToggleSwitch on-state brushes (Windows Accent Red) -->
+                            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#80E81123" />
+
+                            <!-- ToggleButton checked brushes -->
+                            <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="Black" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="Black" />
+                            <SolidColorBrush x:Key="ToggleButtonBorderBrushChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPressed" Color="#FFC50E1F" />
+
+                            <!-- CheckBox checked brushes -->
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="Black" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="Black" />
+
+                            <!-- RadioButton checked brushes -->
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeChecked" Color="#FFE81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
+                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillChecked" Color="Black" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPointerOver" Color="Black" />
+                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPressed" Color="Black" />
+
+                            <media:AcrylicBrush
+                                x:Key="SidePanelBackgroundBrush"
+                                BackgroundSource="Backdrop"
+                                FallbackColor="#F4F4F4"
+                                TintColor="#FAFAFA"
+                                TintOpacity="0.88" />
+                            <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#22000000" />
                         </ResourceDictionary>
                         <ResourceDictionary x:Key="HighContrast">
                             <StaticResource x:Key="AccentFillColorCustomBrush" ResourceKey="SystemColorHighlightColor" />
+                            <SolidColorBrush x:Key="SidePanelBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                            <SolidColorBrush x:Key="SidePanelBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
                         </ResourceDictionary>
                     </ResourceDictionary.ThemeDictionaries>
 
@@ -121,6 +306,17 @@
 
                     <CornerRadius x:Key="CircularCornerRadius">99</CornerRadius>
 
+                    <!--  Global MenuFlyout paddings to align glyphs and text to the left  -->
+                    <Thickness x:Key="MenuFlyoutItemThemePadding">8,6,12,6</Thickness>
+                    <Thickness x:Key="MenuFlyoutSubItemThemePadding">8,6,12,6</Thickness>
+                    <Thickness x:Key="ToggleMenuFlyoutItemThemePadding">8,6,12,6</Thickness>
+                    <Thickness x:Key="RadioMenuFlyoutItemThemePadding">8,6,12,6</Thickness>
+
+                    <!--  Acrylic background for all context menus  -->
+                    <Style TargetType="MenuFlyoutPresenter">
+                        <Setter Property="Background" Value="{ThemeResource SidePanelBackgroundBrush}" />
+                    </Style>
+
                     <NavigationViewDisplayMode x:Key="MinimalNavigationViewDisplayMode">Minimal</NavigationViewDisplayMode>
 
                     <!--  Animations  -->
@@ -142,7 +338,7 @@
 
                     <!--  Styles  -->
                     <Style TargetType="TextBlock">
-                        <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI" />
+                        <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" />
                     </Style>
                     <Style
                         x:Key="TitleMediumTextBlockStyle"

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Odeon.Controls.PlayerControls"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -15,26 +15,32 @@
     xmlns:ui="using:CommunityToolkit.WinUI"
     d:DesignHeight="128"
     d:DesignWidth="1200"
+    UseLayoutRounding="True"
     mc:Ignorable="d"
-    FontFamily="ms-appx:///Assets/Fonts/FuturaCyrillicMedium.ttf#Futura Cyrillic Medium">
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular">
 
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ms-appx:///Styles/Flyout.xaml" />
+                <ResourceDictionary Source="ms-appx:///Styles/Progress.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-    <converters:ToggleButtonCheckToRepeatModeConverter x:Key="ToggleButtonCheckToRepeatModeConverter" />
+            <converters:ToggleButtonCheckToRepeatModeConverter x:Key="ToggleButtonCheckToRepeatModeConverter" />
 
-    <x:Double x:Key="Speed025">0.25</x:Double>
-    <x:Double x:Key="Speed050">0.5</x:Double>
-    <x:Double x:Key="Speed075">0.75</x:Double>
-    <x:Double x:Key="Speed100">1.0</x:Double>
-    <x:Double x:Key="Speed125">1.25</x:Double>
-    <x:Double x:Key="Speed150">1.5</x:Double>
-    <x:Double x:Key="Speed175">1.75</x:Double>
-    <x:Double x:Key="Speed200">2.0</x:Double>
-    <x:Double x:Key="Speed400">4.0</x:Double>
+            <Thickness x:Key="MenuFlyoutItemThemePadding">10,6,12,6</Thickness>
+            <Thickness x:Key="MenuFlyoutSubItemThemePadding">10,6,12,6</Thickness>
+            <Thickness x:Key="ToggleMenuFlyoutItemThemePadding">10,6,12,6</Thickness>
+
+            <x:Double x:Key="Speed025">0.25</x:Double>
+            <x:Double x:Key="Speed050">0.5</x:Double>
+            <x:Double x:Key="Speed075">0.75</x:Double>
+            <x:Double x:Key="Speed100">1.0</x:Double>
+            <x:Double x:Key="Speed125">1.25</x:Double>
+            <x:Double x:Key="Speed150">1.5</x:Double>
+            <x:Double x:Key="Speed175">1.75</x:Double>
+            <x:Double x:Key="Speed200">2.0</x:Double>
+            <x:Double x:Key="Speed400">4.0</x:Double>
 
             <Flyout x:Key="VolumeControlFlyout">
                 <Flyout.FlyoutPresenterStyle>
@@ -55,6 +61,7 @@
                     Spacing="8">
                     <Slider
                         x:Name="SpeedSlider"
+                        Style="{StaticResource PlayerSliderStyle}"
                         Header="{strings:Resources Key=CustomPlaybackSpeed}"
                         IsThumbToolTipEnabled="False"
                         Maximum="2"
@@ -63,7 +70,7 @@
                         StepFrequency="0.05"
                         ValueChanged="SpeedSlider_OnValueChanged"
                         Value="1.0" />
-                    <TextBlock HorizontalAlignment="Center"><Run Text="{Binding ElementName=SpeedSlider, Path=Value, FallbackValue=1}" /> <Run Text="�" /></TextBlock>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="{Binding ElementName=SpeedSlider, Path=Value, FallbackValue=1.0}" /> <Run Text="x" /></TextBlock>
                 </StackPanel>
             </Flyout>
 
@@ -78,47 +85,12 @@
                 </StackPanel>
             </Flyout>
 
-            <Flyout x:Key="SubtitleOptionsFlyout">
-                <StackPanel
-                    Width="320"
-                    FlowDirection="LeftToRight"
-                    Orientation="Vertical"
-                    Spacing="8">
-                    <Slider
-                        x:Name="SubtitleTimingOffsetSlider"
-                        Header="{strings:Resources Key=TimingOffset}"
-                        IsThumbToolTipEnabled="False"
-                        Maximum="3000"
-                        Minimum="-3000"
-                        SmallChange="25"
-                        StepFrequency="50"
-                        Value="{Binding SubtitleTimingOffset, Mode=TwoWay}" />
-                    <TextBlock HorizontalAlignment="Center"><Run Text="{Binding ElementName=SubtitleTimingOffsetSlider, Path=Value, FallbackValue=0}" /> <Run Text="ms" /></TextBlock>
-                    <Grid Margin="0,4,0,0" HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            Grid.Column="0"
-                            Text="Override subtitle styles"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center"
-                            TextWrapping="NoWrap"
-                            Margin="0,0,12,0" />
-                        <ToggleSwitch
-                            Grid.Column="1"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            MinWidth="0"
-                            Margin="0"
-                            AutomationProperties.HelpText="Forces the application's font and color settings on ASS/SSA subtitle files, ignoring their embedded styles."
-                            IsOn="{Binding OverrideSubtitleStyles, Mode=TwoWay}" />
-                    </Grid>
-                </StackPanel>
-            </Flyout>
-
             <Flyout x:Key="AudioOptionsFlyout">
+                <Flyout.FlyoutPresenterStyle>
+                    <Style BasedOn="{StaticResource DefaultFlyoutPresenterStyle}" TargetType="FlyoutPresenter">
+                        <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" />
+                    </Style>
+                </Flyout.FlyoutPresenterStyle>
                 <StackPanel
                     Width="320"
                     FlowDirection="LeftToRight"
@@ -126,6 +98,7 @@
                     Spacing="8">
                     <Slider
                         x:Name="AudioTimingOffsetSlider"
+                        Style="{StaticResource PlayerSliderStyle}"
                         Header="{strings:Resources Key=TimingOffset}"
                         IsThumbToolTipEnabled="False"
                         Maximum="3000"
@@ -138,6 +111,11 @@
             </Flyout>
 
             <MenuFlyout x:Key="NormalPlayerContextMenu">
+                <MenuFlyout.MenuFlyoutPresenterStyle>
+                    <Style TargetType="MenuFlyoutPresenter">
+                        <Setter Property="Padding" Value="0,4,0,4" />
+                    </Style>
+                </MenuFlyout.MenuFlyoutPresenterStyle>
                 <MenuFlyoutItem
                     AccessKey="{strings:KeyboardResources Key=MenuItemPropertiesKey}"
                     Command="{StaticResource ShowPropertiesCommand}"
@@ -149,13 +127,14 @@
                         <KeyboardAccelerator Key="Tab" />
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
+                <MenuFlyoutSeparator />
                 <MenuFlyoutSubItem
                     x:Name="PlaybackSpeedSubMenu"
                     AccessKey="{strings:KeyboardResources Key=MenuItemSpeedKey}"
                     KeyTipPlacementMode="Left"
                     Text="{x:Bind strings:Resources.PlaybackSpeed}">
                     <MenuFlyoutSubItem.Icon>
-                        <FontIcon Glyph="{x:Bind converters:GlyphConverter.ToSpeedGlyph(ViewModel.PlaybackRate), Mode=OneWay}" />
+                        <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" Glyph="{x:Bind converters:GlyphConverter.ToSpeedGlyph(ViewModel.PlaybackRate), Mode=OneWay}" />
                     </MenuFlyoutSubItem.Icon>
                     <muxc:RadioMenuFlyoutItem
                         x:Name="PlaybackSpeed025MenuItem"
@@ -228,6 +207,7 @@
                         GroupName="SpeedGroup"
                         Text="{strings:Resources Key=Custom}" />
                 </MenuFlyoutSubItem>
+                <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     AccessKey="{strings:KeyboardResources Key=MenuItemSaveSnapshotKey}"
                     Command="{x:Bind ViewModel.SaveSnapshotCommand}"
@@ -239,6 +219,7 @@
                         <KeyboardAccelerator Key="S" Modifiers="Shift" />
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
+                <MenuFlyoutSeparator />
                 <MenuFlyoutSubItem
                     x:Name="AspectRatioSubMenu"
                     AccessKey="{strings:KeyboardResources Key=MenuItemAspectRatioKey}"
@@ -294,24 +275,16 @@
                         GroupName="AspectRatioGroup"
                         Text="{strings:Resources Key=Custom}" />
                 </MenuFlyoutSubItem>
-                <!--<MenuFlyoutSubItem
-                    Icon="{ui:FontIcon Glyph=&#xE714;}"
-                    IsEnabled="{x:Bind ViewModel.HasVideo, Mode=OneWay}"
-                    Text="{x:Bind strings:Resources.VideoSettings}">
-                </MenuFlyoutSubItem>-->
-
+                <MenuFlyoutSeparator />
                 <MenuFlyoutItem
-                    AccessKey="{strings:KeyboardResources Key=MenuItemAdvancedKey}"
-                    CommandParameter="{x:Bind ViewModel.PlayQueue.CurrentItem, Mode=OneWay}"
-                    Icon="{ui:SymbolIcon Symbol=Setting}"
-                    IsEnabled="{x:Bind ViewModel.HasActiveItem, Mode=OneWay}"
-                    Text="{strings:Resources Key=SetPlaybackOptions}"
-                    Visibility="{x:Bind ViewModel.IsAdvancedModeActive, Mode=OneWay}">
-                    <MenuFlyoutItem.Command>
-                        <commands:SetPlaybackOptionsCommand PlayCommand="{x:Bind ViewModel.ResetMediaPlaybackCommand}" />
-                    </MenuFlyoutItem.Command>
+                    x:Name="ShowChaptersMenuItem"
+                    Command="{x:Bind ViewModel.ToggleShowChaptersCommand}"
+                    Text="{strings:Resources Key=SettingsShowChaptersHeader}">
+                    <MenuFlyoutItem.Icon>
+                        <FontIcon Glyph="{x:Bind converters:GlyphConverter.ToChaptersGlyph(ViewModel.PlayerShowChapters), Mode=OneWay}" />
+                    </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
-
+                <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Command="{x:Bind ViewModel.GoBackToMiniplayerCommand}"
                     Icon="{ui:FontIcon Glyph=&#xE8A1;}"
@@ -356,11 +329,14 @@
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            Margin="12,0"
+            Margin="12,-4,12,6"
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Center"
-            Background="Transparent"
-            Foreground="Transparent" />
+            VerticalAlignment="Center">
+            <!--  Offset used to lift the seek bar in fullscreen. It is set by the code-behind as a fraction of the window height, so that it stays visually the same on any display size, and it is a transform rather than a margin so that the control rows below keep their layout.  -->
+            <controls:SeekBar.RenderTransform>
+                <TranslateTransform x:Name="SeekBarOffset" />
+            </controls:SeekBar.RenderTransform>
+        </controls:SeekBar>
         <!--  Primary Panel  -->
         <StackPanel
             Grid.Row="1"
@@ -435,9 +411,9 @@
                 Margin="8,0,0,2"
                 VerticalAlignment="Center"
                 ChapterName="{x:Bind ViewModel.ChapterName, Mode=OneWay}"
-                FontSize="{StaticResource BodyTextBlockFontSize}"
+                FontSize="17"
                 Length="{x:Bind SeekBar.ViewModel.Length, Mode=OneWay}"
-                ShowChapterName="{x:Bind ViewModel.PlayerShowChapters, Mode=OneWay}"
+                ShowChapterName="{x:Bind ViewModel.PlayerShowChapters, Mode=TwoWay}"
                 TextBlockStyle="{StaticResource BodyStrongTextBlockStyle}"
                 Time="{x:Bind SeekBar.ViewModel.Time, Mode=OneWay}"
                 TitleName="{x:Bind ViewModel.TitleName, Mode=OneWay}" />
@@ -459,21 +435,12 @@
                 extensions:AcceleratorService.ToolTip="{x:Bind strings:Resources.Audio}"
                 AutomationProperties.Name="{x:Bind AudioButton.(extensions:AcceleratorService.ToolTip), Mode=OneWay}"
                 IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                Click="AudioButton_OnClick"
                 Style="{StaticResource RoundedFluentPlayerButtonStyle}">
                 <FontIcon
                     FontSize="18"
                     Glyph="&#xE7F6;"
                     MirroredWhenRightToLeft="True" />
-                <Button.Flyout>
-                    <Flyout
-                        x:Name="AudioFlyout"
-                        Closed="{x:Bind AudioTrackPicker.ViewModel.OnFlyoutClosed}"
-                        FlyoutPresenterStyle="{StaticResource FlyoutPresenterMenuFlyoutStyle}"
-                        Opening="{x:Bind AudioTrackPicker.ViewModel.OnFlyoutOpening}"
-                        ShouldConstrainToRootBounds="False">
-                        <controls:CompositeTrackPicker x:Name="AudioTrackPicker" IsAccessKeyScope="True" />
-                    </Flyout>
-                </Button.Flyout>
             </Button>
 
             <!--  Captions  -->
@@ -483,6 +450,7 @@
                 extensions:AcceleratorService.ToolTip="{x:Bind strings:Resources.Subtitles}"
                 AutomationProperties.Name="{x:Bind CaptionsButton.(extensions:AcceleratorService.ToolTip), Mode=OneWay}"
                 IsEnabled="{x:Bind IsEnabled, Mode=OneWay}"
+                Click="CaptionsButton_OnClick"
                 Style="{StaticResource RoundedFluentPlayerButtonStyle}">
                 <FontIcon
                     FontSize="20"
@@ -499,16 +467,6 @@
                         Invoked="ToggleSubtitleKeyboardAccelerator_OnInvoked"
                         Modifiers="Control,Shift" />
                 </Button.KeyboardAccelerators>
-                <Button.Flyout>
-                    <Flyout
-                        x:Name="CaptionsFlyout"
-                        Closed="{x:Bind SubtitleTrackPicker.ViewModel.OnFlyoutClosed}"
-                        FlyoutPresenterStyle="{StaticResource FlyoutPresenterMenuFlyoutStyle}"
-                        Opening="{x:Bind SubtitleTrackPicker.ViewModel.OnFlyoutOpening}"
-                        ShouldConstrainToRootBounds="False">
-                        <controls:CompositeTrackPicker x:Name="SubtitleTrackPicker" IsAccessKeyScope="True" />
-                    </Flyout>
-                </Button.Flyout>
             </Button>
 
             <!--  Playlist Toggle  -->
@@ -519,6 +477,7 @@
                 AccessKey="{x:Bind strings:KeyboardResources.PlayerQueueKey}"
                 AllowDrop="True"
                 AutomationProperties.Name="{x:Bind strings:Resources.PlayQueue}"
+                Click="PlayQueueButton_OnClick"
                 DragEnter="PlayQueueButton_OnDragEnter"
                 DragLeave="PlayQueueButton_OnDragLeave"
                 Style="{StaticResource RoundedFluentPlayerButtonStyle}">
@@ -528,29 +487,6 @@
                     FontSize="18"
                     Glyph="&#xE838;"
                     MirroredWhenRightToLeft="True" />
-                <Button.Flyout>
-                    <Flyout
-                        x:Name="PlayQueueFlyout"
-                        Opened="PlayQueueFlyout_OnOpened"
-                        Opening="PlayQueueFlyout_OnOpening"
-                        Placement="TopEdgeAlignedRight">
-                        <Flyout.FlyoutPresenterStyle>
-                            <Style BasedOn="{StaticResource DefaultFlyoutPresenterStyle}" TargetType="FlyoutPresenter">
-                                <Setter Property="Padding" Value="0,12,0,0" />
-                                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled" />
-                            </Style>
-                        </Flyout.FlyoutPresenterStyle>
-                        <controls:PlayQueueControl
-                            x:Name="PlayQueue"
-                            Width="432"
-                            MinHeight="200"
-                            MaxHeight="500"
-                            Padding="12,0"
-                            x:Load="False"
-                            IsAccessKeyScope="True"
-                            IsFlyout="True" />
-                    </Flyout>
-                </Button.Flyout>
             </Button>
 
             <!--  More  -->
@@ -634,8 +570,8 @@
                         <Setter Target="NextButton.Style" Value="{StaticResource SmallRoundedFluentPlayerButtonStyle}" />
                         <Setter Target="AudioButton.Style" Value="{StaticResource SmallRoundedFluentPlayerButtonStyle}" />
                         <Setter Target="CaptionsButton.Style" Value="{StaticResource SmallRoundedFluentPlayerButtonStyle}" />
+                        <Setter Target="PlayQueueButton.Style" Value="{StaticResource SmallRoundedFluentPlayerButtonStyle}" />
                         <Setter Target="MoreButton.Style" Value="{StaticResource SmallRoundedFluentPlayerButtonStyle}" />
-                        <Setter Target="PlayQueueButton.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

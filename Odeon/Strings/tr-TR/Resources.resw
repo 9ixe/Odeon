@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Bazı seçenekler yalnızca genel olarak ayarlanabilir.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>VLC komut satırı yardımı</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Mevcut seçeneklerin tam listesi için {0} konusuna bakın.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

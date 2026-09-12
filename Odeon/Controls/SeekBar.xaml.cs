@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.WinUI;
@@ -59,6 +59,8 @@ namespace Odeon.Controls
             }
         }
 
+        private bool _isSeekingPointerPressed;
+
         private void RegisterSeekBarPointerHandlers()
         {
             SeekBarSlider.AddHandler(PointerPressedEvent, (PointerEventHandler)PointerPressedEventHandler, true);
@@ -69,12 +71,14 @@ namespace Odeon.Controls
 
         private void PointerReleasedEventHandler(object sender, PointerRoutedEventArgs e)
         {
+            _isSeekingPointerPressed = false;
             ViewModel.OnSeekBarPointerEvent(false);
             VisualStateManager.GoToState(this, "Normal", true);
         }
 
         private void PointerPressedEventHandler(object sender, PointerRoutedEventArgs e)
         {
+            _isSeekingPointerPressed = true;
             ViewModel.OnSeekBarPointerEvent(true);
             VisualStateManager.GoToState(this, "Seeking", true);
         }
@@ -100,6 +104,11 @@ namespace Odeon.Controls
 
         private void SeekBarSlider_OnPointerExited(object sender, PointerRoutedEventArgs e)
         {
+            if (!_isSeekingPointerPressed)
+            {
+                VisualStateManager.GoToState(this, "Normal", true);
+            }
+
             ViewModel.ShouldShowPreview = false;
             _previewToolTipTimer.Stop();
             _previewToolTip.IsOpen = false;
@@ -123,11 +132,13 @@ namespace Odeon.Controls
 
         private void SeekBarThumb_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
+            _isSeekingPointerPressed = false;
             var position = e.GetCurrentPoint(SeekBarSlider).Position;
             bool inBound = position.X >= 0 && position.X <= SeekBarSlider.ActualWidth &&
                            position.Y >= 0 && position.Y <= SeekBarSlider.ActualHeight;
             if (!inBound)
             {
+                VisualStateManager.GoToState(this, "Normal", true);
                 SeekBarSlider_OnPointerExited(sender, e);
             }
         }
@@ -160,7 +171,11 @@ namespace Odeon.Controls
             double normalizedPosition = (pointerOffset + thumbOffset) / SeekBarSlider.ActualWidth;
             ViewModel.UpdatePreviewTime(normalizedPosition);
             
-            string newContent = Humanizer.ToDuration(ViewModel.PreviewTime);
+            string timeStr = Humanizer.ToDuration(ViewModel.PreviewTime);
+            var chapter = ViewModel.GetChapterAt(TimeSpan.FromMilliseconds(ViewModel.PreviewTime));
+            string newContent = chapter != null && !string.IsNullOrWhiteSpace(chapter.Title)
+                ? $"{timeStr} • {chapter.Title}"
+                : timeStr;
             if (_previewToolTip.Content as string != newContent)
             {
                 _previewToolTip.Content = newContent;

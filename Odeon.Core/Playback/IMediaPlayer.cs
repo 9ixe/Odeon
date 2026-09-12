@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using Odeon.Core.Events;
 using System;
@@ -10,7 +10,7 @@ using Windows.Storage;
 
 namespace Odeon.Core.Playback
 {
-    public interface IMediaPlayer
+    public interface IMediaPlayer : IDisposable
     {
         event TypedEventHandler<IMediaPlayer, EventArgs>? MediaEnded;
         event TypedEventHandler<IMediaPlayer, EventArgs>? MediaFailed;

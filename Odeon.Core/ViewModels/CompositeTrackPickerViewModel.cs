@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -63,7 +62,7 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     private readonly ISettingsService _settingsService;
     private readonly PlayerContext _playerContext;
     private bool _flyoutOpened;
-    private CancellationTokenSource? _cts;
+    private string? _lastProcessedMediaKey;
 
     public CompositeTrackPickerViewModel(PlayerContext playerContext, IFilesService filesService,
         ISettingsService settingsService)
@@ -83,69 +82,148 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     /// </summary>
     public async void Receive(QueueCurrentItemChangedMessage message)
     {
-        _cts?.Cancel();
-        if (MediaPlayer is not VlcMediaPlayer player) return;
+        if (MediaPlayer is not MpvMediaPlayer player) return;
         if (message.Value is not { Source: StorageFile file, MediaType: MediaPlaybackType.Video } media)
             return;
 
-        bool subtitleInitialized = false;
+        string fileKey = file.Path ?? file.Name;
+        if (_lastProcessedMediaKey == fileKey) return;
+        _lastProcessedMediaKey = fileKey;
+
         var playbackSubtitleTrackList = media.Item.Value?.SubtitleTracks;
         if (playbackSubtitleTrackList == null) return;
-        if (playbackSubtitleTrackList.Count > 0) subtitleInitialized = true;
+
+        // 1. Auto-discover neighboring subtitles in same folder
         IReadOnlyList<StorageFile> subtitles = await GetSubtitlesForFile(file, message.NeighboringFilesQuery);
         foreach (StorageFile subtitleFile in subtitles)
         {
-            // Preload subtitle but don't select it
             playbackSubtitleTrackList.AddExternalSubtitle(player, subtitleFile, null, false);
         }
 
-        if (!subtitleInitialized && media.Item.Value is { } playbackItem)
+        // 2. Restore any remembered external subtitle path for this file
+        try
         {
-            try
+            string extSubKey = $"MediaExtSub_{fileKey.GetHashCode():X8}";
+            if (Windows.Storage.ApplicationData.Current.LocalSettings.Values.TryGetValue(extSubKey, out object val) && val is string extPath && !string.IsNullOrEmpty(extPath))
             {
-                using var cts = new CancellationTokenSource();
-                _cts = cts;
-                await playbackItem.Media.WaitForParsed(TimeSpan.FromSeconds(5), cts.Token);
+                if (System.IO.File.Exists(extPath))
+                {
+                    StorageFile extFile = await StorageFile.GetFileFromPathAsync(extPath);
+                    if (extFile != null)
+                    {
+                        playbackSubtitleTrackList.AddExternalSubtitle(player, extFile, null, false);
+                    }
+                }
             }
-            catch (OperationCanceledException)
-            {
-                // pass
-            }
-            finally
-            {
-                _cts = null;
-            }
+        }
+        catch (Exception ex)
+        {
+            LogService.Log(ex);
         }
 
         TrySetSubtitleFromLanguage(playbackSubtitleTrackList, _settingsService.PersistentSubtitleLanguage);
+
+        var playbackAudioTrackList = media.Item.Value?.AudioTracks;
+        if (playbackAudioTrackList != null)
+        {
+            // 1. Auto-discover neighboring audio files in same folder
+            IReadOnlyList<StorageFile> audioFiles = await GetAudioTracksForFile(file, message.NeighboringFilesQuery);
+            foreach (StorageFile audioFile in audioFiles)
+            {
+                playbackAudioTrackList.AddExternalAudio(player, audioFile, false);
+            }
+
+            // 2. Restore any remembered external audio path for this file
+            try
+            {
+                string extAudioKey = $"MediaExtAudio_{fileKey.GetHashCode():X8}";
+                if (Windows.Storage.ApplicationData.Current.LocalSettings.Values.TryGetValue(extAudioKey, out object aVal) && aVal is string aExtPath && !string.IsNullOrEmpty(aExtPath))
+                {
+                    if (System.IO.File.Exists(aExtPath))
+                    {
+                        StorageFile extAudioFile = await StorageFile.GetFileFromPathAsync(aExtPath);
+                        if (extAudioFile != null)
+                        {
+                            playbackAudioTrackList.AddExternalAudio(player, extAudioFile, false);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
+
+            TrySetAudioFromLanguage(playbackAudioTrackList, _settingsService.PersistentAudioLanguage);
+        }
     }
-
-
 
     private static void TrySetSubtitleFromLanguage(PlaybackSubtitleTrackList subtitleTrackList, string persistentLanguage)
     {
-        // Check persistent subtitle value to try and select a subtitle
         if (!string.IsNullOrEmpty(persistentLanguage))
         {
-            // If there is only one subtitle then select it
+            if (persistentLanguage.Equals("none", StringComparison.OrdinalIgnoreCase) ||
+                persistentLanguage.Equals("disabled", StringComparison.OrdinalIgnoreCase))
+            {
+                subtitleTrackList.SelectedIndex = -1;
+                return;
+            }
+
             if (subtitleTrackList.Count == 1)
             {
                 subtitleTrackList.SelectedIndex = 0;
                 return;
             }
 
-            // Try to select the subtitle with the same language as the persistent value
             var langPreferences = persistentLanguage.Split(',', StringSplitOptions.RemoveEmptyEntries);
             foreach (string language in langPreferences)
             {
+                string cleanLang = language.Trim();
                 for (int i = 0; i < subtitleTrackList.Count; i++)
                 {
                     var subtitleTrack = subtitleTrackList[i];
-                    // Try to match language tag first, then language name
-                    if (language == subtitleTrack.LanguageTag || language.Equals(subtitleTrack.Language, StringComparison.CurrentCultureIgnoreCase))
+                    if (cleanLang.Equals(subtitleTrack.LanguageTag, StringComparison.OrdinalIgnoreCase) ||
+                        cleanLang.Equals(subtitleTrack.Language, StringComparison.OrdinalIgnoreCase) ||
+                        cleanLang.Equals(subtitleTrack.Title, StringComparison.OrdinalIgnoreCase))
                     {
                         subtitleTrackList.SelectedIndex = i;
-                        break;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private static void TrySetAudioFromLanguage(PlaybackAudioTrackList audioTrackList, string persistentLanguage)
+    {
+        if (!string.IsNullOrEmpty(persistentLanguage))
+        {
+            if (persistentLanguage.Equals("none", StringComparison.OrdinalIgnoreCase) ||
+                persistentLanguage.Equals("disabled", StringComparison.OrdinalIgnoreCase))
+            {
+                audioTrackList.SelectedIndex = -1;
+                return;
+            }
+
+            if (audioTrackList.Count == 1)
+            {
+                audioTrackList.SelectedIndex = 0;
+                return;
+            }
+
+            var langPreferences = persistentLanguage.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string language in langPreferences)
+            {
+                string cleanLang = language.Trim();
+                for (int i = 0; i < audioTrackList.Count; i++)
+                {
+                    var audioTrack = audioTrackList[i];
+                    if (cleanLang.Equals(audioTrack.LanguageTag, StringComparison.OrdinalIgnoreCase) ||
+                        cleanLang.Equals(audioTrack.Language, StringComparison.OrdinalIgnoreCase) ||
+                        cleanLang.Equals(audioTrack.Title, StringComparison.OrdinalIgnoreCase))
+                    {
+                        audioTrackList.SelectedIndex = i;
+                        return;
                     }
                 }
             }
@@ -225,6 +303,65 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
         return subtitles;
     }
 
+    private async Task<IReadOnlyList<StorageFile>> GetAudioTracksForFile(StorageFile sourceFile, StorageFileQueryResult? neighboringFilesQuery = null)
+    {
+        IReadOnlyList<StorageFile> audioFiles = Array.Empty<StorageFile>();
+        string rawName = Path.GetFileNameWithoutExtension(sourceFile.Name);
+
+        char[] separators = [' ', '.', '_', '-', '[', ']', '(', ')', '{', '}', ',', ';', '"', '\''];
+        string[] tokens = rawName.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+        if (tokens.Length == 0) return audioFiles;
+
+        if (neighboringFilesQuery != null)
+        {
+            try
+            {
+                var escapedTokens = tokens.Select(token => Regex.Escape(token)).ToList();
+                var strictRegexPattern = "^" + string.Join(".*", escapedTokens) + ".*$";
+                IReadOnlyList<StorageFile> files = await neighboringFilesQuery.GetFilesAsync(0, 50);
+                audioFiles = files.Where(f =>
+                       f.IsSupportedAudio() && Regex.IsMatch(f.Name, strictRegexPattern, RegexOptions.IgnoreCase))
+                    .ToArray();
+                if (audioFiles.Count == 0 && tokens.Length > 1)
+                {
+                    var fallbackPattern = "^" + string.Join(".*", escapedTokens.Take(Math.Min(escapedTokens.Count - 1, 3))) + ".*$";
+                    audioFiles = files.Where(f =>
+                            f.IsSupportedAudio() && Regex.IsMatch(f.Name, fallbackPattern, RegexOptions.IgnoreCase))
+                        .ToArray();
+                }
+            }
+            catch (Exception e)
+            {
+                LogService.Log(e);
+            }
+        }
+        else
+        {
+            string strictPattern = string.Join("*", tokens) + "*";
+            QueryOptions options = new(CommonFileQuery.DefaultQuery, FilesHelpers.SupportedAudioFormats)
+            {
+                ApplicationSearchFilter = $"System.FileName:~\"{strictPattern}\""
+            };
+
+            var query = await _filesService.GetNeighboringFilesQueryAsync(sourceFile, options);
+            if (query != null)
+            {
+                audioFiles = await query.GetFilesAsync(0, 50);
+
+                if (audioFiles.Count == 0 && tokens.Length > 1)
+                {
+                    string fallbackPattern = string.Join("*", tokens.Take(Math.Min(tokens.Length - 1, 3))) + "*";
+                    options.ApplicationSearchFilter = $"System.FileName:~\"{fallbackPattern}\"";
+                    query.ApplyNewQueryOptions(options);
+                    audioFiles = await query.GetFilesAsync(0, 50);
+                }
+            }
+        }
+
+        return audioFiles;
+    }
+
     partial void OnSubtitleTrackIndexChanged(int value)
     {
         if (!_flyoutOpened) return;
@@ -236,15 +373,30 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
         if (value >= ItemSubtitleTrackList.Count) return;
         ItemSubtitleTrackList.SelectedIndex = value;
 
+        string mediaKey = (MediaPlayer as MpvMediaPlayer)?.PlaybackItem?.FilePath ?? string.Empty;
+        string perMediaKey = !string.IsNullOrEmpty(mediaKey) ? $"MediaSubTrack_{mediaKey.GetHashCode():X8}" : string.Empty;
+
         if (value < 0)
         {
-            _settingsService.PersistentSubtitleLanguage = string.Empty;
+            _settingsService.PersistentSubtitleLanguage = "none";
+            if (!string.IsNullOrEmpty(perMediaKey))
+            {
+                try { Windows.Storage.ApplicationData.Current.LocalSettings.Values[perMediaKey] = "none"; } catch { }
+            }
         }
-        else if (value < SubtitleTracks.Count)
+        else if (value < ItemSubtitleTrackList.Count)
         {
             var subtitle = ItemSubtitleTrackList[value];
-            _settingsService.PersistentSubtitleLanguage =
-                $"{subtitle.LanguageTag},{subtitle.Language},{LanguageHelper.GetPreferredLanguage().Substring(0, 2)}";
+            string langPref = $"{subtitle.LanguageTag},{subtitle.Language},{LanguageHelper.GetPreferredLanguage().Substring(0, 2)}";
+            if (!string.IsNullOrEmpty(subtitle.Title))
+            {
+                langPref = $"{subtitle.Title},{langPref}";
+            }
+            _settingsService.PersistentSubtitleLanguage = langPref;
+            if (!string.IsNullOrEmpty(perMediaKey))
+            {
+                try { Windows.Storage.ApplicationData.Current.LocalSettings.Values[perMediaKey] = $"{subtitle.TrackId},{subtitle.Title},{subtitle.LanguageTag},{subtitle.Language}"; } catch { }
+            }
         }
     }
 
@@ -253,6 +405,32 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
         if (!_flyoutOpened) return;
         if (ItemAudioTrackList != null && value >= 0 && value < ItemAudioTrackList.Count)
             ItemAudioTrackList.SelectedIndex = value;
+
+        string mediaKey = (MediaPlayer as MpvMediaPlayer)?.PlaybackItem?.FilePath ?? string.Empty;
+        string perMediaKey = !string.IsNullOrEmpty(mediaKey) ? $"MediaAudioTrack_{mediaKey.GetHashCode():X8}" : string.Empty;
+
+        if (value < 0)
+        {
+            _settingsService.PersistentAudioLanguage = "none";
+            if (!string.IsNullOrEmpty(perMediaKey))
+            {
+                try { Windows.Storage.ApplicationData.Current.LocalSettings.Values[perMediaKey] = "none"; } catch { }
+            }
+        }
+        else if (ItemAudioTrackList != null && value < ItemAudioTrackList.Count)
+        {
+            var audioTrack = ItemAudioTrackList[value];
+            string langPref = $"{audioTrack.LanguageTag},{audioTrack.Language}";
+            if (!string.IsNullOrEmpty(audioTrack.Title))
+            {
+                langPref = $"{audioTrack.Title},{langPref}";
+            }
+            _settingsService.PersistentAudioLanguage = langPref;
+            if (!string.IsNullOrEmpty(perMediaKey))
+            {
+                try { Windows.Storage.ApplicationData.Current.LocalSettings.Values[perMediaKey] = $"{audioTrack.TrackId},{audioTrack.Title},{audioTrack.LanguageTag},{audioTrack.Language}"; } catch { }
+            }
+        }
     }
 
     partial void OnVideoTrackIndexChanged(int value)
@@ -270,16 +448,61 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     {
         try
         {
-            if (ItemSubtitleTrackList == null || MediaPlayer is not VlcMediaPlayer player) return;
+            if (ItemSubtitleTrackList == null || MediaPlayer is not MpvMediaPlayer player) return;
             StorageFile? file = await _filesService.PickFileAsync(FilesHelpers.SupportedSubtitleFormats.Add("*").ToArray());
             if (file == null) return;
 
             ItemSubtitleTrackList.AddExternalSubtitle(player, file, null, true);
+
+            string mediaKey = player.PlaybackItem?.FilePath ?? string.Empty;
+            if (!string.IsNullOrEmpty(mediaKey) && !string.IsNullOrEmpty(file.Path))
+            {
+                try
+                {
+                    string extSubKey = $"MediaExtSub_{mediaKey.GetHashCode():X8}";
+                    Windows.Storage.ApplicationData.Current.LocalSettings.Values[extSubKey] = file.Path;
+                }
+                catch { }
+            }
+
             Messenger.Send(new SubtitleAddedNotificationMessage(file));
         }
         catch (Exception e)
         {
             Messenger.Send(new FailedToLoadSubtitleNotificationMessage(e.Message));
+        }
+    }
+
+    /// <summary>
+    /// Adds an external audio file to the current media.
+    /// </summary>
+    [RelayCommand]
+    private async Task AddAudioTrackAsync()
+    {
+        try
+        {
+            if (ItemAudioTrackList == null || MediaPlayer is not MpvMediaPlayer player) return;
+            StorageFile? file = await _filesService.PickFileAsync(FilesHelpers.SupportedAudioFormats.Add("*").ToArray());
+            if (file == null) return;
+
+            ItemAudioTrackList.AddExternalAudio(player, file, true);
+
+            string mediaKey = player.PlaybackItem?.FilePath ?? string.Empty;
+            if (!string.IsNullOrEmpty(mediaKey) && !string.IsNullOrEmpty(file.Path))
+            {
+                try
+                {
+                    string extAudioKey = $"MediaExtAudio_{mediaKey.GetHashCode():X8}";
+                    Windows.Storage.ApplicationData.Current.LocalSettings.Values[extAudioKey] = file.Path;
+                }
+                catch { }
+            }
+
+            Messenger.Send(new UpdateStatusMessage($"Audio: {file.Name}"));
+        }
+        catch (Exception e)
+        {
+            LogService.Log(e);
         }
     }
 

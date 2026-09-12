@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="Odeon.Pages.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -22,6 +22,7 @@
     xmlns:ui="using:CommunityToolkit.WinUI"
     d:DesignHeight="1472"
     d:DesignWidth="848"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     XYFocusDownNavigationStrategy="NavigationDirectionDistance"
     XYFocusUpNavigationStrategy="NavigationDirectionDistance"
     mc:Ignorable="d">
@@ -39,6 +40,8 @@
             <Setter Property="Margin" Value="1,28,0,8" />
             <Setter Property="AutomationProperties.HeadingLevel" Value="Level2" />
         </Style>
+
+        <!--  SettingsCard / SettingsExpander typography is handled app-wide via App.xaml font resource overrides  -->
 
         <!--  SettingsCard for the related links footer, with a darker background, reduced left padding, increased minimum height and vertical padding  -->
         <Style x:Key="LinksSettingsExpanderItemStyle" TargetType="ctc:SettingsCard">
@@ -62,7 +65,7 @@
             Description="{strings:Resources Key=RemoveFolder}" />
 
         <DataTemplate x:Key="VideosLibraryLocationTemplate" x:DataType="storage:StorageFolder">
-            <ctc:SettingsCard Description="{x:Bind Path}" Header="{x:Bind DisplayName}">
+            <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Description="{x:Bind Path}" Header="{x:Bind DisplayName}">
                 <Button
                     Width="32"
                     Height="32"
@@ -70,13 +73,13 @@
                     Command="{StaticResource RemoveVideosFolderCommand}"
                     CommandParameter="{x:Bind}"
                     Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon Glyph="&#xE894;" />
+                    <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" Glyph="{StaticResource DeleteGlyph}" />
                 </Button>
             </ctc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="MusicLibraryLocationTemplate" x:DataType="storage:StorageFolder">
-            <ctc:SettingsCard Description="{x:Bind Path}" Header="{x:Bind DisplayName}">
+            <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Description="{x:Bind Path}" Header="{x:Bind DisplayName}">
                 <Button
                     Width="32"
                     Height="32"
@@ -84,13 +87,13 @@
                     Command="{StaticResource RemoveMusicFolderCommand}"
                     CommandParameter="{x:Bind}"
                     Style="{StaticResource SubtleButtonStyle}">
-                    <FontIcon Glyph="&#xE894;" />
+                    <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" Glyph="{StaticResource DeleteGlyph}" />
                 </Button>
             </ctc:SettingsCard>
         </DataTemplate>
 
         <DataTemplate x:Key="RemovableStorageFolderTemplate" x:DataType="storage:StorageFolder">
-            <ctc:SettingsCard Description="{x:Bind Path}" Header="{x:Bind DisplayName}" />
+            <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Description="{x:Bind Path}" Header="{x:Bind DisplayName}" />
         </DataTemplate>
 
         <DataTemplate x:Key="ResourceNameToResourceStringTemplate" x:DataType="x:String">
@@ -248,7 +251,7 @@
                         Command="{x:Bind ViewModel.RefreshLibrariesCommand}"
                         Content="{strings:Resources Key=Refresh}" />
                     <ctc:SettingsExpander.Items>
-                        <ctc:SettingsCard ContentAlignment="Left">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" ContentAlignment="Left">
                             <StackPanel Orientation="Vertical">
                                 <CheckBox
                                     AutomationProperties.FullDescription="{x:Bind SettingsUseIndexerDescriptionText.Text}"
@@ -332,6 +335,19 @@
                     HeaderIcon="{ui:FontIcon FontFamily={StaticResource OdeonSymbolThemeFontFamily},
                                              Glyph={StaticResource FolderListGlyph}}">
                     <ToggleSwitch AutomationProperties.HelpText="{strings:Resources Key=SettingsEnqueueAllFilesInFolderDescription}" IsOn="{x:Bind ViewModel.EnqueueAllFilesInFolder, Mode=TwoWay}" />
+                </ctc:SettingsCard>
+
+                <ctc:SettingsCard
+                    Margin="{StaticResource SettingsCardMargin}"
+                    Description="{strings:Resources Key=SettingsUseMultipleInstancesDescription}"
+                    Header="{strings:Resources Key=SettingsUseMultipleInstancesHeader}"
+                    HeaderIcon="{ui:FontIcon Glyph=&#xF5ED;,
+                                             MirroredWhenRightToLeft=True}"
+                    Visibility="{x:Bind helpers:DeviceInfoHelper.IsDesktop}">
+                    <ToggleSwitch
+                        x:Name="UseMultipleInstancesToggleSwitch"
+                        AutomationProperties.HelpText="{strings:Resources Key=SettingsUseMultipleInstancesDescription}"
+                        IsOn="{x:Bind ViewModel.UseMultipleInstances, Mode=TwoWay}" />
                 </ctc:SettingsCard>
 
                 <!--  Player section  -->
@@ -418,10 +434,10 @@
                     Header="{x:Bind strings:Resources.SettingsOnScreenControlsHeader}"
                     HeaderIcon="{ui:FontIcon Glyph=&#xE75A;}">
                     <ctc:SettingsExpander.Items>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsShowControlsHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsShowControlsHeader}">
                             <ToggleSwitch IsOn="{x:Bind ViewModel.PlayerShowControls, Mode=TwoWay}" />
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsOnScreenControlsHideDelayHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsOnScreenControlsHideDelayHeader}">
                             <ComboBox
                                 MinWidth="150"
                                 AutomationProperties.HelpText="{x:Bind strings:Resources.SettingsOnScreenControlsHideDelayHeader}"
@@ -442,7 +458,7 @@
                     HeaderIcon="{ui:FontIcon Glyph=&#xEDA4;}"
                     Visibility="{x:Bind helpers:DeviceInfoHelper.IsDesktop}">
                     <ctc:SettingsExpander.Items>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureTapHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureTapHeader}">
                             <ComboBox
                                 MinWidth="150"
                                 ItemTemplate="{StaticResource PlaybackActionKindToResourceStringTemplate}"
@@ -453,7 +469,7 @@
                                 </interactivity:Interaction.Behaviors>
                             </ComboBox>
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureSwipeUpHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureSwipeUpHeader}">
                             <ComboBox
                                 MinWidth="150"
                                 IsEnabled="{x:Bind ViewModel.PlayerGestureSlideVertical, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
@@ -465,7 +481,7 @@
                                 </interactivity:Interaction.Behaviors>
                             </ComboBox>
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureSwipeDownHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureSwipeDownHeader}">
                             <ComboBox
                                 MinWidth="150"
                                 IsEnabled="{x:Bind ViewModel.PlayerGestureSlideVertical, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
@@ -477,7 +493,7 @@
                                 </interactivity:Interaction.Behaviors>
                             </ComboBox>
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureSwipeLeftHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureSwipeLeftHeader}">
                             <ComboBox
                                 MinWidth="150"
                                 IsEnabled="{x:Bind ViewModel.PlayerGestureSlideHorizontal, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
@@ -489,7 +505,7 @@
                                 </interactivity:Interaction.Behaviors>
                             </ComboBox>
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureSwipeRightHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureSwipeRightHeader}">
                             <ComboBox
                                 MinWidth="150"
                                 IsEnabled="{x:Bind ViewModel.PlayerGestureSlideHorizontal, Converter={StaticResource BoolNegationConverter}, Mode=OneWay}"
@@ -501,91 +517,19 @@
                                 </interactivity:Interaction.Behaviors>
                             </ComboBox>
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureVolume}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureVolume}">
                             <ToggleSwitch IsOn="{x:Bind ViewModel.PlayerGestureSlideVertical, Mode=TwoWay}" />
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGestureSeek}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGestureSeek}">
                             <ToggleSwitch IsOn="{x:Bind ViewModel.PlayerGestureSlideHorizontal, Mode=TwoWay}" />
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard Header="{x:Bind strings:Resources.SettingsGesturePressAndHoldHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Header="{x:Bind strings:Resources.SettingsGesturePressAndHoldHeader}">
                             <ToggleSwitch IsOn="{x:Bind ViewModel.PlayerGesturePressAndHold, Mode=TwoWay}" />
                         </ctc:SettingsCard>
                     </ctc:SettingsExpander.Items>
                 </ctc:SettingsExpander>
 
-                <!--  Advanced section  -->
-                <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{strings:Resources Key=SettingsCategoryAdvanced}" />
 
-                <ctc:SettingsCard
-                    Margin="{StaticResource SettingsCardMargin}"
-                    Description="{strings:Resources Key=SettingsVideoUpscalingDescription}"
-                    Header="{strings:Resources Key=SettingsVideoUpscalingHeader}"
-                    HeaderIcon="{ui:FontIcon FontFamily={StaticResource OdeonSymbolThemeFontFamily},
-                                             Glyph={StaticResource ImagePixelGlyph}}"
-                    Visibility="{x:Bind helpers:DeviceInfoHelper.IsDesktop}">
-                    <ComboBox
-                        MinWidth="150"
-                        AutomationProperties.HelpText="{strings:Resources Key=SettingsVideoUpscalingHeader}"
-                        ItemTemplate="{StaticResource ResourceNameToResourceStringTemplate}"
-                        SelectedIndex="{x:Bind ViewModel.VideoUpscaling, Mode=TwoWay}">
-                        <interactivity:Interaction.Behaviors>
-                            <behaviors:ComboBoxWidthFromPopupBehavior />
-                        </interactivity:Interaction.Behaviors>
-                        <x:String>VideoUpscalingLinear</x:String>
-                        <x:String>VideoUpscalingPoint</x:String>
-                        <x:String>VideoUpscalingSuper</x:String>
-                    </ComboBox>
-                </ctc:SettingsCard>
-
-                <ctc:SettingsCard
-                    Margin="{StaticResource SettingsCardMargin}"
-                    Description="{strings:Resources Key=SettingsUseMultipleInstancesDescription}"
-                    Header="{strings:Resources Key=SettingsUseMultipleInstancesHeader}"
-                    HeaderIcon="{ui:FontIcon Glyph=&#xF5ED;,
-                                             MirroredWhenRightToLeft=True}"
-                    Visibility="{x:Bind helpers:DeviceInfoHelper.IsDesktop}">
-                    <ToggleSwitch
-                        x:Name="UseMultipleInstancesToggleSwitch"
-                        AutomationProperties.HelpText="{strings:Resources Key=SettingsUseMultipleInstancesDescription}"
-                        IsOn="{x:Bind ViewModel.UseMultipleInstances, Mode=TwoWay}" />
-                </ctc:SettingsCard>
-
-                <ctc:SettingsExpander
-                    Margin="{StaticResource SettingsCardMargin}"
-                    Description="{strings:Resources Key=SettingsAdvancedModeDescription}"
-                    Header="{strings:Resources Key=SettingsAdvancedModeHeader}"
-                    HeaderIcon="{ui:FontIcon Glyph=&#xE756;}"
-                    IsExpanded="{x:Bind AdvancedModeToggleSwitch.IsOn, Mode=OneWay}">
-                    <interactivity:Interaction.Behaviors>
-                        <behaviors:SettingsExpanderXYNavigationBehavior />
-                    </interactivity:Interaction.Behaviors>
-                    <ToggleSwitch
-                        x:Name="AdvancedModeToggleSwitch"
-                        AutomationProperties.HelpText="{strings:Resources Key=SettingsAdvancedModeDescription}"
-                        IsOn="{x:Bind ViewModel.AdvancedMode, Mode=TwoWay}" />
-                    <ctc:SettingsExpander.Items>
-                        <ctc:SettingsCard
-                            x:Name="SettingsGlobalArgumentsCard"
-                            AutomationProperties.Name="{x:Bind SettingsGlobalArgumentsCard.Header}"
-                            Description="{strings:Resources Key=SettingsGlobalArgumentsDescription}"
-                            Header="{strings:Resources Key=SettingsGlobalArgumentsHeader}"
-                            IsEnabled="{x:Bind AdvancedModeToggleSwitch.IsOn, Mode=OneWay}">
-                            <Button CommandParameter="{x:Bind ViewModel}" Content="{strings:Resources Key=SetArguments}">
-                                <Button.Command>
-                                    <commands:SetPlaybackOptionsCommand />
-                                </Button.Command>
-                            </Button>
-                        </ctc:SettingsCard>
-                        <ctc:SettingsCard
-                            Header="{strings:Resources Key=ActiveArguments}"
-                            IsEnabled="{x:Bind AdvancedModeToggleSwitch.IsOn, Mode=OneWay}"
-                            Visibility="{x:Bind ViewModel.GlobalArguments, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                            <ctc:SettingsCard.Description>
-                                <TextBlock IsTextSelectionEnabled="True" Text="{x:Bind ViewModel.GlobalArguments, Mode=OneWay}" />
-                            </ctc:SettingsCard.Description>
-                        </ctc:SettingsCard>
-                    </ctc:SettingsExpander.Items>
-                </ctc:SettingsExpander>
 
                 <!--  Privacy  -->
                 <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{x:Bind strings:Resources.SettingsCategoryPrivacy}" />
@@ -636,7 +580,7 @@
                             IsEnabled="{x:Bind ViewModel.PersistPlaybackPosition, Mode=OneWay}">
                             <ToggleSwitch AutomationProperties.HelpText="{x:Bind strings:Resources.SettingsRestorePlaybackPositionDescription}" IsOn="{x:Bind ViewModel.RestorePlaybackPosition, Mode=TwoWay}" />
                         </ctc:SettingsCard>
-                        <ctc:SettingsCard AutomationProperties.Name="{x:Bind strings:Resources.SettingsClearPlaybackPositionHeader}" Header="{x:Bind strings:Resources.SettingsClearPlaybackPositionHeader}">
+                        <ctc:SettingsCard FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" AutomationProperties.Name="{x:Bind strings:Resources.SettingsClearPlaybackPositionHeader}" Header="{x:Bind strings:Resources.SettingsClearPlaybackPositionHeader}">
                             <Button
                                 MinWidth="{StaticResource SettingsCardButtonMinWidth}"
                                 Command="{x:Bind ViewModel.ClearPlaybackPositionHistoryCommand}"
@@ -644,22 +588,6 @@
                         </ctc:SettingsCard>
                     </ctc:SettingsExpander.Items>
                 </ctc:SettingsExpander>
-
-                <!--  About section  -->
-                <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{strings:Resources Key=SettingsCategoryAbout}" />
-
-                <ctc:SettingsCard
-                    Margin="{StaticResource SettingsCardMargin}"
-                    Description="Version 1.0.0.0 • Forked from Screenbox by Joel Biju"
-                    Header="{strings:Resources Key=AppFriendlyName}"
-                    HeaderIcon="{ui:BitmapIcon Source=ms-appx:///Assets/StoreLogo.png}" />
-
-                <ctc:SettingsCard
-                    Margin="{StaticResource SettingsCardMargin}"
-                    Description="Odeon is based on the original Screenbox media player project."
-                    Header="Credits">
-                    <HyperlinkButton Content="Original Screenbox Repository" NavigateUri="https://github.com/huyn-net/Screenbox" />
-                </ctc:SettingsCard>
 
             </StackPanel>
         </ScrollViewer>
@@ -719,3 +647,4 @@
         </VisualStateManager.VisualStateGroups>
     </Grid>
 </Page>
+

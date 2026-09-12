@@ -177,7 +177,10 @@ public sealed partial class NavigationViewEx : NavigationView
     {
         if (Overlay is not null && _splitView?.FindDescendant<Grid>() is { } splitViewGrid)
         {
-            splitViewGrid.Children.Add(_overlayRoot);
+            if (!splitViewGrid.Children.Contains(_overlayRoot))
+            {
+                splitViewGrid.Children.Add(_overlayRoot);
+            }
         }
 
         if (IsSettingsVisible &&
@@ -209,6 +212,11 @@ public sealed partial class NavigationViewEx : NavigationView
             _overlayChildRectangle.Tapped -= OverlayLightDismissLayer_OnTapped;
         }
 
+        if (_overlayRoot is not null && _splitView?.FindDescendant<Grid>() is { } splitViewGrid)
+        {
+            splitViewGrid.Children.Remove(_overlayRoot);
+        }
+
         _overlayRoot = null;
         _overlayChildBorder = null;
         _overlayChildRectangle = null;
@@ -223,12 +231,12 @@ public sealed partial class NavigationViewEx : NavigationView
 
     private void OnDisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
     {
-        UpdateOverlayLayout();
+        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Low, UpdateOverlayLayout);
     }
 
     private void OnPaneOpening(NavigationView sender, object args)
     {
-        UpdateOverlayLayout();
+        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Low, UpdateOverlayLayout);
     }
 
     private void OnPaneClosing(NavigationView sender, NavigationViewPaneClosingEventArgs args)
@@ -363,12 +371,18 @@ public sealed partial class NavigationViewEx : NavigationView
 
     private void UpdateOverlayLightDismissLayerFill()
     {
-        if (_overlayChildRectangle is not null &&
-            _splitView?.FindDescendant<Rectangle>(r => r.Name.Equals("LightDismissLayer", StringComparison.Ordinal)) is { } contentRootRect)
+        if (_overlayChildRectangle is null || _splitView is null) return;
+
+        try
         {
-            // We use the ContentGrid LightDismissLayer rectangle fill to avoid tracking
-            // LightDismissOverlayMode, theme and high contrast changes ourselves.
-            _overlayChildRectangle.Fill = contentRootRect.Fill;
+            if (_splitView.FindDescendant<Rectangle>(r => r.Name.Equals("LightDismissLayer", StringComparison.Ordinal)) is { } contentRootRect)
+            {
+                _overlayChildRectangle.Fill = contentRootRect.Fill;
+            }
+        }
+        catch
+        {
+            // Ignored: visual tree may be temporarily unavailable during pane transitions.
         }
     }
 

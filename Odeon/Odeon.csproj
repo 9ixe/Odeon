@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -164,8 +164,14 @@
     <Compile Include="Controls\CompositeTrackPicker.xaml.cs">
       <DependentUpon>CompositeTrackPicker.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\CastControl.xaml.cs">
-      <DependentUpon>CastControl.xaml</DependentUpon>
+    <Compile Include="Controls\SubtitleSidePanel.xaml.cs">
+      <DependentUpon>SubtitleSidePanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\AudioSidePanel.xaml.cs">
+      <DependentUpon>AudioSidePanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\PlayQueueSidePanel.xaml.cs">
+      <DependentUpon>PlayQueueSidePanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ChapterProgressBar.xaml.cs">
       <DependentUpon>ChapterProgressBar.xaml</DependentUpon>
@@ -220,7 +226,6 @@
     <Compile Include="Converters\HumanizedDurationConverter.cs" />
     <Compile Include="Converters\MediaGlyphConverter.cs" />
     <Compile Include="Converters\PlayPauseGlyphConverter.cs" />
-    <Compile Include="Converters\RendererGlyphConverter.cs" />
     <Compile Include="Converters\ResourceNameToResourceStringConverter.cs" />
     <Compile Include="Converters\ThicknessFilterKinds.cs" />
     <Compile Include="Converters\ThicknessFiltersConverter.cs" />
@@ -242,9 +247,6 @@
     </Compile>
     <Compile Include="Dialogs\SetOptionsDialog.xaml.cs">
       <DependentUpon>SetOptionsDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Dialogs\VLCLoginDialog.xaml.cs">
-      <DependentUpon>VLCLoginDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Extensions\AcceleratorService.cs" />
     <Compile Include="Extensions\ApplicationViewExtensions.cs" />
@@ -325,7 +327,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\VlcDialogService.cs" />
     <Compile Include="Templates\SearchSuggestionTemplateSelector.cs" />
     <Compile Include="ViewModels\NotificationViewModel.cs" />
     <Compile Include="ViewModels\PropertyViewModel.cs" />
@@ -337,6 +338,9 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="mpv-2.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\Icons\AudiobookFileAssociation.targetsize-128.png" />
     <Content Include="Assets\Icons\AudiobookFileAssociation.targetsize-16.png" />
     <Content Include="Assets\Icons\AudiobookFileAssociation.targetsize-20.png" />
@@ -540,7 +544,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\CastControl.xaml">
+    <Page Include="Controls\SubtitleSidePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\AudioSidePanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\PlayQueueSidePanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -629,10 +641,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\SetOptionsDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Dialogs\VLCLoginDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -794,9 +802,6 @@
     </PackageReference>
     <PackageReference Include="ReswPlus">
       <Version>0.3.1.5</Version>
-    </PackageReference>
-    <PackageReference Include="LibVLC.UWP">
-      <Version>3.0.21-2505100334</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

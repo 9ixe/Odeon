@@ -1,14 +1,18 @@
-﻿using LibVLCSharp.Shared.Structures;
+#nullable enable
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Odeon.Core.Interop;
 using Windows.Media.Core;
 
 namespace Odeon.Core.Playback
 {
-    public sealed class PlaybackChapterList : ReadOnlyCollection<ChapterCue>
+    public sealed class PlaybackChapterList : ReadOnlyCollection<ChapterCue>, IEnumerable<ChapterCue>, IEnumerable
     {
+        private readonly object _syncLock = new();
         private readonly List<ChapterCue> _chapters;
         private readonly PlaybackItem _item;
 
@@ -18,40 +22,81 @@ namespace Odeon.Core.Playback
             _chapters = (List<ChapterCue>)Items;
         }
 
-        public void Load(IMediaPlayer player)
+        public new IEnumerator<ChapterCue> GetEnumerator()
         {
-            if (player is not VlcMediaPlayer vlcPlayer || player.PlaybackItem != _item)
-                return;
-
-            if (vlcPlayer.VlcPlayer.ChapterCount > 0)
+            ChapterCue[] snapshot;
+            lock (_syncLock)
             {
-                List<ChapterDescription> chapterDescriptions = new();
-                for (int i = 0; i < vlcPlayer.VlcPlayer.TitleCount; i++)
-                {
-                    chapterDescriptions.AddRange(vlcPlayer.VlcPlayer.FullChapterDescriptions(i));
-                }
-
-                Load(chapterDescriptions);
+                snapshot = _chapters.ToArray();
             }
-            else
-            {
-                Load(vlcPlayer.VlcPlayer.FullChapterDescriptions());
-            }
-
-            vlcPlayer.Chapter = _chapters.FirstOrDefault();
+            return ((IEnumerable<ChapterCue>)snapshot).GetEnumerator();
         }
 
-        private void Load(IEnumerable<ChapterDescription> vlcChapters)
-        {
-            IEnumerable<ChapterCue> chapterCues = vlcChapters.Select(c => new ChapterCue
-            {
-                Title = c.Name ?? string.Empty,
-                Duration = TimeSpan.FromMilliseconds(c.Duration),
-                StartTime = TimeSpan.FromMilliseconds(c.TimeOffset)
-            });
+        IEnumerator<ChapterCue> IEnumerable<ChapterCue>.GetEnumerator() => GetEnumerator();
 
-            _chapters.Clear();
-            _chapters.AddRange(chapterCues);
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public ChapterCue[] ToArray()
+        {
+            lock (_syncLock)
+            {
+                return _chapters.ToArray();
+            }
+        }
+
+        public void Load(IMediaPlayer player)
+        {
+            if (player is MpvMediaPlayer mpvPlayer)
+            {
+                IReadOnlyList<MpvChapterInfo> chapters = mpvPlayer.GetChapters();
+                Load(chapters, mpvPlayer.NaturalDuration);
+            }
+        }
+
+        public void Load(IReadOnlyList<MpvChapterInfo> rawChapters, TimeSpan naturalDuration = default)
+        {
+            if (rawChapters == null || rawChapters.Count == 0)
+            {
+                lock (_syncLock)
+                {
+                    _chapters.Clear();
+                }
+                return;
+            }
+
+            var newChapters = new List<ChapterCue>(rawChapters.Count);
+            for (int i = 0; i < rawChapters.Count; i++)
+            {
+                MpvChapterInfo raw = rawChapters[i];
+                TimeSpan start = TimeSpan.FromSeconds(Math.Max(0, raw.Time));
+                TimeSpan duration = TimeSpan.Zero;
+
+                if (i < rawChapters.Count - 1)
+                {
+                    TimeSpan nextStart = TimeSpan.FromSeconds(Math.Max(0, rawChapters[i + 1].Time));
+                    if (nextStart > start)
+                        duration = nextStart - start;
+                }
+                else if (naturalDuration > start)
+                {
+                    duration = naturalDuration - start;
+                }
+
+                string title = !string.IsNullOrWhiteSpace(raw.Title) ? raw.Title : $"Chapter {i + 1}";
+
+                newChapters.Add(new ChapterCue
+                {
+                    Title = title,
+                    StartTime = start,
+                    Duration = duration
+                });
+            }
+
+            lock (_syncLock)
+            {
+                _chapters.Clear();
+                _chapters.AddRange(newChapters);
+            }
         }
     }
 }

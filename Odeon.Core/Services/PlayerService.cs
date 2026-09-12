@@ -3,226 +3,157 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using LibVLCSharp.Shared;
+using Odeon.Core.Helpers;
 using Odeon.Core.Playback;
-using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
-using Windows.Storage.AccessCache;
 
 namespace Odeon.Core.Services;
 
 public sealed class PlayerService : IPlayerService
 {
-    private readonly IVlcDialogService _vlcDialogService;
-    private readonly bool _useFal;
-    private readonly Dictionary<string, int> _tokenReferences = new();
-
-    public PlayerService(IVlcDialogService vlcDialogService)
+    public PlayerService()
     {
-        _vlcDialogService = vlcDialogService;
-
-        // FutureAccessList is preferred because it can handle network StorageFiles
-        // If FutureAccessList is somehow unavailable, SharedStorageAccessManager will be the fallback
-        _useFal = true;
-
-        try
-        {
-            // Clear FA periodically because of 1000 items limit
-            // Delete any entries with "media" metadata to avoid hitting the limit with stale entries
-            var tokensToRemove = StorageApplicationPermissions.FutureAccessList.Entries
-                .Where(entry => entry.Metadata == "media")
-                .Select(entry => entry.Token)
-                .ToList();
-            foreach (var token in tokensToRemove)
-            {
-                StorageApplicationPermissions.FutureAccessList.Remove(token);
-            }
-        }
-        catch (Exception)   // FileNotFoundException
-        {
-            // FutureAccessList is not available
-            _useFal = false;
-        }
     }
 
-    public IMediaPlayer Initialize(string[] swapChainOptions)
+    public IMediaPlayer Initialize(string[]? swapChainOptions = null)
     {
-        // Register the bundled font with Windows BEFORE LibVLC starts.
-        // This ensures libass (which builds its font cache at initialization) sees the font.
-        Odeon.Core.Helpers.PrivateFontRegistration.EnsureRegisteredAsync().GetAwaiter().GetResult();
+        // Font registration is handled once at App startup (App.xaml.cs). Not repeated here.
 
-        // Pre-warm font bytes into memory so subtitle rewriting doesn't wait on file I/O
-        _ = Odeon.Core.Playback.PlaybackSubtitleTrackList.GetSubtitleFontBytesAsync();
+        // 2. Build mpv initialization options
+        string cacheDir = ApplicationData.Current.LocalCacheFolder.Path;
+        string fontName = GetSubtitleFontName();
 
-        LibVLC lib = InitializeLibVlc(swapChainOptions);
-        VlcMediaPlayer mediaPlayer = new(lib);
+        bool overrideEnabled = true;
+        bool subBackEnabled = false;
+        int subBackOpacity = 75;
+        bool subOutlineEnabled = true;
+        int subtitleFontSize = SubtitleStyle.FontSize;
+        int subtitlePosition = 100;
+        try
+        {
+            var values = ApplicationData.Current.LocalSettings.Values;
+            if (values.TryGetValue("OverrideSubtitleStyles", out object obVal) && obVal is bool b)
+                overrideEnabled = b;
+            if (values.TryGetValue("Player/SubtitleBackgroundEnabled", out object sbVal) && sbVal is bool sb)
+                subBackEnabled = sb;
+            if (values.TryGetValue("Player/SubtitleBackgroundOpacity", out object sboVal) && sboVal is int sbo && sbo >= 10 && sbo <= 100)
+                subBackOpacity = sbo;
+            if (values.TryGetValue("Player/SubtitleFontSize", out object sfsVal) && sfsVal is int sfs && sfs > 0)
+                subtitleFontSize = sfs;
+            if (values.TryGetValue("Player/SubtitlePosition", out object spVal) && spVal is int sp && sp >= 50 && sp <= 115)
+                subtitlePosition = sp;
+            if (values.TryGetValue("Player/SubtitleOutlineEnabled", out object soVal) && soVal is bool so)
+                subOutlineEnabled = so;
+        }
+        catch
+        {
+            // Fallback if settings store is unreachable
+        }
+
+        double initialScale = subtitleFontSize / (double)SubtitleStyle.FontSize;
+        int initialAlpha = (int)Math.Round((1.0 - (subBackOpacity / 100.0)) * 255.0);
+        string initialAlphaHex = initialAlpha.ToString("X2");
+
+        int mpvAlpha = (int)Math.Round((subBackOpacity / 100.0) * 255.0);
+        string mpvAlphaHex = mpvAlpha.ToString("X2");
+        string opacityColor = $"#{mpvAlphaHex}000000";
+
+        int outline = subOutlineEnabled ? 1 : 0;
+        string forceStyle = subBackEnabled
+            ? $"Fontname={fontName},Fontsize={subtitleFontSize},BorderStyle=4,Outline={outline},Shadow=5,BackColour=&H{initialAlphaHex}000000"
+            : $"Fontname={fontName},Fontsize={subtitleFontSize},BorderStyle=1,Outline={outline},Shadow={SubtitleStyle.ShadowDepth}";
+
+        var options = new Dictionary<string, string>
+        {
+            ["sub-font"] = fontName,
+            ["sub-font-size"] = overrideEnabled ? subtitleFontSize.ToString() : SubtitleStyle.FontSize.ToString(),
+            ["sub-scale"] = overrideEnabled ? "1.0" : initialScale.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["sub-border-size"] = subOutlineEnabled ? "1" : "0",
+            ["sub-shadow-offset"] = subBackEnabled ? "5" : SubtitleStyle.ShadowDepth.ToString(),
+            ["sub-margin-y"] = "36",
+            ["sub-pos"] = subtitlePosition.ToString(),
+            ["sub-fonts-dir"] = cacheDir,
+            ["sub-ass-override"] = overrideEnabled ? "force" : "scale",
+            ["sub-border-style"] = subBackEnabled ? "background-box" : "outline-and-shadow",
+            ["sub-back-color"] = subBackEnabled ? opacityColor : "#00000000",
+            ["sub-back-opacity"] = subBackOpacity.ToString(),
+            ["sub-outline-enabled"] = subOutlineEnabled ? "yes" : "no",
+            ["sub-ass-style-overrides"] = overrideEnabled ? forceStyle : "",
+            ["osd-level"] = "0",
+            ["vo"] = "libmpv",
+            ["hwdec"] = "auto-copy"
+        };
+
+        // Add any extra arguments passed from settings or caller
+        if (swapChainOptions != null && swapChainOptions.Length > 0)
+        {
+            foreach (var opt in swapChainOptions)
+            {
+                if (string.IsNullOrWhiteSpace(opt)) continue;
+                string clean = opt.Trim();
+                if (clean.StartsWith("--")) clean = clean.Substring(2);
+                int eqIdx = clean.IndexOf('=');
+                if (eqIdx > 0)
+                {
+                    string key = clean.Substring(0, eqIdx).Trim();
+                    string val = clean.Substring(eqIdx + 1).Trim();
+                    options[key] = val;
+                }
+                else
+                {
+                    options[clean] = "yes";
+                }
+            }
+        }
+
+        // 3. Create player (mpv_create + mpv_initialize with options)
+        MpvMediaPlayer mediaPlayer = new(options);
         return mediaPlayer;
     }
 
-
     public PlaybackItem CreatePlaybackItem(IMediaPlayer player, object source, params string[] options)
     {
-        if (player is not VlcMediaPlayer vlcMediaPlayer)
-            throw new NotSupportedException("Only VlcMediaPlayer is supported");
-        Media media = CreateMedia(vlcMediaPlayer, source, options);
-        return new PlaybackItem(source, media);
+        // 4. Simplify: mpv accepts plain Win32 file paths; resolve file.Path directly
+        string? path = ResolvePath(source);
+        return new PlaybackItem(source, path);
     }
 
     public void DisposePlaybackItem(PlaybackItem item)
     {
-        DisposeMedia(item.Media);
+        // 5. Simplify: mpv doesn't have separate Media objects to dispose
     }
 
     public void DisposePlayer(IMediaPlayer player)
     {
-        if (player is VlcMediaPlayer vlcMediaPlayer)
-        {
-            vlcMediaPlayer.VlcPlayer.Dispose();
-            vlcMediaPlayer.LibVlc.Dispose();
-        }
+        (player as IDisposable)?.Dispose();
     }
 
-    private Media CreateMedia(VlcMediaPlayer player, object source, params string[] options)
+    public static string? ResolvePath(object? source)
     {
         return source switch
         {
-            IStorageFile file => CreateMedia(player, file, options),
-            string str => CreateMedia(player, str, options),
-            Uri uri => CreateMedia(player, uri, options),
-            _ => throw new ArgumentOutOfRangeException(nameof(source))
+            IStorageFile file => file.Path,
+            Uri uri => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri,
+            string str => str,
+            _ => source?.ToString()
         };
     }
 
-    private Media CreateMedia(VlcMediaPlayer player, string str, params string[] options)
+    private static string GetSubtitleFontName()
     {
-        if (Uri.TryCreate(str, UriKind.Absolute, out Uri uri))
-        {
-            return CreateMedia(player, uri, options);
-        }
+        string cacheFontPath = Path.Combine(
+            ApplicationData.Current.LocalCacheFolder.Path,
+            "FuturaCyrillicMedium.ttf");
 
-        return new Media(player.LibVlc, str, FromType.FromPath, options);
-    }
+        if (File.Exists(cacheFontPath))
+            return SubtitleStyle.FontFamily;
 
-    private Media CreateMedia(VlcMediaPlayer player, IStorageFile file, params string[] options)
-    {
-        // NOTE: There have been reports of network locations not working when using the URI approach.
-        // Optimization is disable until we can confirm that the issue is resolved in newer versions of LibVLC and/or Windows.
-        if (file is StorageFile storageFile
-            && storageFile.Provider.Id.Equals("network", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrEmpty(storageFile.Path)
-            && !_useFal
-            && Uri.TryCreate(storageFile.Path, UriKind.Absolute, out var uri))
-        {
-            // Optimization for network files. Avoid having to deal with WinRT quirks.
-            return CreateMedia(player, uri, options);
-        }
-
-        string token = IncrementRefCount(file);
-        string mrl = "winrt://" + token;
-        return new Media(player.LibVlc, mrl, FromType.FromLocation, options);
-    }
-
-    private Media CreateMedia(VlcMediaPlayer player, Uri uri, params string[] options)
-    {
-        return new Media(player.LibVlc, uri, options);
-    }
-
-    private void DisposeMedia(Media media)
-    {
-        string mrl = media.Mrl;
-        if (mrl.StartsWith("winrt://"))
-        {
-            string token = mrl.Substring(8);
-            try
-            {
-                DecrementRefCount(token);
-            }
-            catch (Exception e)
-            {
-                LogService.Log(e);
-            }
-        }
-
-        media.Dispose();
-    }
-
-    private string IncrementRefCount(IStorageFile file)
-    {
-        string token = _useFal
-            ? StorageApplicationPermissions.FutureAccessList.Add(file, "media")
-            : SharedStorageAccessManager.AddFile(file);
-
-        lock (_tokenReferences)
-        {
-            if (_tokenReferences.TryGetValue(token, out int refCount))
-                _tokenReferences[token] = refCount + 1;
-            else
-                _tokenReferences[token] = 1;
-        }
-
-        return token;
-    }
-
-    private void DecrementRefCount(string token)
-    {
-        lock (_tokenReferences)
-        {
-            if (_tokenReferences.TryGetValue(token, out int refCount) && refCount > 1)
-                _tokenReferences[token] = refCount - 1;
-            else
-            {
-                _tokenReferences.Remove(token);
-
-                if (_useFal)
-                {
-                    StorageApplicationPermissions.FutureAccessList.Remove(token);
-                }
-                else
-                {
-                    SharedStorageAccessManager.RemoveFile(token);
-                }
-            }
-        }
-    }
-
-    private LibVLC InitializeLibVlc(string[] swapChainOptions)
-    {
-        // Pass the font FILE PATH directly to --freetype-font — VLC's freetype module
-        // can load TTF files by absolute path, bypassing fontconfig which cannot see
-        // GDI-registered private fonts (AddFontResourceEx).
-        // EnsureRegisteredAsync() always runs before this so FontFilePath is populated.
         string userFontPath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Microsoft", "Windows", "Fonts", "FuturaCyrillicMedium.ttf");
 
-        string freetypeFont = File.Exists(userFontPath)
-            ? userFontPath
+        return File.Exists(userFontPath)
+            ? SubtitleStyle.FontFamily
             : "Futura PT Medium";
-
-        List<string> options = new(swapChainOptions.Length + 7)
-        {
-#if DEBUG
-            "--verbose=3",
-#else
-            "--verbose=0",
-#endif
-            "--no-osd",
-            $"--freetype-font={freetypeFont}",
-            "--freetype-rel-fontsize=28",
-            "--freetype-outline-thickness=1",
-            "--freetype-shadow-opacity=0",
-            "--sub-margin=36",
-        };
-        options.AddRange(swapChainOptions);
-#if DEBUG
-        LibVLC libVlc = new(true, options.ToArray());
-#else
-        LibVLC libVlc = new(false, options.ToArray());
-#endif
-        LogService.RegisterLibVlcLogging(libVlc);
-        _vlcDialogService.SetVlcDialogHandlers(libVlc);
-        return libVlc;
     }
 }

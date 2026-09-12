@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using LibVLCSharp.Shared;
 using Odeon.Core.Contexts;
 using Odeon.Core.Enums;
 using Odeon.Core.Helpers;
@@ -156,14 +155,6 @@ public partial class MediaViewModel : ObservableRecipient
         _name = uri.Segments.Length > 0 ? Uri.UnescapeDataString(uri.Segments.Last()) : string.Empty;
     }
 
-    public MediaViewModel(PlayerContext playerContext, IPlayerService playerService, Media media)
-        : this(media, new MediaInfo(MediaPlaybackType.Unknown), playerContext, playerService)
-    {
-        Location = media.Mrl;
-
-        // Media is already loaded, create PlaybackItem
-        Item = new Lazy<PlaybackItem?>(new PlaybackItem(media, media));
-    }
 
     partial void OnMediaInfoChanged(MediaInfo value)
     {
@@ -181,14 +172,7 @@ public partial class MediaViewModel : ObservableRecipient
         PlaybackItem? item = null;
         try
         {
-            if (Source is Media mediaSource)
-            {
-                item = new PlaybackItem(mediaSource, mediaSource);
-            }
-            else
-            {
-                item = _playerService.CreatePlaybackItem(MediaPlayer, Source, _options.ToArray());
-            }
+            item = _playerService.CreatePlaybackItem(MediaPlayer, Source, _options.ToArray());
         }
         catch (ArgumentOutOfRangeException)
         {
@@ -224,8 +208,7 @@ public partial class MediaViewModel : ObservableRecipient
 
     public void Clean()
     {
-        // If source is Media then there is no way to recreate. Don't clean up.
-        if (Source is Media || !Item.IsValueCreated) return;
+        if (!Item.IsValueCreated) return;
         PlaybackItem? item = Item.Value;
         Item = new Lazy<PlaybackItem?>(CreatePlaybackItem);
         if (item == null) return;
@@ -254,20 +237,11 @@ public partial class MediaViewModel : ObservableRecipient
 
         switch (MediaType)
         {
-            case MediaPlaybackType.Unknown when Item is { IsValueCreated: true, Value: { VideoTracks.Count: 0, Media.ParsedStatus: MediaParsedStatus.Done } }:
+            case MediaPlaybackType.Unknown when Item is { IsValueCreated: true, Value: { VideoTracks.Count: 0, AudioTracks.Count: > 0 } }:
                 // Update media type when it was previously set Unknown. Usually when source is a URI.
                 // We don't want to init PlaybackItem just for this.
                 MediaInfo.MediaType = MediaPlaybackType.Music;
                 break;
-        }
-
-        if (Item is { IsValueCreated: true, Value.Media: { IsParsed: true } media })
-        {
-
-            VideoInfo videoProperties = MediaInfo.VideoProperties;
-            videoProperties.ShowName = media.Meta(MetadataType.ShowName) ?? videoProperties.ShowName;
-            videoProperties.Season = media.Meta(MetadataType.Season) ?? videoProperties.Season;
-            videoProperties.Episode = media.Meta(MetadataType.Episode) ?? videoProperties.Episode;
         }
 
         if (Name == AltCaption)
@@ -304,16 +278,7 @@ public partial class MediaViewModel : ObservableRecipient
 
             Thumbnail = image;
         }
-        else if (Item is { IsValueCreated: true, Value.Media: { } media } &&
-                 media.Meta(MetadataType.ArtworkURL) is { } artworkUrl &&
-                 Uri.TryCreate(artworkUrl, UriKind.Absolute, out Uri artworkUri))
-        {
-            Thumbnail = new BitmapImage(artworkUri)
-            {
-                DecodePixelType = DecodePixelType.Logical,
-                DecodePixelHeight = 300
-            };
-        }
+
     }
 
     public Task<IRandomAccessStream?> GetThumbnailSourceAsync()
@@ -405,20 +370,6 @@ public partial class MediaViewModel : ObservableRecipient
         else if (!string.IsNullOrEmpty(musicProperties.Album))
         {
             AltCaption = musicProperties.Album;
-        }
-
-        if (Item is { IsValueCreated: true, Value.Media: { IsParsed: true } media })
-        {
-            string artist = media.Meta(MetadataType.Artist) ?? string.Empty;
-            if (!string.IsNullOrEmpty(artist))
-            {
-                Caption = artist;
-            }
-
-            if (media.Meta(MetadataType.Album) is { } album && !string.IsNullOrEmpty(album))
-            {
-                AltCaption = string.IsNullOrEmpty(artist) ? album : $"{artist} – {album}";
-            }
         }
     }
 

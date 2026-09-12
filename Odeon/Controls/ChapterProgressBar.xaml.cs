@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -68,7 +68,7 @@ namespace Odeon.Controls
 
         private ObservableCollection<ChapterViewModel> ProgressItems { get; }
 
-        private const double Spacing = -1;
+        private const double Spacing = 2;
 
         private readonly DispatcherQueueTimer _chaptersUpdateTimer;
 
@@ -78,6 +78,13 @@ namespace Odeon.Controls
             ProgressItems = new ObservableCollection<ChapterViewModel>();
             this.InitializeComponent();
             SizeChanged += OnSizeChanged;
+            Loaded += (s, e) =>
+            {
+                if (ProgressItems.Count == 0)
+                {
+                    PopulateProgressItems();
+                }
+            };
         }
 
         private static void OnChaptersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -111,6 +118,13 @@ namespace Odeon.Controls
                     view.ProgressItems[0].Width = view.ActualWidth;
 
                 view.ProgressItems[0].Maximum = (double)e.NewValue;
+            }
+            else if (view.ProgressItems.Count > 1)
+            {
+                foreach (ChapterViewModel item in view.ProgressItems)
+                {
+                    item.Width = view.GetItemWidth(item.Maximum - item.Minimum, view.ProgressItems.Count);
+                }
             }
         }
 
@@ -268,7 +282,8 @@ namespace Odeon.Controls
 
         private double GetItemWidth(double durationMs, int chapterCount)
         {
-            double availableWidth = ActualWidth - Spacing * chapterCount;
+            double totalSpacing = Spacing * (chapterCount > 1 ? chapterCount - 1 : 0);
+            double availableWidth = Math.Max(0, ActualWidth - totalSpacing);
             return Maximum > 0 ? durationMs / Maximum * availableWidth : 0;
         }
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ProtoBuf;
 using Windows.Storage.FileProperties;
 
@@ -17,7 +17,7 @@ public sealed class VideoInfo : IMediaProperties
     [ProtoMember(8)] public uint Height { get; set; }
     [ProtoMember(9)] public uint Bitrate { get; set; }
 
-    /** VLC metadata **/
+    /** Media metadata **/
     public string ShowName { get; set; } = string.Empty;
     public string Season { get; set; } = string.Empty;
     public string Episode { get; set; } = string.Empty;

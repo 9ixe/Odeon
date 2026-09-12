@@ -1,28 +1,55 @@
-﻿<ContentDialog
+<ContentDialog
     x:Class="Odeon.Dialogs.PropertiesDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Odeon.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:strings="using:Odeon.Strings"
     Title="{strings:Resources Key=Properties}"
     CloseButtonText="{strings:Resources Key=Close}"
     DefaultButton="Close"
     Style="{StaticResource DefaultContentDialogStyle}"
     BorderThickness="0"
-    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI"
+    CornerRadius="12"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
 
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <media:AcrylicBrush
+                        x:Key="SidePanelBackgroundBrush"
+                        BackgroundSource="Backdrop"
+                        FallbackColor="#1E1E1E"
+                        TintColor="#141414"
+                        TintOpacity="0.88" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#33FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <media:AcrylicBrush
+                        x:Key="SidePanelBackgroundBrush"
+                        BackgroundSource="Backdrop"
+                        FallbackColor="#F4F4F4"
+                        TintColor="#FAFAFA"
+                        TintOpacity="0.88" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#22000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="SidePanelBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
     <ContentDialog.Background>
-        <AcrylicBrush
-            BackgroundSource="Backdrop"
-            FallbackColor="{ThemeResource SystemAltMediumColor}"
-            TintColor="{ThemeResource SystemAltHighColor}"
-            TintOpacity="0.8" />
+        <StaticResource ResourceKey="SidePanelBackgroundBrush" />
     </ContentDialog.Background>
 
     <Grid Margin="-4,0">
-        <controls:PropertiesView MinWidth="400" Media="{x:Bind Media, Mode=OneWay}" />
+        <controls:PropertiesView MinWidth="380" Media="{x:Bind Media, Mode=OneWay}" />
     </Grid>
 </ContentDialog>

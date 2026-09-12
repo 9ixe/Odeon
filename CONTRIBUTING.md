@@ -31,6 +31,8 @@ Before you begin, ensure you have the following installed:
     - **XAML Styler**
 - **Windows 10** version 1903 (build 18362) or later, or **Windows 11**
 - **Developer Mode** enabled in Windows settings
+- **`mpv-2.dll`** — libmpv's native runtime (~115 MB). Download the `dev` package from [mpv shinchiro builds](https://github.com/shinchiro/mpv-winbuild-cmake/releases) and place `mpv-2.dll` in the `Odeon/` project folder. It is git-ignored, so it is never committed.
+- **Futura PT Medium** font installed in Windows — required for the intended UI and subtitle typography
 
 > [!NOTE]
 > JetBrains Rider should also work but specific setup instructions aren't covered in this guide.

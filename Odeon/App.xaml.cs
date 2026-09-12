@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI.Helpers;
-using LibVLCSharp.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Odeon.Core;
 using Odeon.Core.Helpers;
@@ -15,7 +14,6 @@ using Odeon.Core.Services;
 using Odeon.Core.ViewModels;
 using Odeon.Helpers;
 using Odeon.Pages;
-using Odeon.Services;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Core;
@@ -38,6 +36,10 @@ sealed partial class App : Application
     {
         InitializeComponent();
 
+        // Surface fatal exceptions (page load / XAML parse failures in particular) in the debug
+        // output, with the full inner-exception chain, so they can be diagnosed.
+        UnhandledException += OnUnhandledException;
+
         if (DeviceInfoHelper.IsXbox)
         {
             // Disable pointer mode on Xbox
@@ -55,11 +57,37 @@ sealed partial class App : Application
 
         Suspending += OnSuspending;
 
+        // Register bundled fonts process-private before any player is created.
+        // This is a one-time main-thread operation (~10-30ms on SSD) and must happen before mpv's libass
+        // can resolve the subtitle font by family name. Running it here avoids blocking the UI thread on every Play().
+        _ = PrivateFontRegistration.EnsureRegisteredAsync();
+
         IServiceProvider services = ConfigureServices();
         CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.ConfigureServices(services);
 
         // Eagerly create VolumeViewModel so it registers its ChangeVolumeRequestMessage handler.
         CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<VolumeViewModel>();
+    }
+
+    private static void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
+    {
+        LogService.Log($"Unhandled exception: {e.Message}{Environment.NewLine}{Describe(e.Exception)}");
+    }
+
+    /// <summary>
+    /// Flattens an exception and its inner exceptions into a single readable block.
+    /// </summary>
+    private static string Describe(Exception? exception)
+    {
+        var builder = new System.Text.StringBuilder();
+        for (int depth = 0; exception != null; depth++, exception = exception.InnerException)
+        {
+            builder.AppendLine($"[{depth}] {exception.GetType().FullName}: {exception.Message}");
+
+            builder.AppendLine(exception.StackTrace);
+        }
+
+        return builder.ToString();
     }
 
     private static IServiceProvider ConfigureServices()
@@ -72,7 +100,6 @@ sealed partial class App : Application
         services.AddTransient<Odeon.ViewModels.PropertyViewModel>();
 
         // Services
-        services.AddSingleton<IVlcDialogService, VlcDialogService>();
         services.AddSingleton<INavigationService, NavigationService>(_ => new NavigationService(
             new KeyValuePair<Type, Type>(typeof(HomePageViewModel), typeof(HomePage)),
             new KeyValuePair<Type, Type>(typeof(PlaylistsPageViewModel), typeof(PlaylistsPage)),
@@ -113,6 +140,10 @@ sealed partial class App : Application
         {
             rootFrame.Navigate(typeof(MainPage), true);
         }
+        else if (rootFrame.Content is MainPage mainPage)
+        {
+            mainPage.EnsurePlayerVisible();
+        }
 
         Window.Current.Activate();
         WeakReferenceMessenger.Default.Send(new PlayFilesMessage(args.Files, args.NeighboringFilesQuery));
@@ -126,7 +157,7 @@ sealed partial class App : Application
     protected override void OnLaunched(LaunchActivatedEventArgs e)
     {
         Frame rootFrame = InitRootFrame();
-        LibVLCSharp.Shared.Core.Initialize();
+        // mpv initialization happens in PlayerService.Initialize()
 
         if (e.PrelaunchActivated) return;
         CoreApplication.EnablePrelaunch(true);

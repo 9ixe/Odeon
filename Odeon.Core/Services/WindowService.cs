@@ -140,18 +140,24 @@ namespace Odeon.Core.Services
 
         public void HideCursor()
         {
-            CoreWindow? coreWindow = Window.Current.CoreWindow;
-            if (coreWindow.PointerCursor?.Type == CoreCursorType.Arrow)
-            {
-                _cursor = coreWindow.PointerCursor;
-                coreWindow.PointerCursor = null;
-            }
+            CoreWindow? coreWindow = Window.Current?.CoreWindow;
+
+            // Only the plain arrow cursor is hidden, so that the text, resize and hand cursors
+            // stay visible while they are being used.
+            if (coreWindow?.PointerCursor is null || coreWindow.PointerCursor.Type != CoreCursorType.Arrow) return;
+
+            _cursor = coreWindow.PointerCursor;
+            coreWindow.PointerCursor = null;
         }
 
         public void ShowCursor()
         {
-            CoreWindow? coreWindow = Window.Current.CoreWindow;
-            coreWindow.PointerCursor ??= _cursor;
+            CoreWindow? coreWindow = Window.Current?.CoreWindow;
+            if (coreWindow is null || coreWindow.PointerCursor is not null) return;
+
+            // Fall back to the default arrow, otherwise the cursor would never come back if it
+            // was hidden without having been captured first.
+            coreWindow.PointerCursor = _cursor ?? new CoreCursor(CoreCursorType.Arrow, 0);
         }
     }
 }

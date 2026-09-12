@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -340,7 +341,7 @@ public sealed partial class NavigationViewEx
         {
             var navigationViewEx = (NavigationViewEx)d;
             navigationViewEx.UpdateContentVisibility();
-            navigationViewEx.UpdateOverlayLayout();
+            _ = navigationViewEx.Dispatcher.RunAsync(CoreDispatcherPriority.Low, navigationViewEx.UpdateOverlayLayout);
             navigationViewEx.InvalidateArrange();
         }
     }

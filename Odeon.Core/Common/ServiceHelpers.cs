@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Odeon.Core.Contexts;
 using Odeon.Core.Coordinators;
 using Odeon.Core.Factories;
@@ -20,8 +20,6 @@ public static class ServiceHelpers
         services.AddTransient<NetworkPageViewModel>();
         services.AddTransient<FolderViewPageViewModel>();
         services.AddTransient<FolderListViewPageViewModel>();
-        services.AddTransient<PlayerControlsViewModel>();
-        services.AddTransient<CastControlViewModel>();
         services.AddTransient<PlayerPageViewModel>();
         services.AddTransient<MainPageViewModel>();
         services.AddTransient<PlayQueuePageViewModel>();
@@ -42,6 +40,7 @@ public static class ServiceHelpers
         services.AddTransient<SelectionViewModel>();
         services.AddSingleton<CommonViewModel>();   // Shared between many pages
         services.AddSingleton<VolumeViewModel>();   // Avoid thread lock
+        services.AddSingleton<PlayerControlsViewModel>(); // Shared across player controls & side panels
 
         // Factories
         services.AddSingleton<MediaViewModelFactory>();
@@ -54,7 +53,6 @@ public static class ServiceHelpers
         // Contexts
         services.AddSingleton<PlayerContext>();
         services.AddSingleton<PlaylistsContext>();
-        services.AddSingleton<CastContext>();
         services.AddSingleton<LibraryContext>();
         services.AddSingleton<PlayQueueContext>();
         services.AddSingleton<WindowContext>();
@@ -65,12 +63,12 @@ public static class ServiceHelpers
         services.AddSingleton<IPlaybackProgressTracker, PlaybackProgressTracker>();
 
         // Services
-        services.AddSingleton<IPlayerService, PlayerService>();
+        services.AddSingleton<IPlayerService, PlayerService>(); // PlayerService uses mpv internally
+        // Cast feature removed — mpv has no renderer discovery
         services.AddSingleton<IFilesService, FilesService>();
         services.AddSingleton<ILibraryService, LibraryService>();
         services.AddSingleton<ISearchService, SearchService>();
         services.AddSingleton<IWindowService, WindowService>();
-        services.AddSingleton<ICastService, CastService>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ISystemMediaTransportControlsService, SystemMediaTransportControlsService>();
         services.AddSingleton<IPlaybackControlService, PlaybackControlService>();

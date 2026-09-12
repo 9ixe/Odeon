@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.ComponentModel;
@@ -40,12 +40,11 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
 
     [ObservableProperty] private bool _isPlaying;
     [ObservableProperty] private bool _isFullscreen;
-    [ObservableProperty] private string? _titleName; // TODO: Handle VLC title name
+    [ObservableProperty] private string? _titleName; // TODO: Handle mpv title name
     [ObservableProperty] private string? _chapterName;
     [ObservableProperty] private double _playbackRate;
     [ObservableProperty] private double _audioTimingOffset;
     [ObservableProperty] private double _subtitleTimingOffset;
-    [ObservableProperty] private bool _isAdvancedModeActive;
     [ObservableProperty] private bool _isMinimal;
     [ObservableProperty] private bool _playerShowChapters;
 
@@ -69,6 +68,16 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
     private readonly PlayerContext _playerContext;
     private readonly IPlayQueueCoordinator _coordinator;
     private Size _aspectRatio;
+    private int _subtitleFontSize;
+    private readonly DispatcherQueueTimer _subtitleFontSizeDebounceTimer;
+    private int _subtitlePosition;
+    private readonly DispatcherQueueTimer _subtitlePositionDebounceTimer;
+    private bool _subtitleBackgroundEnabled;
+    private int _subtitleBackgroundOpacity;
+    private bool _subtitleOutlineEnabled;
+    private readonly DispatcherQueueTimer _subtitleBackgroundOpacityDebounceTimer;
+    private readonly DispatcherQueueTimer _audioTimingOffsetDebounceTimer;
+    private readonly DispatcherQueueTimer _subtitleTimingOffsetDebounceTimer;
 
     public PlayerControlsViewModel(
         PlayQueueContext playQueue,
@@ -85,9 +94,79 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         _playbackRate = 1.0;
         _audioTimingOffset = 0.0;
         _subtitleTimingOffset = 0.0;
-        _isAdvancedModeActive = settingsService.AdvancedMode;
         _isMinimal = true;
         _playerShowChapters = settingsService.PlayerShowChapters;
+        _subtitleFontSize = settingsService.SubtitleFontSize;
+        _subtitleFontSizeDebounceTimer = _dispatcherQueue.CreateTimer();
+        _subtitleFontSizeDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+        _subtitleFontSizeDebounceTimer.IsRepeating = false;
+        _subtitleFontSizeDebounceTimer.Tick += (_, _) =>
+        {
+            if (_settingsService.SubtitleFontSize != _subtitleFontSize)
+            {
+                _settingsService.SubtitleFontSize = _subtitleFontSize;
+            }
+        };
+        _subtitlePosition = settingsService.SubtitlePosition;
+        if (_subtitlePosition < 50 || _subtitlePosition > 115) _subtitlePosition = 100;
+        _subtitlePositionDebounceTimer = _dispatcherQueue.CreateTimer();
+        _subtitlePositionDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+        _subtitlePositionDebounceTimer.IsRepeating = false;
+        _subtitlePositionDebounceTimer.Tick += (_, _) =>
+        {
+            if (_settingsService.SubtitlePosition != _subtitlePosition)
+            {
+                _settingsService.SubtitlePosition = _subtitlePosition;
+            }
+        };
+        _subtitleBackgroundEnabled = settingsService.SubtitleBackgroundEnabled;
+        _subtitleOutlineEnabled = settingsService.SubtitleOutlineEnabled;
+        _subtitleBackgroundOpacity = settingsService.SubtitleBackgroundOpacity;
+        if (_subtitleBackgroundOpacity < 10 || _subtitleBackgroundOpacity > 100) _subtitleBackgroundOpacity = 75;
+        _subtitleBackgroundOpacityDebounceTimer = _dispatcherQueue.CreateTimer();
+        _subtitleBackgroundOpacityDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+        _subtitleBackgroundOpacityDebounceTimer.IsRepeating = false;
+        _subtitleBackgroundOpacityDebounceTimer.Tick += (_, _) =>
+        {
+            if (_settingsService.SubtitleBackgroundOpacity != _subtitleBackgroundOpacity)
+            {
+                _settingsService.SubtitleBackgroundOpacity = _subtitleBackgroundOpacity;
+            }
+        };
+
+        _audioTimingOffsetDebounceTimer = _dispatcherQueue.CreateTimer();
+        _audioTimingOffsetDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+        _audioTimingOffsetDebounceTimer.IsRepeating = false;
+        _audioTimingOffsetDebounceTimer.Tick += (_, _) =>
+        {
+            string mediaKey = (MediaPlayer as MpvMediaPlayer)?.PlaybackItem?.FilePath ?? string.Empty;
+            if (!string.IsNullOrEmpty(mediaKey))
+            {
+                try
+                {
+                    string aKey = $"MediaAudioDelay_{mediaKey.GetHashCode():X8}";
+                    Windows.Storage.ApplicationData.Current.LocalSettings.Values[aKey] = _audioTimingOffset;
+                }
+                catch { }
+            }
+        };
+
+        _subtitleTimingOffsetDebounceTimer = _dispatcherQueue.CreateTimer();
+        _subtitleTimingOffsetDebounceTimer.Interval = TimeSpan.FromMilliseconds(300);
+        _subtitleTimingOffsetDebounceTimer.IsRepeating = false;
+        _subtitleTimingOffsetDebounceTimer.Tick += (_, _) =>
+        {
+            string mediaKey = (MediaPlayer as MpvMediaPlayer)?.PlaybackItem?.FilePath ?? string.Empty;
+            if (!string.IsNullOrEmpty(mediaKey))
+            {
+                try
+                {
+                    string sKey = $"MediaSubDelay_{mediaKey.GetHashCode():X8}";
+                    Windows.Storage.ApplicationData.Current.LocalSettings.Values[sKey] = _subtitleTimingOffset;
+                }
+                catch { }
+            }
+        };
         PlayQueue = playQueue;
         PlayQueue.PropertyChanged += PlayQueueOnPropertyChanged;
         _coordinator.CanNavigateChanged += OnCoordinatorCanNavigateChanged;
@@ -97,6 +176,15 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
             MediaPlayer.PlaybackStateChanged += OnPlaybackStateChanged;
             MediaPlayer.ChapterChanged += OnChapterChanged;
             MediaPlayer.NaturalVideoSizeChanged += OnNaturalVideoSizeChanged;
+            ChapterName = MediaPlayer.Chapter?.Title;
+            if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+            {
+                mpvPlayer.SetSubtitleFontSize(_subtitleFontSize);
+                mpvPlayer.SetSubtitlePosition(_subtitlePosition);
+                mpvPlayer.SetSubtitleBackgroundOpacity(_subtitleBackgroundOpacity);
+                mpvPlayer.SetSubtitleBackground(_subtitleBackgroundEnabled);
+                mpvPlayer.SetSubtitleOutline(_subtitleOutlineEnabled);
+            }
         }
 
         IsActive = true;
@@ -111,7 +199,149 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
             {
                 _settingsService.OverrideSubtitleStyles = value;
                 OnPropertyChanged();
-                MediaPlayer?.PlaybackItem?.SubtitleTracks.RefreshOverrideState();
+                if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+                {
+                    mpvPlayer.SetSubtitleAssOverride(value);
+                }
+                MediaPlayer?.PlaybackItem?.SubtitleTracks.RefreshOverrideState(MediaPlayer);
+            }
+        }
+    }
+
+    public int SubtitleFontSize
+    {
+        get => _subtitleFontSize;
+        set
+        {
+            if (_subtitleFontSize != value)
+            {
+                _subtitleFontSize = value;
+                OnPropertyChanged();
+
+                // 1. Immediately apply to active player for 60fps real-time visual feedback
+                if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+                {
+                    mpvPlayer.SetSubtitleFontSize(value);
+                }
+
+                // 2. Debounce persistent disk I/O to LocalSettings (300ms idle)
+                _subtitleFontSizeDebounceTimer.Stop();
+                _subtitleFontSizeDebounceTimer.Start();
+            }
+        }
+    }
+
+    public int SubtitlePosition
+    {
+        get => _subtitlePosition;
+        set
+        {
+            if (_subtitlePosition != value)
+            {
+                _subtitlePosition = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SubtitlePositionDisplay));
+
+                if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+                {
+                    mpvPlayer.SetSubtitlePosition(value);
+                }
+
+                _subtitlePositionDebounceTimer.Stop();
+                _subtitlePositionDebounceTimer.Start();
+            }
+        }
+    }
+
+    public string SubtitlePositionDisplay
+    {
+        get
+        {
+            int offset = 100 - _subtitlePosition;
+            if (offset == 0) return "Default";
+            return offset > 0 ? $"+{offset}%" : $"{offset}%";
+        }
+    }
+
+    [RelayCommand]
+    private void MoveSubtitleUp()
+    {
+        if (SubtitlePosition > 50)
+        {
+            SubtitlePosition = Math.Max(50, SubtitlePosition - 2);
+        }
+    }
+
+    [RelayCommand]
+    private void MoveSubtitleDown()
+    {
+        if (SubtitlePosition < 115)
+        {
+            SubtitlePosition = Math.Min(115, SubtitlePosition + 2);
+        }
+    }
+
+    [RelayCommand]
+    private void ResetSubtitlePosition()
+    {
+        SubtitlePosition = 100;
+    }
+
+    public bool SubtitleBackgroundEnabled
+    {
+        get => _subtitleBackgroundEnabled;
+        set
+        {
+            if (_subtitleBackgroundEnabled != value)
+            {
+                _subtitleBackgroundEnabled = value;
+                OnPropertyChanged();
+                _settingsService.SubtitleBackgroundEnabled = value;
+
+                if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+                {
+                    mpvPlayer.SetSubtitleBackground(value);
+                }
+            }
+        }
+    }
+
+    public int SubtitleBackgroundOpacity
+    {
+        get => _subtitleBackgroundOpacity;
+        set
+        {
+            if (_subtitleBackgroundOpacity != value)
+            {
+                _subtitleBackgroundOpacity = value;
+                OnPropertyChanged();
+
+                if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+                {
+                    mpvPlayer.SetSubtitleBackgroundOpacity(value);
+                }
+
+                _subtitleBackgroundOpacityDebounceTimer.Stop();
+                _subtitleBackgroundOpacityDebounceTimer.Start();
+            }
+        }
+    }
+
+    public bool SubtitleOutlineEnabled
+    {
+        get => _subtitleOutlineEnabled;
+        set
+        {
+            if (_subtitleOutlineEnabled != value)
+            {
+                _subtitleOutlineEnabled = value;
+                OnPropertyChanged();
+                _settingsService.SubtitleOutlineEnabled = value;
+
+                if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+                {
+                    mpvPlayer.SetSubtitleOutline(value);
+                }
             }
         }
     }
@@ -120,15 +350,72 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
     {
         switch (message.SettingsName)
         {
-            case nameof(SettingsPageViewModel.AdvancedMode):
-                IsAdvancedModeActive = _settingsService.AdvancedMode;
-                break;
             case nameof(SettingsPageViewModel.PlayerShowChapters):
                 PlayerShowChapters = _settingsService.PlayerShowChapters;
                 break;
             case nameof(ISettingsService.OverrideSubtitleStyles):
                 OnPropertyChanged(nameof(OverrideSubtitleStyles));
-                MediaPlayer?.PlaybackItem?.SubtitleTracks.RefreshOverrideState();
+                if (MediaPlayer is MpvMediaPlayer mpv)
+                {
+                    mpv.SetSubtitleAssOverride(_settingsService.OverrideSubtitleStyles);
+                }
+                MediaPlayer?.PlaybackItem?.SubtitleTracks.RefreshOverrideState(MediaPlayer);
+                break;
+            case nameof(ISettingsService.SubtitleFontSize):
+                if (_subtitleFontSize != _settingsService.SubtitleFontSize)
+                {
+                    _subtitleFontSize = _settingsService.SubtitleFontSize;
+                    OnPropertyChanged(nameof(SubtitleFontSize));
+                    if (MediaPlayer is MpvMediaPlayer mpvSize)
+                    {
+                        mpvSize.SetSubtitleFontSize(_subtitleFontSize);
+                    }
+                }
+                break;
+            case nameof(ISettingsService.SubtitlePosition):
+                if (_subtitlePosition != _settingsService.SubtitlePosition)
+                {
+                    _subtitlePosition = _settingsService.SubtitlePosition;
+                    OnPropertyChanged(nameof(SubtitlePosition));
+                    OnPropertyChanged(nameof(SubtitlePositionDisplay));
+                    if (MediaPlayer is MpvMediaPlayer mpvPos)
+                    {
+                        mpvPos.SetSubtitlePosition(_subtitlePosition);
+                    }
+                }
+                break;
+            case nameof(ISettingsService.SubtitleBackgroundEnabled):
+                if (_subtitleBackgroundEnabled != _settingsService.SubtitleBackgroundEnabled)
+                {
+                    _subtitleBackgroundEnabled = _settingsService.SubtitleBackgroundEnabled;
+                    OnPropertyChanged(nameof(SubtitleBackgroundEnabled));
+                    if (MediaPlayer is MpvMediaPlayer mpvBg)
+                    {
+                        mpvBg.SetSubtitleBackground(_subtitleBackgroundEnabled);
+                    }
+                }
+                break;
+            case nameof(ISettingsService.SubtitleBackgroundOpacity):
+                if (_subtitleBackgroundOpacity != _settingsService.SubtitleBackgroundOpacity)
+                {
+                    _subtitleBackgroundOpacity = _settingsService.SubtitleBackgroundOpacity;
+                    OnPropertyChanged(nameof(SubtitleBackgroundOpacity));
+                    if (MediaPlayer is MpvMediaPlayer mpvBo)
+                    {
+                        mpvBo.SetSubtitleBackgroundOpacity(_subtitleBackgroundOpacity);
+                    }
+                }
+                break;
+            case nameof(ISettingsService.SubtitleOutlineEnabled):
+                if (_subtitleOutlineEnabled != _settingsService.SubtitleOutlineEnabled)
+                {
+                    _subtitleOutlineEnabled = _settingsService.SubtitleOutlineEnabled;
+                    OnPropertyChanged(nameof(SubtitleOutlineEnabled));
+                    if (MediaPlayer is MpvMediaPlayer mpvOut)
+                    {
+                        mpvOut.SetSubtitleOutline(_subtitleOutlineEnabled);
+                    }
+                }
                 break;
         }
     }
@@ -148,6 +435,15 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
             MediaPlayer.PlaybackStateChanged += OnPlaybackStateChanged;
             MediaPlayer.ChapterChanged += OnChapterChanged;
             MediaPlayer.NaturalVideoSizeChanged += OnNaturalVideoSizeChanged;
+            ChapterName = MediaPlayer.Chapter?.Title;
+            if (MediaPlayer is MpvMediaPlayer mpvPlayer)
+            {
+                mpvPlayer.SetSubtitleFontSize(_subtitleFontSize);
+                mpvPlayer.SetSubtitlePosition(_subtitlePosition);
+                mpvPlayer.SetSubtitleBackgroundOpacity(_subtitleBackgroundOpacity);
+                mpvPlayer.SetSubtitleBackground(_subtitleBackgroundEnabled);
+                mpvPlayer.SetSubtitleOutline(_subtitleOutlineEnabled);
+            }
         }
     }
 
@@ -280,20 +576,26 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
     {
         if (MediaPlayer == null) return;
 
-        if (MediaPlayer is VlcMediaPlayer vlcMediaPlayer)
+        if (MediaPlayer is MpvMediaPlayer mpvMediaPlayer)
         {
-            vlcMediaPlayer.AudioDelay = value;
+            mpvMediaPlayer.AudioDelay = value;
         }
+
+        _audioTimingOffsetDebounceTimer.Stop();
+        _audioTimingOffsetDebounceTimer.Start();
     }
 
     partial void OnSubtitleTimingOffsetChanged(double value)
     {
         if (MediaPlayer == null) return;
 
-        if (MediaPlayer is VlcMediaPlayer vlcMediaPlayer)
+        if (MediaPlayer is MpvMediaPlayer mpvMediaPlayer)
         {
-            vlcMediaPlayer.SubtitleDelay = value;
+            mpvMediaPlayer.SubtitleDelay = value;
         }
+
+        _subtitleTimingOffsetDebounceTimer.Stop();
+        _subtitleTimingOffsetDebounceTimer.Start();
     }
 
     private void PlayQueueOnPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -302,8 +604,31 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         {
             case nameof(PlayQueueContext.CurrentItem):
                 HasActiveItem = PlayQueue.CurrentItem is not null;
-                SubtitleTimingOffset = 0;
-                AudioTimingOffset = 0;
+                ChapterName = MediaPlayer?.Chapter?.Title;
+                double savedAudioDelay = 0.0;
+                double savedSubDelay = 0.0;
+                string itemKey = PlayQueue.CurrentItem?.Item.Value?.FilePath ?? PlayQueue.CurrentItem?.Location ?? string.Empty;
+                if (!string.IsNullOrEmpty(itemKey))
+                {
+                    try
+                    {
+                        var vals = Windows.Storage.ApplicationData.Current.LocalSettings.Values;
+                        string aKey = $"MediaAudioDelay_{itemKey.GetHashCode():X8}";
+                        if (vals.TryGetValue(aKey, out object aVal))
+                        {
+                            savedAudioDelay = aVal is double ad ? ad : (aVal is int ai ? (double)ai : 0.0);
+                        }
+
+                        string sKey = $"MediaSubDelay_{itemKey.GetHashCode():X8}";
+                        if (vals.TryGetValue(sKey, out object sVal))
+                        {
+                            savedSubDelay = sVal is double sd ? sd : (sVal is int si ? (double)si : 0.0);
+                        }
+                    }
+                    catch { }
+                }
+                AudioTimingOffset = savedAudioDelay;
+                SubtitleTimingOffset = savedSubDelay;
                 break;
         }
     }
@@ -381,6 +706,17 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
     private void SetPlaybackRate(double rate)
     {
         PlaybackRate = rate;
+    }
+
+    partial void OnPlayerShowChaptersChanged(bool value)
+    {
+        _settingsService.PlayerShowChapters = value;
+    }
+
+    [RelayCommand]
+    private void ToggleShowChapters()
+    {
+        PlayerShowChapters = !PlayerShowChapters;
     }
 
     [RelayCommand]
@@ -482,9 +818,9 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
 
     private static async Task<StorageFile> SaveSnapshotInternalAsync(IMediaPlayer mediaPlayer)
     {
-        if (mediaPlayer is not VlcMediaPlayer player)
+        if (mediaPlayer is not MpvMediaPlayer player)
         {
-            throw new NotImplementedException("Not supported on non VLC players");
+            throw new NotImplementedException("Not supported on non mpv players");
         }
 
         StorageFolder tempFolder = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
@@ -493,10 +829,11 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
 
         try
         {
-            if (!player.VlcPlayer.TakeSnapshot(0, tempFolder.Path, 0, 0))
-                throw new Exception("VLC failed to save snapshot");
+            string snapshotPath = System.IO.Path.Combine(tempFolder.Path, "snapshot.png");
+            if (!player.TakeSnapshot(snapshotPath))
+                throw new Exception("mpv failed to save snapshot");
 
-            StorageFile file = (await tempFolder.GetFilesAsync())[0];
+            StorageFile file = await StorageFile.GetFileFromPathAsync(snapshotPath);
             StorageLibrary pictureLibrary = await StorageLibrary.GetLibraryAsync(KnownLibraryId.Pictures);
             StorageFolder defaultSaveFolder = pictureLibrary.SaveFolder;
             StorageFolder destFolder =

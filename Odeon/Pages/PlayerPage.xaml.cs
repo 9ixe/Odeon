@@ -1,13 +1,15 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.ComponentModel;
 using System.Threading;
 using CommunityToolkit.Diagnostics;
 using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.WinUI;
 using Odeon.Controls;
 using Odeon.Core.Enums;
+using Odeon.Core.Messages;
 using Odeon.Core.ViewModels;
 using Odeon.Helpers;
 using Windows.ApplicationModel.DataTransfer;
@@ -36,6 +38,9 @@ public sealed partial class PlayerPage : Page
     private readonly DispatcherQueueTimer _titleBarHoverTimer;
     private CancellationTokenSource? _animationCancellationTokenSource;
     private bool _startup;
+    private bool _isSubtitlePanelOpen;
+    private bool _isAudioPanelOpen;
+    private bool _isPlayQueuePanelOpen;
 
     public PlayerPage()
     {
@@ -51,6 +56,15 @@ public sealed partial class PlayerPage : Page
         ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
         AlbumArtImage.RegisterPropertyChangedCallback(ImageBrush.ImageSourceProperty, AlbumArtImageOnSourceChanged);
         LayoutRoot.ActualThemeChanged += OnActualThemeChanged;
+
+        WeakReferenceMessenger.Default.Register<ToggleSubtitleSidePanelMessage>(this, (_, m) => ToggleSubtitleSidePanel(m.ForceState));
+        SubtitleSidePanel.CloseRequested += (_, _) => CloseSubtitleSidePanel();
+
+        WeakReferenceMessenger.Default.Register<ToggleAudioSidePanelMessage>(this, (_, m) => ToggleAudioSidePanel(m.ForceState));
+        AudioSidePanel.CloseRequested += (_, _) => CloseAudioSidePanel();
+
+        WeakReferenceMessenger.Default.Register<TogglePlayQueueSidePanelMessage>(this, (_, m) => TogglePlayQueueSidePanel(m.ForceState));
+        PlayQueueSidePanel.CloseRequested += (_, _) => ClosePlayQueueSidePanel();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -67,6 +81,9 @@ public sealed partial class PlayerPage : Page
             ViewModel.PlayerVisibility = PlayerVisibilityState.Visible;
             ViewModel.OnFileLaunched();
             _startup = true;
+            UpdateContentState();
+            UpdateRootTheme();
+            UpdatePreviewType();
         }
     }
 
@@ -102,8 +119,7 @@ public sealed partial class PlayerPage : Page
         {
             case VirtualKey.GamepadY when ViewModel.ViewMode != WindowViewMode.Compact:
                 ViewModel.ControlsHidden = false;
-                PlayerControls.GetPlayQueueFlyout().ShowAt(PlayerControls,
-                    new FlyoutShowOptions { Placement = GlobalizationHelper.MirrorWhenRightToLeft(FlyoutPlacementMode.TopEdgeAlignedRight) });
+                TogglePlayQueueSidePanel(true);
                 break;
             case VirtualKey.GamepadMenu:
                 VideoView.ContextFlyout.ShowAt(PlayerControls,
@@ -131,6 +147,10 @@ public sealed partial class PlayerPage : Page
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
+        UpdateContentState();
+        UpdateRootTheme();
+        UpdatePreviewType();
+
         if (ViewModel.PlayerVisibility == PlayerVisibilityState.Visible)
         {
             // Focus can fail if player is file activated
@@ -218,6 +238,7 @@ public sealed partial class PlayerPage : Page
 
                 UpdateContentState();
                 break;
+            case nameof(PlayerPageViewModel.Media):
             case nameof(PlayerPageViewModel.AudioOnly):
                 UpdateContentState();
                 UpdateRootTheme();
@@ -268,11 +289,7 @@ public sealed partial class PlayerPage : Page
 
                 break;
             case nameof(PlayerPageViewModel.ShouldClosePlayQueueFlyout) when ViewModel.ShouldClosePlayQueueFlyout:
-                if (PlayerControls.GetPlayQueueFlyout().IsOpen)
-                {
-                    PlayerControls.GetPlayQueueFlyout().Hide();
-                }
-
+                ClosePlayQueueSidePanel();
                 ViewModel.ShouldClosePlayQueueFlyout = false;
                 break;
         }
@@ -395,15 +412,9 @@ public sealed partial class PlayerPage : Page
         e.Handled = true;
     }
 
-    private async void PlayQueueFlyout_OnOpened(object sender, object e)
+    private void PlayQueueButton_OnClick(object sender, RoutedEventArgs e)
     {
-        if (PlayQueue == null) return;
-        await PlayQueue.SmoothScrollActiveItemIntoViewAsync();
-    }
-
-    private void PlayQueueFlyout_OnOpening(object sender, object e)
-    {
-        FindName(nameof(PlayQueue));
+        TogglePlayQueueSidePanel();
     }
 
     private void PlayQueueButton_OnDragEnter(object sender, DragEventArgs e)
@@ -427,6 +438,15 @@ public sealed partial class PlayerPage : Page
     {
         if (e.NewState.Name == nameof(ControlsHidden))
         {
+            // The side panels are anchored to the controls, so they must
+            // not be left floating on screen once the controls have moved out.
+            CloseSubtitleSidePanel();
+            CloseAudioSidePanel();
+            ClosePlayQueueSidePanel();
+
+            // The controls have finished moving out, so the cursor can go with them.
+            ViewModel.HideCursor();
+
             // Handle Space key when the controls are not visible.
             // Also hide tooltip if there is any.
             HiddenButton.Focus(FocusState.Programmatic);
@@ -435,6 +455,12 @@ public sealed partial class PlayerPage : Page
 
     private void VideoView_OnClick(object sender, RoutedEventArgs e)
     {
+        if (SubtitleSidePanel.Visibility == Visibility.Visible)
+        {
+            CloseSubtitleSidePanel();
+            return;
+        }
+
         if (!ViewModel.OnPlayerClick())
         {
             PlayerControls.FocusFirstButton();
@@ -478,6 +504,7 @@ public sealed partial class PlayerPage : Page
             !e.KeyStatus.IsMenuKeyDown)
         {
             e.Handled = true;
+            ViewModel.TryHideControls(true);
             ViewModel.ProcessSpaceKeyDown();
         }
     }
@@ -532,6 +559,27 @@ public sealed partial class PlayerPage : Page
 
     private void EscapeKeyboardAccelerator_OnInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
+        if (SubtitleSidePanel.Visibility == Visibility.Visible)
+        {
+            CloseSubtitleSidePanel();
+            args.Handled = true;
+            return;
+        }
+
+        if (AudioSidePanel.Visibility == Visibility.Visible)
+        {
+            CloseAudioSidePanel();
+            args.Handled = true;
+            return;
+        }
+
+        if (PlayQueueSidePanel.Visibility == Visibility.Visible)
+        {
+            ClosePlayQueueSidePanel();
+            args.Handled = true;
+            return;
+        }
+
         if (Windows.UI.Xaml.Media.VisualTreeHelper.GetOpenPopups(Window.Current).Count > 0)
         {
             args.Handled = true;
@@ -550,6 +598,223 @@ public sealed partial class PlayerPage : Page
                 args.Handled = true;
                 break;
         }
+    }
+
+    /// <summary>
+    /// Keeps the view model informed about whether a side panel is open, so that the control
+    /// auto-hide never leaves a panel floating on screen on its own.
+    /// </summary>
+    private void UpdateSidePanelState() => ViewModel.IsSidePanelOpen = _isSubtitlePanelOpen || _isAudioPanelOpen || _isPlayQueuePanelOpen;
+
+    private void ToggleSubtitleSidePanel(bool? forceState = null)
+    {
+        if (!Dispatcher.HasThreadAccess)
+        {
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ToggleSubtitleSidePanel(forceState));
+            return;
+        }
+
+        bool targetState = forceState ?? !_isSubtitlePanelOpen;
+        if (targetState)
+        {
+            OpenSubtitleSidePanel();
+        }
+        else
+        {
+            CloseSubtitleSidePanel();
+        }
+    }
+
+    private void OpenSubtitleSidePanel()
+    {
+        if (_isSubtitlePanelOpen && SubtitleSidePanel.Visibility == Visibility.Visible) return;
+
+        if (_isAudioPanelOpen)
+        {
+            CloseAudioSidePanel();
+        }
+
+        if (_isPlayQueuePanelOpen)
+        {
+            ClosePlayQueueSidePanel();
+        }
+
+        _isSubtitlePanelOpen = true;
+        UpdateSidePanelState();
+        CloseSubtitlePanelStoryboard.Stop();
+
+        SubtitleSidePanel.Visibility = Visibility.Visible;
+        SubtitlePanelBackdrop.IsHitTestVisible = true;
+        SubtitleSidePanel.OnOpening();
+
+        OpenSubtitlePanelStoryboard.Begin();
+    }
+
+    private void CloseSubtitleSidePanel()
+    {
+        if (!_isSubtitlePanelOpen && SubtitleSidePanel.Visibility == Visibility.Collapsed) return;
+
+        _isSubtitlePanelOpen = false;
+        UpdateSidePanelState();
+        if (!_isAudioPanelOpen && !_isPlayQueuePanelOpen)
+        {
+            SubtitlePanelBackdrop.IsHitTestVisible = false;
+        }
+        OpenSubtitlePanelStoryboard.Stop();
+
+        CloseSubtitlePanelStoryboard.Begin();
+    }
+
+    private void CloseSubtitlePanelStoryboard_OnCompleted(object sender, object e)
+    {
+        if (!_isSubtitlePanelOpen)
+        {
+            SubtitleSidePanel.Visibility = Visibility.Collapsed;
+            SubtitleSidePanel.OnClosed();
+        }
+    }
+
+    private void ToggleAudioSidePanel(bool? forceState = null)
+    {
+        if (!Dispatcher.HasThreadAccess)
+        {
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => ToggleAudioSidePanel(forceState));
+            return;
+        }
+
+        bool targetState = forceState ?? !_isAudioPanelOpen;
+        if (targetState)
+        {
+            OpenAudioSidePanel();
+        }
+        else
+        {
+            CloseAudioSidePanel();
+        }
+    }
+
+    private void OpenAudioSidePanel()
+    {
+        if (_isAudioPanelOpen && AudioSidePanel.Visibility == Visibility.Visible) return;
+
+        if (_isSubtitlePanelOpen)
+        {
+            CloseSubtitleSidePanel();
+        }
+
+        if (_isPlayQueuePanelOpen)
+        {
+            ClosePlayQueueSidePanel();
+        }
+
+        _isAudioPanelOpen = true;
+        UpdateSidePanelState();
+        CloseAudioPanelStoryboard.Stop();
+
+        AudioSidePanel.Visibility = Visibility.Visible;
+        SubtitlePanelBackdrop.IsHitTestVisible = true;
+        AudioSidePanel.OnOpening();
+
+        OpenAudioPanelStoryboard.Begin();
+    }
+
+    private void CloseAudioSidePanel()
+    {
+        if (!_isAudioPanelOpen && AudioSidePanel.Visibility == Visibility.Collapsed) return;
+
+        _isAudioPanelOpen = false;
+        UpdateSidePanelState();
+        if (!_isSubtitlePanelOpen && !_isPlayQueuePanelOpen)
+        {
+            SubtitlePanelBackdrop.IsHitTestVisible = false;
+        }
+        OpenAudioPanelStoryboard.Stop();
+
+        CloseAudioPanelStoryboard.Begin();
+    }
+
+    private void CloseAudioPanelStoryboard_OnCompleted(object sender, object e)
+    {
+        if (!_isAudioPanelOpen)
+        {
+            AudioSidePanel.Visibility = Visibility.Collapsed;
+            AudioSidePanel.OnClosed();
+        }
+    }
+
+    private void TogglePlayQueueSidePanel(bool? forceState = null)
+    {
+        if (!Dispatcher.HasThreadAccess)
+        {
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => TogglePlayQueueSidePanel(forceState));
+            return;
+        }
+
+        bool targetState = forceState ?? !_isPlayQueuePanelOpen;
+        if (targetState)
+        {
+            OpenPlayQueueSidePanel();
+        }
+        else
+        {
+            ClosePlayQueueSidePanel();
+        }
+    }
+
+    private void OpenPlayQueueSidePanel()
+    {
+        if (_isPlayQueuePanelOpen && PlayQueueSidePanel.Visibility == Visibility.Visible) return;
+
+        if (_isSubtitlePanelOpen)
+        {
+            CloseSubtitleSidePanel();
+        }
+
+        if (_isAudioPanelOpen)
+        {
+            CloseAudioSidePanel();
+        }
+
+        _isPlayQueuePanelOpen = true;
+        UpdateSidePanelState();
+        ClosePlayQueuePanelStoryboard.Stop();
+
+        PlayQueueSidePanel.Visibility = Visibility.Visible;
+        SubtitlePanelBackdrop.IsHitTestVisible = true;
+        PlayQueueSidePanel.OnOpening();
+
+        OpenPlayQueuePanelStoryboard.Begin();
+    }
+
+    private void ClosePlayQueueSidePanel()
+    {
+        if (!_isPlayQueuePanelOpen && PlayQueueSidePanel.Visibility == Visibility.Collapsed) return;
+
+        _isPlayQueuePanelOpen = false;
+        UpdateSidePanelState();
+        if (!_isSubtitlePanelOpen && !_isAudioPanelOpen)
+        {
+            SubtitlePanelBackdrop.IsHitTestVisible = false;
+        }
+        OpenPlayQueuePanelStoryboard.Stop();
+
+        ClosePlayQueuePanelStoryboard.Begin();
+    }
+
+    private void ClosePlayQueuePanelStoryboard_OnCompleted(object sender, object e)
+    {
+        if (!_isPlayQueuePanelOpen)
+        {
+            PlayQueueSidePanel.Visibility = Visibility.Collapsed;
+            PlayQueueSidePanel.OnClosed();
+        }
+    }
+
+    private void SubtitlePanelBackdrop_OnTapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (_isSubtitlePanelOpen) CloseSubtitleSidePanel();
+        if (_isAudioPanelOpen) CloseAudioSidePanel();
+        if (_isPlayQueuePanelOpen) ClosePlayQueueSidePanel();
     }
 
 }
