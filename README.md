@@ -1,12 +1,12 @@
 <div align="center">
 
-  <img width="128" height="128" src="Odeon/Assets/StoreLogo.scale-400.png" alt="Odeon Logo">
+  <img width="128" height="128" src="Odeon/Assets/StoreLogo.scale-400.png" alt="Odeon app icon — lightweight, open-source Windows media player powered by libmpv">
 
-  # Odeon
+  # Odeon — Lightweight, Open-Source Media Player for Windows 10/11
 
-  **An exquisite, distraction-free desktop media player for Windows.**
+  **A distraction-free, minimalist video and audio player for Windows, powered by libmpv.**
   <br>
-  *Engineered for acoustic purity, curated typography, and uncompromising simplicity.*
+  *The lightweight, no-telemetry alternative to VLC — fast startup, 4K/HDR hardware decoding, and a clean WinUI 3 interface.*
 
   <br>
 
@@ -15,78 +15,129 @@
   [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/9ixe/Odeon)
   [![Engine](https://img.shields.io/badge/Engine-libmpv%20%7C%20D3D11-800020?style=for-the-badge&logoColor=white)](https://mpv.io)
   [![License](https://img.shields.io/badge/License-GPL--3.0-6366F1?style=for-the-badge)](LICENSE)
+  <br>
+  [![GitHub Repo stars](https://img.shields.io/github/stars/9ixe/Odeon?style=for-the-badge&color=F5A623&logo=github&logoColor=white)](https://github.com/9ixe/Odeon/stargazers)
+  [![GitHub last commit](https://img.shields.io/github/last-commit/9ixe/Odeon?style=for-the-badge&logo=git&logoColor=white)](https://github.com/9ixe/Odeon/commits)
+  [![GitHub all releases](https://img.shields.io/github/downloads/9ixe/Odeon/total?style=for-the-badge&color=10B981&logo=windows&logoColor=white)](https://github.com/9ixe/Odeon/releases)
 
 </div>
 
 ---
 
-## 🏛️ The Meaning & Philosophy Behind the Name
+## Table of Contents
 
-> *"In classical antiquity, an **Odeon** (from Ancient Greek ᾨδεῖον, Ōideion — literally 'a place for singing') was an intimate, roofed amphitheater engineered specifically for musical performances, acoustic mastery, and poetry competitions."*
-
-Unlike colossal open-air arenas built for mass spectacles, ancient **Odeons** were enclosed sanctuaries designed with deliberate acoustic precision—spaces crafted for focused immersion, artistic purity, and intimate resonance.
-
-**Odeon** translates this classical architectural philosophy into desktop media playback. Developed by [**Joel Biju (9ixe)**](https://github.com/9ixe) as an opinionated, debloated fork of [Screenbox](https://github.com/huyn-net/Screenbox), Odeon strips away the bloat, background telemetry, and visual noise common in contemporary media suites — having completely moved from LibVLC to libmpv for its playback engine. The goal is simple: to provide an elegant, distraction-free auditorium where your cinema and music take center stage.
+- [Quick Start](#quick-start)
+- [What Is Odeon?](#what-is-odeon)
+- [Screenshots](#screenshots)
+- [Why Odeon?](#why-odeon)
+- [Features](#features)
+- [Odeon vs Other Media Players](#odeon-vs-other-media-players)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Installation](#installation)
+- [Building from Source](#building-from-source)
+- [The Name](#the-name)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [Credits](#credits)
 
 ---
 
-## 💡 Why Odeon? Understanding the Vision
+## Quick Start
 
-Most modern media players have slowly morphed into bulky media centers—cluttered with background library scanners, intrusive telemetry trackers, casting services, and nested menus that distract from the pure act of watching a video.
-
-Odeon was built from the ground up to reverse this trend. It is designed to be **instant, lightweight, and visually refined**, pairing a modern Windows aesthetic with the industrial-strength decoding engine it is based on: **libmpv**.
-
----
-
-## 🎯 What Sets Odeon Apart from Screenbox
-
-### 🔤 Curated Typography & Intelligent Subtitle Engine
-
-In conventional players, subtitles are frequently treated as an afterthought—rendered either in generic system typefaces or forced to display garish, inconsistent hardcoded styles embedded in ASS/SSA subtitle scripts.
-
-Odeon introduces a bespoke typographic and subtitle architecture:
-
-- **Unified Typographic Identity:** Built on libmpv, the entire interface, dialogs, and subtitle engine are built around **Futura PT Medium**—a timeless geometric sans-serif typeface selected for its balanced proportions, high legibility at all distances, and cinematic feel.
-- **Native ASS Override Pipeline:** Odeon leverages libmpv's powerful `--sub-ass-override=force` and `--sub-ass-force-style` directives to dynamically normalize complex embedded ASS/SSA subtitle tracks in real time—stripping away chaotic custom colors and fonts while preserving timing, rendering dialogues in crisp, perfectly outlined *Futura PT Medium*. No manual extraction, rewriting, or file manipulation required.
-- **Font Discovery via GDI:** Odeon registers **Futura PT Medium** privately with Windows via `AddFontResourceExW(FR_PRIVATE)`, ensuring libass (libmpv's native subtitle rendering engine) discovers and uses the font automatically—no embedded font blobs, no cache management.
+1. Download the latest **`Odeon_2.0.0.0_x64.msixbundle`** from [Releases](https://github.com/9ixe/Odeon/releases).
+2. Double-click the `.msixbundle` → click **Install**.
+3. Launch Odeon from your Start Menu — done.
 
 > [!NOTE]
-> **System Font Requirement:** To experience Odeon's intended typography across the player UI and subtitle renderer, **you must have the `Futura PT Medium` font installed on your Windows system** (simply download the font and select *Install for all users*).
-
-### ✂️ Debloated Core & Distraction-Free Philosophy
-
-- **Zero Telemetry & 100% Offline:** All tracking and diagnostic SDKs (such as Microsoft App Center and Sentry) have been completely purged from the source code. Odeon never communicates with remote analytics servers or monitors your viewing habits.
-- **Stripped-Down Interface:** Removed cluttered casting overlays, PiP toggles, and unnecessary controls. The interface only presents what you need during playback.
-- **Dedicated Side Panels:** Clean, slide-in panels for Subtitles, Audio Tracks, and Play Queue — each with pill-style selection indicators, smooth animations, and context menus for full control.
-- **Redesigned Play Queue:** Full drag-and-drop reorder, multi-select mode, bulk actions, and the ability to add files directly to the queue.
-- **Mini Player Controls:** Compact playback bar with subtitle, audio, and play queue toggles — all with matching pill-style buttons.
-- **Clean Context Menu:** The right-click menu has been redesigned to offer fast, direct access to critical playback actions without multi-tier submenus.
-- **Instant Playback Focus:** Launch video and audio files with near-zero latency, free from background indexing routines or resource-heavy library watchers.
-- **No Legacy Dependencies:** Odeon is built entirely on **libmpv** (`mpv-2.dll`) with Direct3D 11 composition — no LibVLC, no VLC dialogs, no renderer discovery overhead. Side panels use WinUI acrylic backgrounds for a consistent, modern feel.
-
-### ✨ Handcrafted Visual & Interactive Refinements
-
-- **Netflix-Style Red Accent:** A bold, cinematic red accent color that pops against dark backgrounds — inspired by premium streaming experiences.
-- **Glassmorphic Acrylic Backdrops:** Side panels and context menus use WinUI acrylic backgrounds with blur effects, creating depth and visual hierarchy throughout the interface.
-- **Smart Centered Titlebar:** Automatically parses video filenames, stripping file extensions (`.mkv`, `.mp4`, etc.) and brackets to display a clean, centered title across both windowed and fullscreen modes.
-- **Glassmorphic Properties HUD (`Tab`):** Pressing `Tab` at any moment reveals an instant frosted-glass overlay displaying the video's Title, Resolution, Bitrate, Duration, and File Size without interrupting playback.
-- **Dynamic Interactive Seekbar:** The progress bar features subtle spring physics that scale and expand dynamically during scrubbing, complete with smooth rounded track geometry.
-- **Dedicated Track Switchers:** Separate, slide-in side panels for Audio Tracks and Subtitles with instant switching, plus a full Play Queue panel with drag-and-drop reorder.
-- **Auto-Dismissing HUD:** Clean on-screen notifications for volume and seek adjustments that automatically dismiss after 1 second. Controls hide on spacebar press or mouse click for an immersive experience.
-
-### ⚡ Robust Playback Architecture
-
-Underneath its minimalist exterior, Odeon is powered by **libmpv**, presenting into a native WinUI `SwapChainPanel` through a **DXGI composition swap chain**:
-
-- **Near-Instantaneous Playback Startup:** Optimized pipeline eliminates cold-start bottlenecks, redundant decoder resets, and background I/O delays, launching high-bitrate media files with near-zero latency.
-- **Comprehensive Codec Support:** Effortlessly plays virtually every container, video format, and audio standard (MKV, MP4, AVI, WebM, FLAC, AAC, Opus, etc.).
-- **Hardware Decoding:** Uses Direct3D 11 video decoding (`--hwdec=auto-copy`), so high-bitrate 4K/HDR sources are decoded on the GPU. The decoded frames are copied to system memory because the video frame is composited on the CPU (see below).
-- **Rendering Pipeline:** libmpv exposes only the `"opengl"` and `"sw"` render APIs — there is no Direct3D render backend. Odeon therefore uses libmpv's software renderer: after hardware decoding, each frame is converted and scaled by libswscale on the CPU and then uploaded into the swap chain. Video output is 8-bit **B8G8R8A8** at the swap chain's resolution, so a 4K source is displayed at 4K only when the window is actually 4K-sized. Fullscreen on a 4K display does exactly that; a smaller window downscales.
-- **Local & Network Streaming:** Full support for playing media from local storage, external drives, and network shares (SMB, NAS, HTTP/HTTPS).
+> `mpv-2.dll` is included in the package. No separate installation required.
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## What Is Odeon?
+
+Odeon is a **lightweight, open-source media player for Windows** built on [libmpv](https://mpv.io) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/). It's an opinionated, debloated fork of [Screenbox](https://github.com/huyn-net/Screenbox) that replaces LibVLC with libmpv for superior playback performance.
+
+Whether you're looking for a fast **video player for Windows 11**, a privacy-respecting **alternative to VLC**, or simply a clean player without background library scanning, casting menus, or ads — Odeon focuses on one job, playing your media well:
+
+- Plays every format without codec packs (MKV, MP4, AVI, WebM, FLAC, AAC, Opus)
+- Uses **hardware-accelerated 4K/HDR playback** via Direct3D 11
+- Collects **zero telemetry** — no tracking, no analytics, no phone-home
+- Has a **clean, modern WinUI interface** inspired by Netflix-style dark design
+- Features **customizable subtitle rendering** with forced Futura PT typography
+
+---
+
+## Why Odeon?
+
+Most media players have become bloated media centers — cluttered with background library scanners, intrusive telemetry, casting services, and nested menus. Odeon strips all of that away.
+
+**Odeon is for people who want to press play and watch a video.** Nothing more.
+
+---
+
+## Features
+
+### 4K & Hardware-Accelerated Playback
+
+- **Hardware decoding** via Direct3D 11 (`--hwdec=auto-copy`) for smooth 4K/HDR content
+- Near-instantaneous playback startup — no cold-start delays
+- Supports virtually every container and codec: MKV, MP4, AVI, WebM, FLAC, AAC, Opus, DTS, TrueHD, and more
+- DXGI composition swap chain for pixel-accurate rendering at native resolution
+
+### Customizable Subtitle Rendering
+
+- **Forced Futura PT Medium typography** across all subtitles — clean, cinematic, consistent
+- Native ASS/SSA override pipeline: strips hardcoded fonts/colors, preserves timing and positioning
+- GDI font discovery via `AddFontResourceExW(FR_PRIVATE)` — no embedded font blobs, no cache management
+- Dedicated subtitle side panel with instant track switching
+
+### Clean, Minimalist Interface
+
+- **Netflix-style red accent** on a dark, glassmorphic WinUI canvas
+- WinUI acrylic backdrops with blur effects on side panels and context menus
+- Smart centered titlebar — auto-strips file extensions for a clean look
+- Auto-dismissing HUD for volume, seek, and status notifications
+- Glassmorphic **Properties HUD** (`Tab`) — instant overlay with video resolution, bitrate, duration, and file size
+- Dynamic seekbar with spring physics during scrubbing
+
+### Zero Telemetry, 100% Offline
+
+- All tracking SDKs (App Center, Sentry, etc.) fully purged from source
+- Odeon never communicates with remote analytics servers
+- Complete offline operation — no internet connection required
+
+### Play Queue & Multi-Track Support
+
+- Full **drag-and-drop reorder** in the play queue
+- Multi-select mode with bulk actions
+- Dedicated side panels for audio tracks, subtitles, and queue management
+- Mini player mode with compact playback controls
+
+### Local & Network Streaming
+
+- Play files from local storage, external drives, and network shares (SMB, NAS, HTTP/HTTPS)
+- No background library scanning — instant file access
+
+---
+
+## Odeon vs Other Media Players
+
+| Feature | **Odeon** | VLC | MPC-HC | mpv.net | Screenbox |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Engine** | libmpv | LibVLC | DirectShow | libmpv | LibVLC |
+| **UI Framework** | WinUI 3 | Qt | Win32 | WinForms | WinUI 3 |
+| **4K HW Decoding** | ✅ D3D11 | ✅ | ✅ | ✅ | ✅ |
+| **Zero Telemetry** | ✅ | ❌ | ✅ | ✅ | ❌ |
+| **Modern Dark UI** | ✅ | ❌ | ❌ | Partial | ✅ |
+| **Glassmorphic Panels** | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Custom Subtitle Fonts** | ✅ Forced | Manual | ❌ | Manual | ❌ |
+| **Play Queue** | ✅ DnD | ✅ | ❌ | ❌ | ✅ |
+| **Open Source** | ✅ GPL-3.0 | ✅ GPL-2.0 | ✅ GPL-3.0 | ✅ GPL-3.0 | ✅ MIT |
+| **Windows 11 Design** | ✅ | ❌ | ❌ | ❌ | ✅ |
+
+---
+
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
@@ -104,50 +155,129 @@ Underneath its minimalist exterior, Odeon is powered by **libmpv**, presenting i
 
 ---
 
-## 📥 Installation
+## Installation
 
 Odeon is distributed as a standalone, self-contained Windows package:
 
-1. Download the latest **`Odeon_2.0.0.0_x64.msixbundle`** (or `.zip` bundle) from the **[Releases](https://github.com/9ixe/Odeon/releases)** tab.
-2. **Double-click the `.msixbundle` file** and click **Install** in the Windows App Installer window.
-3. Launch **Odeon** from your Start Menu and set it as your default player!
-
-*(Alternative: If extracting from a full `.zip` bundle, you can also right-click `Install.ps1` and choose **Run with PowerShell**).*
+1. Download the latest **`Odeon_2.0.0.0_x64.msixbundle`** (or `.zip` bundle) from [Releases](https://github.com/9ixe/Odeon/releases).
+2. Double-click the `.msixbundle` → click **Install** in the Windows App Installer window.
+3. Launch Odeon from your Start Menu and set it as your default player.
 
 > [!NOTE]
-> The `mpv-2.dll` runtime is included in the package — no separate installation is required.
+> The `mpv-2.dll` runtime is included in the package — no separate installation required.
+
+> [!TIP]
+> For the intended typography, install the **Futura PT Medium** font on your system (download, right-click → *Install for all users*).
 
 ---
 
-## 🛠️ Building from Source
+## Building from Source
 
 ### Prerequisites
 
 * **Windows 10 (Build 1903+)** or **Windows 11**
-* **Futura PT Medium** font installed in Windows
-* **Visual Studio 2022** with the following workloads:
-  * Universal Windows Platform development
-  * Windows 10/11 SDK (10.0.26100.0 or compatible)
-* **Windows Developer Mode** enabled in Settings
-* **`mpv-2.dll`** — libmpv's native runtime (~115 MB). Download the `dev` package from [mpv shinchiro builds](https://github.com/shinchiro/mpv-winbuild-cmake/releases) and place **`mpv-2.dll` in the `Odeon/` project folder**; the project file copies it to the output. It is git-ignored and is never committed to the repository.
+* **Futura PT Medium** font installed
+* **Visual Studio 2022** with:
+  * Universal Windows Platform development workload
+  * Windows 10/11 SDK (10.0.2610.0 or compatible)
+* **Windows Developer Mode** enabled
+* **`mpv-2.dll`** — Download the `dev` package from [mpv shinchiro builds](https://github.com/shinchiro/mpv-winbuild-cmake/releases) and place it in the `Odeon/` project folder (git-ignored).
 
 ### Build Steps
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/9ixe/Odeon.git
-
-# 2. Open Odeon.sln in Visual Studio 2022
-# 3. Set Configuration to Release and Platform to x64
-# 4. Build or Deploy the Odeon project (or Publish -> Create App Packages)
+# Open Odeon.sln in Visual Studio 2022
+# Set Configuration: Release, Platform: x64
+# Build or Deploy the Odeon project
 ```
 
 ---
 
-## 📜 Credits & Acknowledgments
+## The Name
 
-- **Author & Maintainer:** [**Joel Biju (9ixe)**](https://github.com/9ixe) — Forked, customized, and debloated.
-- **Original Project:** Odeon is an independent fork of [Screenbox](https://github.com/huyn-net/Screenbox), originally developed by [Huyn](https://github.com/huyn-net). Special thanks to Huyn and all original contributors.
-- **Playback Engine:** Powered by [libmpv](https://mpv.io) with Direct3D 11 composition — the core C library behind all playback, rendering, and subtitle processing.
-- **Reference Integrations:** Architecture informed by [Richasy/mpv-winui](https://github.com/Richasy/mpv-winui) and [WangyuHello/HotPotPlayer](https://github.com/WangyuHello/HotPotPlayer).
-- **License:** Licensed under the [GNU General Public License v3.0](LICENSE).
+> *"In classical antiquity, an **Odeon** (from Ancient Greek ᾨδεῖον — literally 'a place for singing') was an intimate, roofed amphitheater engineered specifically for musical performances and acoustic mastery."*
+
+Unlike colossal open-air arenas, ancient Odeons were enclosed sanctuaries designed for focused immersion and artistic purity. **Odeon** translates this philosophy into desktop media playback — an elegant, distraction-free auditorium where your cinema takes center stage.
+
+---
+
+## FAQ
+
+<details>
+<summary><strong>What formats does Odeon support?</strong></summary>
+
+Odeon plays MKV, MP4, AVI, WebM, MOV, FLAC, AAC, Opus, DTS, TrueHD, and virtually every other media format supported by libmpv. No codec packs needed.
+</details>
+
+<details>
+<summary><strong>Does Odeon collect any telemetry?</strong></summary>
+
+No. All tracking SDKs (App Center, Sentry, etc.) have been completely removed. Odeon is 100% offline and never phones home.
+</details>
+
+<details>
+<summary><strong>Is Odeon free and open source?</strong></summary>
+
+Yes. Odeon is completely free and licensed under GPL-3.0 — the full source code is available in this repository.
+</details>
+
+<details>
+<summary><strong>Is Odeon a good alternative to VLC on Windows?</strong></summary>
+
+If you want a fast, no-telemetry player that just plays a file without extra menus, Odeon is a strong fit. VLC still has a larger overall feature set (a built-in streaming server, a broader plugin ecosystem, and support for macOS/Linux/mobile), so if you rely on those specific features, VLC may still be the better choice. For everyday local playback on Windows, Odeon aims to feel lighter and faster.
+</details>
+
+<details>
+<summary><strong>What are the system requirements?</strong></summary>
+
+Windows 10 (Build 1903 or later) or Windows 11, 64-bit. Odeon has no separate installer dependencies — the mpv-2.dll runtime ships inside the package.
+</details>
+
+<details>
+<summary><strong>What is the Futura PT Medium font requirement?</strong></summary>
+
+Odeon uses Futura PT Medium as its default subtitle and UI typeface for a consistent, cinematic look. Download the font and install it for all users on Windows. Without it, subtitles fall back to system fonts.
+</details>
+
+<details>
+<summary><strong>How does Odeon differ from Screenbox?</strong></summary>
+
+Odeon is a fork of Screenbox that replaces LibVLC with libmpv for the playback engine, removes all telemetry, adds forced subtitle typography, redesigns the play queue with drag-and-drop, and strips unnecessary features like casting and PiP.
+</details>
+
+<details>
+<summary><strong>Does Odeon support hardware acceleration?</strong></summary>
+
+Yes. Odeon uses Direct3D 11 hardware decoding (`--hwdec=auto-copy`) for smooth 4K and HDR playback. Decoded frames are composited via a DXGI swap chain.
+</details>
+
+<details>
+<summary><strong>Can Odeon play network streams?</strong></summary>
+
+Yes. Odeon supports SMB, NAS, HTTP/HTTPS network shares, and any stream URL supported by libmpv.
+</details>
+
+---
+
+## Contributing
+
+Bug reports, feature requests, and pull requests are all welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines. If Odeon is useful to you, starring the repository is one of the easiest ways to help other people find it.
+
+---
+
+## Credits
+
+- **Author & Maintainer:** [Joel Biju (9ixe)](https://github.com/9ixe)
+- **Original Project:** Fork of [Screenbox](https://github.com/huyn-net/Screenbox) by [Huyn](https://github.com/huyn-net)
+- **Playback Engine:** [libmpv](https://mpv.io) with Direct3D 11 composition
+- **Architecture References:** [Richasy/mpv-winui](https://github.com/Richasy/mpv-winui), [WangyuHello/HotPotPlayer](https://github.com/WangyuHello/HotPotPlayer)
+- **License:** [GNU General Public License v3.0](LICENSE)
+
+---
+
+<div align="center">
+
+  **[Download Odeon](https://github.com/9ixe/Odeon/releases)** · [Report a Bug](https://github.com/9ixe/Odeon/issues) · [Contributing](CONTRIBUTING.md)
+
+</div>
