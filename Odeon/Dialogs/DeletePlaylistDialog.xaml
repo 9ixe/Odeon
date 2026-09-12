@@ -7,6 +7,7 @@
     xmlns:strings="using:Odeon.Strings"
     Title="{strings:Resources Key=DeletePlaylist}"
     CloseButtonText="{strings:Resources Key=Cancel}"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
     PrimaryButtonText="{strings:Resources Key=Delete}"
     Style="{StaticResource DefaultContentDialogStyle}"
@@ -54,5 +55,5 @@
         </ResourceDictionary>
     </ContentDialog.Resources>
 
-    <TextBlock Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind strings:Resources.DeletePlaylistConfirmation(PlaylistName)}" />
+    <TextBlock FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" Style="{StaticResource BodyTextBlockStyle}" Text="{x:Bind strings:Resources.DeletePlaylistConfirmation(PlaylistName)}" />
 </ContentDialog>

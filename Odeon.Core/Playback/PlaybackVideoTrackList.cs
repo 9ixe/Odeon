@@ -1,6 +1,6 @@
-﻿#nullable enable
+#nullable enable
 
-using LibVLCSharp.Shared;
+using System.Collections.Generic;
 using Windows.Media.Core;
 using Windows.Media.Playback;
 
@@ -8,22 +8,14 @@ namespace Odeon.Core.Playback
 {
     public sealed class PlaybackVideoTrackList : SingleSelectTrackList<VideoTrack>
     {
-        private readonly Media? _media;
         private readonly MediaPlaybackVideoTrackList? _source;
 
-        public PlaybackVideoTrackList(Media media)
+        public PlaybackVideoTrackList()
         {
-            _media = media;
-            if (_media.Tracks.Length > 0)
-            {
-                AddVlcMediaTracks(_media.Tracks);
-            }
-            else
-            {
-                _media.ParsedChanged += Media_ParsedChanged;
-            }
+        }
 
-            SelectedIndex = 0;
+        public PlaybackVideoTrackList(object? unused)
+        {
         }
 
         public PlaybackVideoTrackList(MediaPlaybackVideoTrackList source)
@@ -39,39 +31,29 @@ namespace Odeon.Core.Playback
             SelectedIndexChanged += OnSelectedIndexChanged;
         }
 
+        public void UpdateTracks(IReadOnlyList<VideoTrack> tracks, int selectedIndex)
+        {
+            TrackList.Clear();
+            TrackList.AddRange(tracks);
+            SelectedIndex = selectedIndex;
+        }
+
         public void Refresh()
         {
-            if (_source == null) return;
-            TrackList.Clear();
-            foreach (Windows.Media.Core.VideoTrack videoTrack in _source)
+            if (_source != null)
             {
-                TrackList.Add(new VideoTrack(videoTrack));
+                TrackList.Clear();
+                foreach (Windows.Media.Core.VideoTrack videoTrack in _source)
+                {
+                    TrackList.Add(new VideoTrack(videoTrack));
+                }
             }
         }
 
         private void OnSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
         {
-            // Only update for Windows track list. VLC track list is handled by the player.
             if (_source == null || _source.SelectedIndex == sender.SelectedIndex) return;
             _source.SelectedIndex = sender.SelectedIndex;
-        }
-
-        private void Media_ParsedChanged(object sender, MediaParsedChangedEventArgs e)
-        {
-            if (_media == null || e.ParsedStatus != MediaParsedStatus.Done) return;
-            _media.ParsedChanged -= Media_ParsedChanged;
-            AddVlcMediaTracks(_media.Tracks);
-        }
-
-        private void AddVlcMediaTracks(LibVLCSharp.Shared.MediaTrack[] tracks)
-        {
-            foreach (LibVLCSharp.Shared.MediaTrack track in tracks)
-            {
-                if (track.TrackType == TrackType.Video)
-                {
-                    TrackList.Add(new VideoTrack(track));
-                }
-            }
         }
     }
 }

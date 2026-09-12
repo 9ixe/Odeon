@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Néhány beállitást csak teljeskörűen lehet beállitani.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>VLC parancssori segitség</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>{0} alatt megtalálható az összes elérhető opció.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

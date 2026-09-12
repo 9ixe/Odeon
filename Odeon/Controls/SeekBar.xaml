@@ -10,8 +10,9 @@
     xmlns:animations="using:CommunityToolkit.WinUI.Animations"
     d:DesignHeight="300"
     d:DesignWidth="400"
+    UseLayoutRounding="True"
     mc:Ignorable="d"
-    FontFamily="ms-appx:///Assets/Fonts/FuturaCyrillicMedium.ttf#Futura Cyrillic Medium">
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular">
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -19,24 +20,7 @@
                 <ResourceDictionary Source="ms-appx:///Styles/Progress.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <StaticResource x:Key="SliderTrackFillPointerOver" ResourceKey="SystemControlTransparentBrush" />
-            <StaticResource x:Key="SliderTrackFillPressed" ResourceKey="SystemControlTransparentBrush" />
-            <SolidColorBrush x:Key="SliderTrackValueFill" Color="Red" />
-            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="Red" />
-            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="Red" />
-            <SolidColorBrush x:Key="SliderThumbBackground" Color="Red" />
-            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="Red" />
-            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="Red" />
-            <SolidColorBrush x:Key="ProgressBarForeground" Color="Red" />
-            <SolidColorBrush x:Key="ProgressBarIndeterminateForeground" Color="Red" />
-            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="Red" />
-            <SolidColorBrush x:Key="SystemAccentColor" Color="Red" />
-            <CornerRadius x:Key="SliderTrackCornerRadius">100</CornerRadius>
-            <CornerRadius x:Key="ProgressBarCornerRadius">100</CornerRadius>
-            <CornerRadius x:Key="ProgressBarTrackCornerRadius">100</CornerRadius>
-            <x:Double x:Key="SliderTrackThemeHeight">5.6</x:Double>
-            <x:Double x:Key="ProgressBarTrackHeight">5.6</x:Double>
-            <x:Double x:Key="ProgressBarMinHeight">5.6</x:Double>
+            <!-- Brushes are defined globally in App.xaml to avoid duplication -->
         </ResourceDictionary>
     </UserControl.Resources>
 
@@ -58,28 +42,28 @@
                 <VisualStateGroup.Transitions>
                     <VisualTransition To="Seeking">
                         <Storyboard>
-                            <DoubleAnimation Storyboard.TargetName="PlayerProgressBar" Storyboard.TargetProperty="MinHeight" To="12.6" Duration="0:0:0.25" EnableDependentAnimation="True">
+                            <DoubleAnimation Storyboard.TargetName="PlayerProgressBar" Storyboard.TargetProperty="MinHeight" To="12.6" Duration="0:0:0.2" EnableDependentAnimation="True">
                                 <DoubleAnimation.EasingFunction>
-                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                    <CubicEase EasingMode="EaseOut" />
                                 </DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
-                            <DoubleAnimation Storyboard.TargetName="BufferingProgressBar" Storyboard.TargetProperty="MinHeight" To="12.6" Duration="0:0:0.25" EnableDependentAnimation="True">
+                            <DoubleAnimation Storyboard.TargetName="BufferingProgressBar" Storyboard.TargetProperty="MinHeight" To="12.6" Duration="0:0:0.2" EnableDependentAnimation="True">
                                 <DoubleAnimation.EasingFunction>
-                                    <BackEase Amplitude="0.5" EasingMode="EaseOut" />
+                                    <CubicEase EasingMode="EaseOut" />
                                 </DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
                         </Storyboard>
                     </VisualTransition>
                     <VisualTransition To="Normal">
                         <Storyboard>
-                            <DoubleAnimation Storyboard.TargetName="PlayerProgressBar" Storyboard.TargetProperty="MinHeight" To="5.6" Duration="0:0:0.25" EnableDependentAnimation="True">
+                            <DoubleAnimation Storyboard.TargetName="PlayerProgressBar" Storyboard.TargetProperty="MinHeight" To="5.6" Duration="0:0:0.2" EnableDependentAnimation="True">
                                 <DoubleAnimation.EasingFunction>
-                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                    <CubicEase EasingMode="EaseOut" />
                                 </DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
-                            <DoubleAnimation Storyboard.TargetName="BufferingProgressBar" Storyboard.TargetProperty="MinHeight" To="5.6" Duration="0:0:0.25" EnableDependentAnimation="True">
+                            <DoubleAnimation Storyboard.TargetName="BufferingProgressBar" Storyboard.TargetProperty="MinHeight" To="5.6" Duration="0:0:0.2" EnableDependentAnimation="True">
                                 <DoubleAnimation.EasingFunction>
-                                    <ExponentialEase Exponent="4" EasingMode="EaseOut" />
+                                    <CubicEase EasingMode="EaseOut" />
                                 </DoubleAnimation.EasingFunction>
                             </DoubleAnimation>
                         </Storyboard>
@@ -94,7 +78,8 @@
             VerticalAlignment="Center"
             AutomationProperties.AccessibilityView="Raw"
             Chapters="{x:Bind ViewModel.Chapters, Mode=OneWay}"
-            Foreground="Red"
+            CornerRadius="5"
+            Foreground="#FFE81123"
             Maximum="{x:Bind SeekBarSlider.Maximum, Mode=OneWay}"
             Value="{x:Bind SeekBarSlider.Value, Mode=OneWay}"
             MinHeight="5.6"
@@ -105,19 +90,22 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
             AutomationProperties.AccessibilityView="Raw"
-            Foreground="Red"
+            Style="{StaticResource NoAnimationProgressBarStyle}"
+            Foreground="#FFE81123"
             IsIndeterminate="True"
             MinHeight="5.6"
             Visibility="{x:Bind ViewModel.BufferingVisible, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
             RenderTransformOrigin="0.5,0.5">
+            <muxc:ProgressBar.Resources>
+                <CornerRadius x:Key="ProgressBarCornerRadius">5</CornerRadius>
+                <CornerRadius x:Key="ProgressBarTrackCornerRadius">5</CornerRadius>
+            </muxc:ProgressBar.Resources>
         </muxc:ProgressBar>
         <controls:CustomSlider
             x:Name="SeekBarSlider"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
             AutomationProperties.Name="{strings:Resources Key=Seek}"
-            Background="{x:Bind Background, Mode=OneWay}"
-            Foreground="{x:Bind Foreground, Mode=OneWay}"
             IsEnabled="{x:Bind ViewModel.IsSeekable, Mode=OneWay, FallbackValue=False}"
             IsKeyDownEnabled="{x:Bind ViewModel.ShouldHandleKeyDown, Mode=OneWay}"
             IsThumbToolTipEnabled="{x:Bind ViewModel.ShouldShowPreview, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"
@@ -131,7 +119,7 @@
             PointerWheelChanged="SeekBarSlider_OnPointerWheelChanged"
             SizeChanged="SeekBarSlider_OnSizeChanged"
             SmallChange="5000"
-            Style="{StaticResource DefaultSliderStyle}"
+            Style="{StaticResource PlayerSliderStyle}"
             ThumbToolTipValueConverter="{StaticResource HumanizedDurationConverter}"
             ValueChanged="{x:Bind ViewModel.OnSeekBarValueChanged}"
             Visibility="{x:Bind ProgressOnly, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=true}"

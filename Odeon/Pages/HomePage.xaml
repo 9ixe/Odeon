@@ -18,6 +18,7 @@
     xmlns:triggers="using:CommunityToolkit.WinUI"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:viewModels="using:Odeon.Core.ViewModels"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     Loaded="{x:Bind ViewModel.OnLoaded}"
     mc:Ignorable="d">
 

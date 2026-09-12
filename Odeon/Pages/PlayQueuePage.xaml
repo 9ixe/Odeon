@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="Odeon.Pages.PlayQueuePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -16,6 +16,8 @@
     xmlns:triggers="using:CommunityToolkit.WinUI"
     xmlns:ui="using:CommunityToolkit.WinUI"
     Loaded="PlayQueuePage_OnLoaded"
+    UseLayoutRounding="True"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
 
     <Page.Resources>

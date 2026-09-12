@@ -1,32 +1,31 @@
-﻿#nullable enable
-
-using CommunityToolkit.Diagnostics;
-using LibVLCSharp.Shared;
+#nullable enable
 
 namespace Odeon.Core.Playback;
 
 public sealed class VideoTrack : MediaTrack
 {
-    internal int VlcTrackId { get; }
+    public int TrackId { get; }
 
     public string Name { get; }
-
+    public string? Codec { get; }
     public uint Width { get; }
-
     public uint Height { get; }
+    public bool IsSelected { get; }
 
-    public VideoTrack(LibVLCSharp.Shared.MediaTrack videoTrack) : base(videoTrack)
+    public VideoTrack(long id, string? title, string? language, string? codec, uint width, uint height, bool selected = false)
+        : base(Windows.Media.Core.MediaTrackKind.Video, id.ToString(), title, language)
     {
-        Guard.IsTrue(videoTrack.TrackType == TrackType.Video, nameof(videoTrack.TrackType));
-        VlcTrackId = videoTrack.Id;
-        Name = videoTrack.Description ?? videoTrack.Language ?? videoTrack.Id.ToString();
-        Width = videoTrack.Data.Video.Width;
-        Height = videoTrack.Data.Video.Height;
+        TrackId = (int)id;
+        Name = !string.IsNullOrEmpty(title) ? title! : (Language ?? id.ToString());
+        Codec = codec;
+        Width = width;
+        Height = height;
+        IsSelected = selected;
     }
 
     public VideoTrack(Windows.Media.Core.VideoTrack videoTrack) : base(videoTrack)
     {
-        Name = videoTrack.Name;
+        Name = videoTrack.Name ?? string.Empty;
         var props = videoTrack.GetEncodingProperties();
         if (props != null)
         {

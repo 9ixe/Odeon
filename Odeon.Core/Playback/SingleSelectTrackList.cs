@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System.Collections;
 using System.Collections.Generic;
@@ -24,6 +24,17 @@ namespace Odeon.Core.Playback
                 _selectedIndex = value;
                 SelectedIndexChanged?.Invoke(this, null);
             }
+        }
+
+        public void SetSelectedIndexSilently(int index)
+        {
+            _selectedIndex = index;
+        }
+
+        public void Clear()
+        {
+            TrackList.Clear();
+            _selectedIndex = -1;
         }
 
         protected List<T> TrackList { get; }

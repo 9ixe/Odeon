@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Sesetengah pilihan hanya boleh ditetapkan secara global.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>Bantuan baris arahan VLC</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Lihat {0} untuk senarai penuh pilihan yang tersedia.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

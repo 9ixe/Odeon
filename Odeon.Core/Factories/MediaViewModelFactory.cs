@@ -1,9 +1,8 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using LibVLCSharp.Shared;
 using Odeon.Core.Contexts;
 using Odeon.Core.Playback;
 using Odeon.Core.Services;
@@ -42,25 +41,6 @@ public sealed class MediaViewModelFactory
         return new MediaViewModel(_playerContext, _playerService, uri);
     }
 
-    /// <summary>
-    /// Always creates a new <see cref="MediaViewModel"/> without any lookup.
-    /// </summary>
-    public MediaViewModel Create(Media media)
-    {
-        if (!Uri.TryCreate(media.Mrl, UriKind.Absolute, out Uri uri))
-            return new MediaViewModel(_playerContext, _playerService, media);
-
-        // Prefer URI source for easier clean up
-        MediaViewModel vm = new(_playerContext, _playerService, uri)
-        {
-            Item = new Lazy<PlaybackItem?>(new PlaybackItem(media, media))
-        };
-
-        if (media.Meta(MetadataType.Title) is { } name && !string.IsNullOrEmpty(name))
-            vm.Name = name;
-
-        return vm;
-    }
 
     /// <summary>
     /// Returns an existing <see cref="MediaViewModel"/> from the current library state if found,

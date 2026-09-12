@@ -8,12 +8,16 @@
     Title="{strings:Resources Key=OpenUrl}"
     CloseButtonText="{strings:Resources Key=Close}"
     DefaultButton="Primary"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     IsPrimaryButtonEnabled="{x:Bind CanOpen(UrlBox.Text), Mode=OneWay}"
     PrimaryButtonText="{strings:Resources Key=Open}"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
     <Grid>
-        <TextBox x:Name="UrlBox" PlaceholderText="{strings:Resources Key=OpenUrlPlaceholder}" />
+        <TextBox
+            x:Name="UrlBox"
+            FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
+            PlaceholderText="{strings:Resources Key=OpenUrlPlaceholder}" />
     </Grid>
 </ContentDialog>

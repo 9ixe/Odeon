@@ -1,4 +1,4 @@
-﻿<ContentDialog
+<ContentDialog
     x:Class="Odeon.Dialogs.SetOptionsDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,22 +10,27 @@
     Title="{strings:Resources Key=SetPlaybackOptions}"
     CloseButtonText="{strings:Resources Key=Close}"
     DefaultButton="Primary"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     PrimaryButtonText="{strings:Resources Key=Set}"
     SecondaryButtonText="{strings:Resources Key=SetAndPlay}"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
     <StackPanel Orientation="Vertical" Spacing="12">
-        <TextBlock x:Name="HelpText" TextWrapping="Wrap">
-            <Run Text="{strings:Resources Key=SetPlaybackOptionsHelpTextLine1}" /><LineBreak /><Run Text="{x:Bind VlcCommandLineHelpTextParts[0]}" />
-            <Hyperlink NavigateUri="https://wiki.videolan.org/VLC_command-line_help/">
-                <Run Text="{strings:Resources Key=VlcCommandLineHelpLink}" />
+        <TextBlock
+            x:Name="HelpText"
+            FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
+            TextWrapping="Wrap">
+            <Run Text="{strings:Resources Key=SetPlaybackOptionsHelpTextLine1}" /><LineBreak /><Run Text="{x:Bind CommandLineHelpTextParts[0]}" />
+            <Hyperlink NavigateUri="https://mpv.io/manual/master/">
+                <Run Text="{strings:Resources Key=CommandLineHelpLink}" />
             </Hyperlink>
-            <Run Text="{x:Bind VlcCommandLineHelpTextParts[1]}" /><LineBreak /><Run Text="{strings:Resources Key=SetPlaybackOptionsHelpTextLine2}" />
+            <Run Text="{x:Bind CommandLineHelpTextParts[1]}" /><LineBreak /><Run Text="{strings:Resources Key=SetPlaybackOptionsHelpTextLine2}" />
         </TextBlock>
         <TextBox
             x:Name="OptionsTextBox"
             AcceptsReturn="False"
+            FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
             IsSpellCheckEnabled="False"
             PlaceholderText="{x:Bind OptionTextBoxPlaceholder}"
             Text="{x:Bind Options, Mode=TwoWay}">
@@ -36,9 +41,11 @@
         <StackPanel Orientation="Vertical" Visibility="Collapsed">
             <TextBlock
                 Margin="0,0,0,6"
+                FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
                 FontWeight="SemiBold"
                 Text="Active arguments" />
             <TextBlock
+                FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
                 IsTextSelectionEnabled="True"
                 Style="{StaticResource CaptionTextBlockStyle}"
                 Text="{x:Bind Options}"

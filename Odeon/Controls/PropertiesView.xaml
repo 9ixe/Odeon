@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Odeon.Controls.PropertiesView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,78 +7,123 @@
     xmlns:strings="using:Odeon.Strings"
     d:DesignHeight="300"
     d:DesignWidth="400"
-    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI"
+    UseLayoutRounding="True"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <Style TargetType="TextBlock">
-            <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI" />
-        </Style>
-        <Style x:Key="BodyTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
-            <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI" />
-        </Style>
-        <Style x:Key="BodyStrongTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
-            <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular, Segoe UI" />
-        </Style>
+        <ResourceDictionary>
+            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#33FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#22000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Margin="4,8">
-        <Grid 
-            Padding="16"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Top">
-            
-            <StackPanel Spacing="12">
-                <!-- Title Row -->
-                <Grid Visibility="{x:Bind ViewModel.Title, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{strings:Resources Key=PropertyTitle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource BodyTextBlockStyle}" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Title, Mode=OneWay}" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="Wrap" />
-                </Grid>
+    <Grid Margin="0,4">
+        <StackPanel Spacing="0">
+            <!-- Title Row -->
+            <Grid
+                Padding="6,8"
+                Visibility="{x:Bind ViewModel.Title, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Grid.Column="0" FontSize="14" Glyph="&#xE8D2;" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                <TextBlock Grid.Column="1" Text="{strings:Resources Key=PropertyTitle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.Title, Mode=OneWay}" FontWeight="SemiBold" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Grid>
 
-                <!-- Length Row -->
-                <Grid Visibility="{x:Bind ViewModel.Length, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{strings:Resources Key=PropertyLength}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource BodyTextBlockStyle}" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Length, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" />
-                </Grid>
+            <Rectangle
+                Height="1"
+                Fill="{ThemeResource SidePanelBorderBrush}"
+                Margin="0,2"
+                Visibility="{x:Bind ViewModel.Length, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
 
-                <!-- Resolution Row -->
-                <Grid Visibility="{x:Bind ViewModel.Resolution, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{strings:Resources Key=PropertyResolution}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource BodyTextBlockStyle}" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Resolution, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" />
-                </Grid>
+            <!-- Length Row -->
+            <Grid
+                Padding="6,8"
+                Visibility="{x:Bind ViewModel.Length, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Grid.Column="0" FontSize="14" Glyph="&#xE916;" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                <TextBlock Grid.Column="1" Text="{strings:Resources Key=PropertyLength}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.Length, Mode=OneWay}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Grid>
 
-                <!-- Bit rate Row -->
-                <Grid Visibility="{x:Bind ViewModel.BitRate, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{strings:Resources Key=PropertyBitRate}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource BodyTextBlockStyle}" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.BitRate, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" />
-                </Grid>
+            <Rectangle
+                Height="1"
+                Fill="{ThemeResource SidePanelBorderBrush}"
+                Margin="0,2"
+                Visibility="{x:Bind ViewModel.Resolution, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
 
-                <!-- File size Row -->
-                <Grid Visibility="{x:Bind ViewModel.FileSize, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="110" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{strings:Resources Key=PropertySize}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Style="{StaticResource BodyTextBlockStyle}" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.FileSize, Mode=OneWay}" Style="{StaticResource BodyTextBlockStyle}" />
-                </Grid>
-            </StackPanel>
-        </Grid>
+            <!-- Resolution Row -->
+            <Grid
+                Padding="6,8"
+                Visibility="{x:Bind ViewModel.Resolution, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Grid.Column="0" FontSize="14" Glyph="&#xE799;" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                <TextBlock Grid.Column="1" Text="{strings:Resources Key=PropertyResolution}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.Resolution, Mode=OneWay}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Grid>
+
+            <Rectangle
+                Height="1"
+                Fill="{ThemeResource SidePanelBorderBrush}"
+                Margin="0,2"
+                Visibility="{x:Bind ViewModel.BitRate, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
+
+            <!-- Bit rate Row -->
+            <Grid
+                Padding="6,8"
+                Visibility="{x:Bind ViewModel.BitRate, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Grid.Column="0" FontSize="14" Glyph="&#xEC05;" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                <TextBlock Grid.Column="1" Text="{strings:Resources Key=PropertyBitRate}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.BitRate, Mode=OneWay}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Grid>
+
+            <Rectangle
+                Height="1"
+                Fill="{ThemeResource SidePanelBorderBrush}"
+                Margin="0,2"
+                Visibility="{x:Bind ViewModel.FileSize, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}" />
+
+            <!-- File size Row -->
+            <Grid
+                Padding="6,8"
+                Visibility="{x:Bind ViewModel.FileSize, Mode=OneWay, Converter={StaticResource StringVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="28" />
+                    <ColumnDefinition Width="100" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Grid.Column="0" FontSize="14" Glyph="&#xE8B7;" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                <TextBlock Grid.Column="1" Text="{strings:Resources Key=PropertySize}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.FileSize, Mode=OneWay}" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+            </Grid>
+        </StackPanel>
     </Grid>
 </UserControl>

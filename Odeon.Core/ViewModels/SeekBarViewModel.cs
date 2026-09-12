@@ -69,6 +69,8 @@ public sealed partial class SeekBarViewModel :
     private TimeSpan _lastTrackedPosition;
     private bool _timeChangeOverride;
     private MediaViewModel? _currentItem;
+    private volatile bool _isPositionUpdatePending;
+    private double _pendingPositionMs;
 
     public SeekBarViewModel(ISettingsService settingsService, IPlaybackProgressTracker playbackProgressTracker,
         PlayerContext playerContext)
@@ -165,6 +167,10 @@ public sealed partial class SeekBarViewModel :
     public void Receive(TimeChangeOverrideMessage message)
     {
         _timeChangeOverride = message.Value;
+        if (!_timeChangeOverride)
+        {
+            _isPositionUpdatePending = false;
+        }
     }
 
     public void Receive(ChangeTimeRequestMessage message)
@@ -176,9 +182,13 @@ public sealed partial class SeekBarViewModel :
     public void OnSeekBarPointerEvent(bool pressed)
     {
         _timeChangeOverride = pressed;
-        if (!pressed && IsSeekable && MediaPlayer != null)
+        if (!pressed)
         {
-            SetPlayerPosition(TimeSpan.FromMilliseconds(Time), false);
+            _isPositionUpdatePending = false;
+            if (IsSeekable && MediaPlayer != null)
+            {
+                SetPlayerPosition(TimeSpan.FromMilliseconds(Time), false);
+            }
         }
     }
 
@@ -304,7 +314,7 @@ public sealed partial class SeekBarViewModel :
     {
         _dispatcherQueue.TryEnqueue(() =>
         {
-            IsSeekable = sender.CanSeek;
+            IsSeekable = sender.CanSeek || sender.NaturalDuration > TimeSpan.Zero;
         });
     }
 
@@ -324,6 +334,7 @@ public sealed partial class SeekBarViewModel :
     private void OnPlaybackItemChanged(IMediaPlayer sender, object? args)
     {
         _seekTimer.Stop();
+        _isPositionUpdatePending = false;
         if (sender.PlaybackItem == null)
         {
             _dispatcherQueue.TryEnqueue(() =>
@@ -338,6 +349,8 @@ public sealed partial class SeekBarViewModel :
             _dispatcherQueue.TryEnqueue(() =>
             {
                 Time = 0;
+                Length = sender.NaturalDuration.TotalMilliseconds;
+                IsSeekable = sender.CanSeek || sender.NaturalDuration > TimeSpan.Zero;
                 Chapters.Clear();
             });
         }
@@ -362,9 +375,25 @@ public sealed partial class SeekBarViewModel :
     private void OnPositionChanged(IMediaPlayer sender, object? args)
     {
         if (_seekTimer.IsRunning || _timeChangeOverride) return;
-        _dispatcherQueue.TryEnqueue(() =>
+
+        _pendingPositionMs = sender.Position.TotalMilliseconds;
+        if (_isPositionUpdatePending) return;
+
+        _isPositionUpdatePending = true;
+        _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
         {
-            Time = sender.Position.TotalMilliseconds;
+            _isPositionUpdatePending = false;
+            if (_seekTimer.IsRunning || _timeChangeOverride) return;
+
+            Time = _pendingPositionMs;
+            if (!IsSeekable && (sender.CanSeek || sender.NaturalDuration > TimeSpan.Zero))
+            {
+                IsSeekable = true;
+            }
+            if (Length == 0 && sender.NaturalDuration > TimeSpan.Zero)
+            {
+                Length = sender.NaturalDuration.TotalMilliseconds;
+            }
         });
     }
 
@@ -375,7 +404,7 @@ public sealed partial class SeekBarViewModel :
         _dispatcherQueue.TryEnqueue(() =>
         {
             Length = sender.NaturalDuration.TotalMilliseconds;
-            IsSeekable = sender.CanSeek;
+            IsSeekable = sender.CanSeek || sender.NaturalDuration > TimeSpan.Zero;
             UpdateChapters(sender.PlaybackItem?.Chapters);
         });
     }
@@ -405,11 +434,25 @@ public sealed partial class SeekBarViewModel :
             chapterList.Load(MediaPlayer);
         }
 
-        foreach (ChapterCue chapterCue in chapterList)
+        var snapshot = chapterList.ToArray();
+        foreach (ChapterCue chapterCue in snapshot)
         {
             Chapters.Add(chapterCue);
         }
-        // Chapters.SyncItems(chapterList);
+    }
+
+    public ChapterCue? GetChapterAt(TimeSpan time)
+    {
+        if (Chapters == null || Chapters.Count == 0) return null;
+        for (int i = 0; i < Chapters.Count; i++)
+        {
+            var cue = Chapters[i];
+            if (time >= cue.StartTime && time <= cue.StartTime + cue.Duration)
+            {
+                return cue;
+            }
+        }
+        return null;
     }
 
     private void UpdateProgress(TimeSpan position)

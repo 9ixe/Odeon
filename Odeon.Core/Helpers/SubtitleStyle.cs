@@ -1,10 +1,7 @@
-﻿namespace Odeon.Core.Helpers
+namespace Odeon.Core.Helpers
 {
     /// <summary>
-    /// Single source of truth for subtitle styling. Both the freetype renderer
-    /// (used for normal SRT/plain-text subtitles) and the ASS/SSA style rewriter
-    /// read from here so that ASS subtitles follow the exact same look as normal
-    /// subtitles.
+    /// Single source of truth for subtitle styling. Single source of truth for subtitle styling in libmpv / libass.
     /// </summary>
     public static class SubtitleStyle
     {
@@ -22,21 +19,18 @@
         public const int ShadowDepth = 0;
 
         /// <summary>
-        /// Vertical bottom margin as a percentage of the video height, matching the
-        /// semantics of VLC's <c>--sub-margin</c> option.
+        /// Vertical bottom margin as a percentage of the video height.
         /// </summary>
         public const int VerticalMarginPercent = 6;
 
         public const string FontAssetUri = "ms-appx:///Assets/Fonts/FuturaCyrillicMedium.ttf";
 
         /// <summary>
-        /// A ready-to-use libVLC <c>--sub-ass-force-style</c> option string that forces the same
-        /// look on every ASS/SSA subtitle (including pre-styled ones whose <c>[Styles]</c> block the
-        /// file rewriter does not fully cover). Built from the constants above so it can never drift
-        /// from the freetype (normal subtitle) values.
+        /// A ready-to-use <c>--sub-ass-force-style</c> option string that forces the same
+        /// look on ASS/SSA subtitles. Built from the constants above so it can never drift.
         /// </summary>
         /// <remarks>
-        /// Colors match <c>AssStyleRewriter</c>: white text, black outline, 50%-alpha back.
+        /// Colors: white text, black outline, 50%-alpha back.
         /// <c>MarginV</c> is intentionally omitted here; it is applied by the file rewriter (scaled to
         /// <c>PlayResY</c>) since it is resolution-dependent.
         /// </remarks>

@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Một số tùy chọn chỉ có thể được đặt trên toàn cục.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>Trợ giúp dòng lệnh VLC</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Xem {0} để biết danh sách đầy đủ các tùy chọn có sẵn.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Alcune opzioni possono essere impostate solo globalmente.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>Aiuto command line VLC</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Vedi {0} per la lista di tutte le opzioni.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

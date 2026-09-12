@@ -7,12 +7,13 @@
   xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
   xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
   xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
-  IgnorableNamespaces="uap mp uap3 desktop4">
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap mp uap3 desktop4 rescap">
 
     <Identity
       Name="Odeon"
       Publisher="CN=ABCDF790-DBE4-48F7-8204-32FCB69ADF9C"
-      Version="1.0.0.0" />
+      Version="2.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="13f69037-4fca-4b86-a6f5-a77c0969d41a" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -558,6 +559,7 @@
   </Applications>
 
   <Capabilities>
+    <rescap:Capability Name="broadFileSystemAccess" />
     <Capability Name="internetClient" />
     <uap3:Capability Name="backgroundMediaPlayback"/>
     <uap:Capability Name="videosLibrary"/>

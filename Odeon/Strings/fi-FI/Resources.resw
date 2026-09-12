@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>Joitakin valintoja voidaan asettaa vain ohjelman laajuisesti.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>VLC komentorivi apu</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>Katso {0} saadaksesi lista käytettävissä olevista vaihtoehdoista.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

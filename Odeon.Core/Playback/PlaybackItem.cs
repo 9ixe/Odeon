@@ -1,15 +1,19 @@
-﻿#nullable enable
+#nullable enable
 
-using LibVLCSharp.Shared;
 using System;
+using Odeon.Core.Services;
 
 namespace Odeon.Core.Playback
 {
+    /// <summary>
+    /// Represents a playable media item for mpv.
+    /// Media properties (duration, tracks, chapters) are observed directly from the player.
+    /// </summary>
     public class PlaybackItem
     {
-        internal Media Media { get; }
-
         public object OriginalSource { get; }
+
+        public string FilePath { get; }
 
         public bool IsDisabledInPlaybackList { get; set; }
 
@@ -23,15 +27,16 @@ namespace Odeon.Core.Playback
 
         public TimeSpan StartTime { get; set; }
 
-        public TimeSpan? Duration => Media.Duration > 0 ? TimeSpan.FromMilliseconds(Media.Duration) : null;
+        // Duration comes from the player (IMediaPlayer.NaturalDuration), not the item
+        public TimeSpan? Duration => null;
 
-        internal PlaybackItem(object source, Media media)
+        public PlaybackItem(object source, string? filePath = null)
         {
             OriginalSource = source;
-            Media = media;
-            AudioTracks = new PlaybackAudioTrackList(media);
-            VideoTracks = new PlaybackVideoTrackList(media);
-            SubtitleTracks = new PlaybackSubtitleTrackList(media, this);
+            FilePath = filePath ?? PlayerService.ResolvePath(source) ?? string.Empty;
+            AudioTracks = new PlaybackAudioTrackList();
+            VideoTracks = new PlaybackVideoTrackList();
+            SubtitleTracks = new PlaybackSubtitleTrackList();
             Chapters = new PlaybackChapterList(this);
             StartTime = TimeSpan.Zero;
         }

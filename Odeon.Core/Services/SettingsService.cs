@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Linq;
@@ -23,15 +23,20 @@ public sealed class SettingsService : ISettingsService
     private const string GeneralShowRecent = "General/ShowRecent";
     private const string GeneralEnqueueAllInFolder = "General/EnqueueAllInFolder";
     private const string GeneralRestorePlaybackPosition = "General/RestorePlaybackPosition";
-    private const string AdvancedModeKey = "Advanced/IsEnabled";
-    private const string AdvancedVideoUpscaleKey = "Advanced/VideoUpscale";
     private const string AdvancedMultipleInstancesKey = "Advanced/MultipleInstances";
     private const string GlobalArgumentsKey = "Values/GlobalArguments";
     private const string PersistentVolumeKey = "Values/Volume";
     private const string MaxVolumeKey = "Values/MaxVolume";
     private const string PersistentRepeatModeKey = "Values/RepeatMode";
     private const string PersistentSubtitleLanguageKey = "Values/SubtitleLanguage";
+    private const string PersistentAudioLanguageKey = "Values/AudioLanguage";
     private const string OverrideSubtitleStylesKey = "Player/OverrideSubtitleStyles";
+
+    private const string SubtitleBackgroundEnabledKey = "Player/SubtitleBackgroundEnabled";
+    private const string SubtitleBackgroundOpacityKey = "Player/SubtitleBackgroundOpacity";
+    private const string SubtitleOutlineEnabledKey = "Player/SubtitleOutlineEnabled";
+    private const string SubtitleFontSizeKey = "Player/SubtitleFontSize";
+    private const string SubtitlePositionKey = "Player/SubtitlePosition";
 
     private const string PlayerShowChaptersKey = "Player/ShowChapters";
     private const string PrivacyPersistPlaybackPosition = "Privacy/PersistPlaybackPosition";
@@ -77,10 +82,46 @@ public sealed class SettingsService : ISettingsService
         set => SetValue(PersistentSubtitleLanguageKey, value);
     }
 
+    public string PersistentAudioLanguage
+    {
+        get => GetValue<string>(PersistentAudioLanguageKey) ?? string.Empty;
+        set => SetValue(PersistentAudioLanguageKey, value);
+    }
+
     public bool OverrideSubtitleStyles
     {
         get => GetValue<bool>(OverrideSubtitleStylesKey);
         set => SetValue(OverrideSubtitleStylesKey, value);
+    }
+
+    public bool SubtitleBackgroundEnabled
+    {
+        get => GetValue<bool>(SubtitleBackgroundEnabledKey);
+        set => SetValue(SubtitleBackgroundEnabledKey, value);
+    }
+
+    public bool SubtitleOutlineEnabled
+    {
+        get => GetValue<bool>(SubtitleOutlineEnabledKey);
+        set => SetValue(SubtitleOutlineEnabledKey, value);
+    }
+
+    public int SubtitleBackgroundOpacity
+    {
+        get => GetValue<int>(SubtitleBackgroundOpacityKey);
+        set => SetValue(SubtitleBackgroundOpacityKey, value);
+    }
+
+    public int SubtitleFontSize
+    {
+        get => GetValue<int>(SubtitleFontSizeKey);
+        set => SetValue(SubtitleFontSizeKey, value);
+    }
+
+    public int SubtitlePosition
+    {
+        get => GetValue<int>(SubtitlePositionKey);
+        set => SetValue(SubtitlePositionKey, value);
     }
 
 
@@ -137,18 +178,6 @@ public sealed class SettingsService : ISettingsService
     {
         get => GetValue<string>(GlobalArgumentsKey) ?? string.Empty;
         set => SetValue(GlobalArgumentsKey, SanitizeArguments(value));
-    }
-
-    public bool AdvancedMode
-    {
-        get => GetValue<bool>(AdvancedModeKey);
-        set => SetValue(AdvancedModeKey, value);
-    }
-
-    public VideoUpscaleOption VideoUpscale
-    {
-        get => (VideoUpscaleOption)GetValue<int>(AdvancedVideoUpscaleKey);
-        set => SetValue(AdvancedVideoUpscaleKey, (int)value);
     }
 
     public bool UseMultipleInstances
@@ -240,12 +269,17 @@ public sealed class SettingsService : ISettingsService
         SetDefault(LibrariesSearchRemovableStorageKey, true);
         SetDefault(GeneralShowRecent, true);
         SetDefault(PersistentRepeatModeKey, (int)MediaPlaybackAutoRepeatMode.None);
-        SetDefault(AdvancedModeKey, false);
-        SetDefault(AdvancedVideoUpscaleKey, (int)VideoUpscaleOption.Linear);
         SetDefault(AdvancedMultipleInstancesKey, false);
         SetDefault(GlobalArgumentsKey, string.Empty);
         SetDefault(PlayerShowChaptersKey, true);
+        SetDefault(PersistentAudioLanguageKey, string.Empty);
         SetDefault(OverrideSubtitleStylesKey, true);
+
+        SetDefault(SubtitleBackgroundEnabledKey, false);
+        SetDefault(SubtitleFontSizeKey, Odeon.Core.Helpers.SubtitleStyle.FontSize);
+        SetDefault(SubtitlePositionKey, 100);
+        SetDefault(SubtitleBackgroundOpacityKey, 75);
+        SetDefault(SubtitleOutlineEnabledKey, true);
 
         SetDefault(PrivacyPersistPlaybackPosition, true);
         SetDefault(PlayerRewindStepKey, 5);

@@ -1,4 +1,4 @@
-﻿using Odeon.Core.Enums;
+using Odeon.Core.Enums;
 using Windows.Media;
 
 namespace Odeon.Core.Services;
@@ -12,6 +12,7 @@ public interface ISettingsService
     int PlayerControlsHideDelay { get; set; }
     int PersistentVolume { get; set; }
     string PersistentSubtitleLanguage { get; set; }
+    string PersistentAudioLanguage { get; set; }
 
     /// <summary>
     /// Gets or sets a value that indicates whether the application's default
@@ -33,7 +34,26 @@ public interface ISettingsService
     /// each subtitle line; otherwise, <see langword="false"/>.
     /// The default is <c>false</c>.
     /// </value>
+    bool SubtitleBackgroundEnabled { get; set; }
+    bool SubtitleOutlineEnabled { get; set; }
 
+    /// <summary>
+    /// Gets or sets the subtitle font size in points.
+    /// The default is 50.
+    /// </summary>
+    int SubtitleFontSize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the vertical subtitle position (percent of screen height).
+    /// The default is 100 (standard bottom).
+    /// </summary>
+    int SubtitlePosition { get; set; }
+
+    /// <summary>
+    /// Gets or sets the opacity of the subtitle background box as a percentage (10-100).
+    /// The default is 75.
+    /// </summary>
+    int SubtitleBackgroundOpacity { get; set; }
 
     bool ShowRecent { get; set; }
     ThemeOption Theme { get; set; }
@@ -42,8 +62,6 @@ public interface ISettingsService
     bool SearchRemovableStorage { get; set; }
     int MaxVolume { get; set; }
     string GlobalArguments { get; set; }
-    bool AdvancedMode { get; set; }
-    VideoUpscaleOption VideoUpscale { get; set; }
     bool UseMultipleInstances { get; set; }
     MediaPlaybackAutoRepeatMode PersistentRepeatMode { get; set; }
 

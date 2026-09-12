@@ -8,6 +8,7 @@
     xmlns:strings="using:Odeon.Strings"
     d:DesignHeight="600"
     d:DesignWidth="600"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Thickness x:Key="ErrorInfoPadding">0,32,0,48</Thickness>

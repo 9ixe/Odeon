@@ -1,12 +1,12 @@
-﻿#nullable enable
+#nullable enable
 
-using LibVLCSharp.Shared;
-using Odeon.Core.Helpers;
 using System;
+using Odeon.Core.Helpers;
 using Windows.Globalization;
 using Windows.Media.Core;
 
 namespace Odeon.Core.Playback;
+
 public abstract class MediaTrack : IMediaTrack
 {
     public string Id { get; internal set; }
@@ -30,19 +30,26 @@ public abstract class MediaTrack : IMediaTrack
         Label = string.Empty;
     }
 
-    protected MediaTrack(LibVLCSharp.Shared.MediaTrack track)
+    internal MediaTrack(MediaTrackKind trackKind, string id, string? title, string? language)
     {
-        TrackKind = Convert(track.TrackType);
-        _languageStr = track.Language ?? string.Empty;
-        if (Windows.Globalization.Language.IsWellFormed(_languageStr))
+        TrackKind = trackKind;
+        Id = id;
+        _languageStr = language ?? string.Empty;
+        if (!string.IsNullOrEmpty(_languageStr) && Windows.Globalization.Language.IsWellFormed(_languageStr))
         {
             if (LanguageHelper.TryConvertISO6392ToISO6391(_languageStr, out string bc47Tag))
                 _languageStr = bc47Tag;
-            _language = new Language(_languageStr);
+            try
+            {
+                _language = new Language(_languageStr);
+            }
+            catch
+            {
+                // Fallback if tag cannot be parsed by WinRT Language
+            }
         }
 
-        Id = track.Id.ToString();
-        Label = GetFullLabel(track.Description, Language);
+        Label = GetFullLabel(title, Language, id);
     }
 
     protected MediaTrack(IMediaTrack track)
@@ -54,14 +61,14 @@ public abstract class MediaTrack : IMediaTrack
         }
 
         Id = track.Id;
-        Label = GetFullLabel(track.Label, Language);
+        Label = GetFullLabel(track.Label, Language, Id);
     }
 
-    private static string GetFullLabel(string? label, string language)
+    private static string GetFullLabel(string? label, string language, string? fallbackId = null)
     {
         if (string.IsNullOrEmpty(label))
         {
-            label = language;
+            label = !string.IsNullOrEmpty(language) ? language : (fallbackId != null ? $"Track {fallbackId}" : string.Empty);
         }
         else if (!string.IsNullOrEmpty(language) && language != label)
         {
@@ -69,16 +76,5 @@ public abstract class MediaTrack : IMediaTrack
         }
 
         return label ?? string.Empty;
-    }
-
-    private static MediaTrackKind Convert(TrackType trackType)
-    {
-        return trackType switch
-        {
-            TrackType.Audio => MediaTrackKind.Audio,
-            TrackType.Video => MediaTrackKind.Video,
-            TrackType.Text => MediaTrackKind.TimedMetadata,
-            _ => throw new ArgumentOutOfRangeException(nameof(trackType), trackType, null)
-        };
     }
 }

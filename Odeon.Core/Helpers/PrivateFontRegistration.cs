@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.IO;
@@ -10,13 +10,13 @@ namespace Odeon.Core.Helpers
 {
     /// <summary>
     /// Registers a bundled font file with Windows so that DirectWrite (and by extension
-    /// VLC's freetype/libass text renderers) can resolve the font by family name.
+    /// mpv's libass text renderer) can resolve the font by family name.
     /// 
     /// Uses <c>AddFontResourceEx</c> with <c>FR_PRIVATE</c> (0x10) so the font is only
     /// visible to this process — no admin rights, no permanent installation, no cleanup needed
     /// (Windows automatically unregisters when the process exits).
     /// </summary>
-    internal static class PrivateFontRegistration
+    public static class PrivateFontRegistration
     {
         private const uint FR_PRIVATE = 0x10;
 
@@ -27,8 +27,7 @@ namespace Odeon.Core.Helpers
 
         /// <summary>
         /// The resolved absolute path to the font TTF on disk, set by <see cref="EnsureRegisteredAsync"/>.
-        /// Passed directly to <c>--freetype-font</c> so VLC's freetype module loads the file
-        /// without going through fontconfig, which cannot see GDI-registered private fonts.
+        /// Passed to mpv so it loads the font file directly.
         /// </summary>
         internal static string? FontFilePath { get; private set; }
 
@@ -38,7 +37,7 @@ namespace Odeon.Core.Helpers
         /// Safe to call multiple times — only registers once.
         /// </summary>
         /// <returns>The font family name if registration succeeded, null otherwise.</returns>
-        internal static Task<string?> EnsureRegisteredAsync()
+        public static Task<string?> EnsureRegisteredAsync()
         {
             if (_registered)
                 return Task.FromResult<string?>(SubtitleStyle.FontFamily);

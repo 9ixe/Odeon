@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -47,13 +47,11 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     [ObservableProperty] private bool _enqueueAllFilesInFolder;
     [ObservableProperty] private bool _restorePlaybackPosition;
     [ObservableProperty] private bool _searchRemovableStorage;
-    [ObservableProperty] private bool _advancedMode;
-    [ObservableProperty] private int _videoUpscaling;
     [ObservableProperty] private bool _useMultipleInstances;
-    [ObservableProperty] private string _globalArguments;
     [ObservableProperty] private bool _isRelaunchRequired;
     [ObservableProperty] private int _selectedLanguage;
     [ObservableProperty] private bool _persistPlaybackPosition;
+    [ObservableProperty] private string _globalArguments = string.Empty;
 
     public ObservableCollection<StorageFolder> MusicLocations { get; }
 
@@ -80,11 +78,8 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     private StorageLibrary? _videosLibrary;
     private StorageLibrary? _musicLibrary;
 
-    private record InitialValues(string GlobalArguments, bool AdvancedMode, int VideoUpscaling, int Language)
+    private record InitialValues(int Language)
     {
-        public string GlobalArguments { get; } = GlobalArguments;
-        public bool AdvancedMode { get; } = AdvancedMode;
-        public int VideoUpscaling { get; } = VideoUpscaling;
         public int Language { get; } = Language;
     }
 
@@ -140,9 +135,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         _enqueueAllFilesInFolder = _settingsService.EnqueueAllFilesInFolder;
         _restorePlaybackPosition = _settingsService.RestorePlaybackPosition;
         _searchRemovableStorage = _settingsService.SearchRemovableStorage;
-        _advancedMode = _settingsService.AdvancedMode;
         _useMultipleInstances = _settingsService.UseMultipleInstances;
-        _videoUpscaling = (int)_settingsService.VideoUpscale;
         _globalArguments = _settingsService.GlobalArguments;
         int maxVolume = _settingsService.MaxVolume;
         _volumeBoost = maxVolume switch
@@ -157,7 +150,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         _selectedLanguage = AvailableLanguages.FindIndex(l => l.LanguageTag.Equals(currentLanguage));
 
         // Setting initial values for relaunch check
-        _initialValues ??= new InitialValues(_globalArguments, _advancedMode, _videoUpscaling, _selectedLanguage);
+        _initialValues ??= new InitialValues(_selectedLanguage);
         CheckForRelaunch();
 
         IsActive = true;
@@ -331,19 +324,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         Messenger.Send(new SettingsChangedMessage(nameof(VolumeBoost), typeof(SettingsPageViewModel)));
     }
 
-    partial void OnAdvancedModeChanged(bool value)
-    {
-        _settingsService.AdvancedMode = value;
-        Messenger.Send(new SettingsChangedMessage(nameof(AdvancedMode), typeof(SettingsPageViewModel)));
-        CheckForRelaunch();
-    }
 
-    partial void OnVideoUpscalingChanged(int value)
-    {
-        _settingsService.VideoUpscale = (VideoUpscaleOption)value;
-        Messenger.Send(new SettingsChangedMessage(nameof(VideoUpscaling), typeof(SettingsPageViewModel)));
-        CheckForRelaunch();
-    }
 
     partial void OnUseMultipleInstancesChanged(bool value)
     {
@@ -351,22 +332,17 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         Messenger.Send(new SettingsChangedMessage(nameof(UseMultipleInstances), typeof(SettingsPageViewModel)));
     }
 
-    partial void OnGlobalArgumentsChanged(string value)
-    {
-        // No need to broadcast SettingsChangedMessage for this option
-        if (value != _settingsService.GlobalArguments)
-        {
-            _settingsService.GlobalArguments = value;
-        }
-
-        GlobalArguments = _settingsService.GlobalArguments;
-        CheckForRelaunch();
-    }
 
     partial void OnPersistPlaybackPositionChanged(bool value)
     {
         _settingsService.PersistPlaybackPosition = value;
         Messenger.Send(new SettingsChangedMessage(nameof(PersistPlaybackPosition), typeof(SettingsPageViewModel)));
+    }
+
+    partial void OnGlobalArgumentsChanged(string value)
+    {
+        _settingsService.GlobalArguments = value;
+        Messenger.Send(new SettingsChangedMessage(nameof(GlobalArguments), typeof(SettingsPageViewModel)));
     }
 
 
@@ -558,31 +534,9 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     {
         if (_initialValues == null) return;
 
-        // Check if upscaling mode has been changed
-        bool upscalingChanged = _initialValues.VideoUpscaling != VideoUpscaling;
-
         // Check if app language has been changed
         bool languageChanged = _initialValues.Language != SelectedLanguage;
 
-        // Check if global arguments have been changed
-        bool argsChanged = _initialValues.GlobalArguments != _settingsService.GlobalArguments;
-
-        // Check if advanced mode has been changed
-        bool modeChanged = _initialValues.AdvancedMode != AdvancedMode;
-
-        // Check if there are any global arguments set
-        bool hasArgs = _settingsService.GlobalArguments.Length > 0;
-
-        // Check if advanced mode is on, and if global arguments are set
-        bool whenOn = modeChanged && AdvancedMode && hasArgs;
-
-        // Check if advanced mode is off, and if global arguments are set or have been removed
-        bool whenOff = modeChanged && !AdvancedMode && ((!hasArgs && argsChanged) || hasArgs);
-
-        // Require relaunch when advanced mode is on and global arguments have been changed
-        bool whenOnAndChanged = AdvancedMode && argsChanged;
-
-        // Combine everything
-        IsRelaunchRequired = upscalingChanged || languageChanged || whenOn || whenOff || whenOnAndChanged;
+        IsRelaunchRequired = languageChanged;
     }
 }

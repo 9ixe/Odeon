@@ -66,9 +66,8 @@
         <Setter Property="BorderBrush" Value="{ThemeResource ButtonBorderBrush}" />
         <Setter Property="BorderThickness" Value="{ThemeResource ButtonBorderThemeThickness}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
-        <!--<Setter Property="VerticalAlignment" Value="Top" />-->
-        <!--<Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />-->
-        <!--<Setter Property="FontWeight" Value="Normal" />-->
+        <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Width" Value="NaN" />
         <!--<Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />-->
         <Setter Property="FocusVisualMargin" Value="-3" />
@@ -176,7 +175,7 @@
                                     Margin="{ThemeResource AppBarButtonSubItemChevronMargin}"
                                     VerticalAlignment="Top"
                                     AutomationProperties.AccessibilityView="Raw"
-                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
                                     FontSize="{ThemeResource AppBarButtonSubItemChevronFontSize}"
                                     Foreground="{ThemeResource AppBarButtonSubItemChevronForeground}"
                                     Glyph="{ThemeResource AppBarButtonFlyoutGlyph}"
@@ -186,7 +185,7 @@
                                     Margin="{ThemeResource AppBarButtonSecondarySubItemChevronMargin}"
                                     VerticalAlignment="Center"
                                     AutomationProperties.AccessibilityView="Raw"
-                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
                                     FontSize="{ThemeResource AppBarButtonSecondarySubItemChevronFontSize}"
                                     Foreground="{ThemeResource AppBarButtonSubItemChevronForeground}"
                                     Glyph="{ThemeResource AppBarButtonOverflowFlyoutGlyph}"
@@ -473,9 +472,8 @@
         <Setter Property="BorderBrush" Value="{ThemeResource AccentButtonBorderBrush}" />
         <Setter Property="BorderThickness" Value="{ThemeResource ButtonBorderThemeThickness}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
-        <!--<Setter Property="VerticalAlignment" Value="Top" />-->
-        <!--<Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />-->
-        <!--<Setter Property="FontWeight" Value="Normal" />-->
+        <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Width" Value="NaN" />
         <!--<Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />-->
         <Setter Property="FocusVisualMargin" Value="-3" />
@@ -583,7 +581,7 @@
                                     Margin="{ThemeResource AppBarButtonSubItemChevronMargin}"
                                     VerticalAlignment="Top"
                                     AutomationProperties.AccessibilityView="Raw"
-                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
                                     FontSize="{ThemeResource AppBarButtonSubItemChevronFontSize}"
                                     Foreground="{ThemeResource AppBarButtonSubItemChevronForeground}"
                                     Glyph="{ThemeResource AppBarButtonFlyoutGlyph}"
@@ -593,7 +591,7 @@
                                     Margin="{ThemeResource AppBarButtonSecondarySubItemChevronMargin}"
                                     VerticalAlignment="Center"
                                     AutomationProperties.AccessibilityView="Raw"
-                                    FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                                    FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
                                     FontSize="{ThemeResource AppBarButtonSecondarySubItemChevronFontSize}"
                                     Foreground="{ThemeResource AppBarButtonSubItemChevronForeground}"
                                     Glyph="{ThemeResource AppBarButtonOverflowFlyoutGlyph}"
@@ -884,9 +882,9 @@
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <!--<Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />-->
-        <!--<Setter Property="FontWeight" Value="SemiBold" />-->
-        <!--<Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />-->
+        <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />
         <Setter Property="Width" Value="{ThemeResource AppBarExpandButtonThemeWidth}" />
         <!--<Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />-->
         <!--<Setter Property="FocusVisualMargin" Value="-3" />-->

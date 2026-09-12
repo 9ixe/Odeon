@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Odeon.Core.Enums;
 using Odeon.Helpers;
 using Windows.Media;
@@ -196,4 +196,21 @@ public static partial class GlyphConverter
             _ => string.Empty,
         };
     }
+
+    /// <summary>
+    /// Gets the chapters glyph code based on whether chapters are shown.
+    /// </summary>
+    /// <param name="showChapters">A <see cref="bool"/> indicating whether chapters are visible.</param>
+    /// <returns>
+    /// <b>CheckMark</b> glyph code <see cref="string"/> if <paramref name="showChapters"/> is <see langword="true"/>;
+    /// otherwise, <b>Chapters</b> glyph code.
+    /// </returns>
+    public static string ToChaptersGlyph(bool showChapters)
+    {
+        const string CheckMarkGlyph = "\uE73E";
+        const string ChaptersGlyph = "\uE75B";
+
+        return showChapters ? CheckMarkGlyph : ChaptersGlyph;
+    }
 }
+

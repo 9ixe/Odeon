@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>සමහර විකල්ප ගෝලීය වශයෙන් පමණක් සැකසිය හැක.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>VLC විධාන රේඛා උපකාරය</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>පවතින විකල්පවල සම්පූර්ණ ලැයිස්තුව සඳහා {0} බලන්න.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

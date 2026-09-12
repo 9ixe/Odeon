@@ -1,6 +1,7 @@
-﻿# 📱 Odeon Project Structure
+# 📱 Odeon Project Structure
 
 This document provides a comprehensive overview of the Odeon project's architecture, organization, and practical workflows for development.
+Note: Odeon Now uses Libmpv instead of Libvlc
 
 ## 📋 Table of Contents
 
@@ -24,7 +25,7 @@ This document provides a comprehensive overview of the Odeon project's architect
 
 ## 📖 Overview
 
-Odeon is a modern media player for Windows built using the Universal Windows Platform ([UWP](https://learn.microsoft.com/en-us/windows/uwp/get-started/universal-application-platform-guide)) and LibVLCSharp. The application follows the Model-View-ViewModel ([MVVM](https://learn.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm)) design pattern with dependency injection for maintainable and testable code.
+Odeon is a modern media player for Windows built using the Universal Windows Platform ([UWP](https://learn.microsoft.com/en-us/windows/uwp/get-started/universal-application-platform-guide)) and libmpv. The application follows the Model-View-ViewModel ([MVVM](https://learn.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm)) design pattern with dependency injection for maintainable and testable code.
 
 The architecture is built around clean separation of concerns:
 - **View Layer**: XAML-based UI components and user controls
@@ -69,7 +70,7 @@ The application organizes its content into several main page categories:
 - **`HomePage.xaml`**: Recently accessed media
 - **`VideosPage.xaml`**: Video library browsing with nested pages for categories
 - **`MusicPage.xaml`**: Music library with artist, album, and song views
-- **`NetworkPage.xaml`**: Network streaming and casting features  
+- **`NetworkPage.xaml`**: Network streaming and casting features
 - **`PlayQueuePage.xaml`**: Current playlist and queue management
 - **`SettingsPage.xaml`**: Application configuration and preferences
 
@@ -83,7 +84,7 @@ Odeon implements numerous custom controls for specialized functionality:
 - **`VolumeControl.xaml`**: Audio level management
 - **`PlayerElement.xaml`**: Main video rendering surface
 
-#### Media Display Controls  
+#### Media Display Controls
 - **`MediaListViewItem.xaml`**: Templated list items for media content
 - **`CommonGridViewItem.xaml`**: Grid layout for media thumbnails
 - **`PlaylistView.xaml`**: Specialized playlist display component
@@ -160,7 +161,7 @@ ViewModels implement property change notification through the [CommunityToolkit.
 [ObservableProperty]
 private string _currentMediaTitle;
 
-[ObservableProperty]  
+[ObservableProperty]
 private TimeSpan _playbackPosition;
 ```
 
@@ -177,7 +178,7 @@ Odeon uses the [CommunityToolkit.Mvvm messaging system](https://learn.microsoft.
 - **`TogglePlayPauseMessage.cs`**: Toggle playback state
 - **`ChangeTimeRequestMessage.cs`**: Seek to specific time position
 
-**UI State Messages**  
+**UI State Messages**
 - **`PlayerControlsVisibilityChangedMessage.cs`**: Show/hide player controls
 - **`SettingsChangedMessage.cs`**: Application setting modifications
 - **`NavigationViewDisplayModeRequestMessage.cs`**: Navigation menu state changes
@@ -250,25 +251,24 @@ Available coordinators:
 
 Helper classes provide focused utilities and lightweight wrappers for specific functionality:
 
-- **`RendererWatcher`**: Lightweight wrapper around VLC's RendererDiscoverer for network renderer discovery, exposing events for renderer found/lost notifications and maintaining a list of available renderers
 - **`DisplayRequestTracker`**: Manages display sleep prevention during media playback
 
 ### Media Playback Engine
 
-The media playback system is built on [LibVLCSharp](https://code.videolan.org/videolan/LibVLCSharp) with custom abstractions for integration with the MVVM architecture:
+The media playback system is built on [libmpv](https://mpv.io) with a Direct3D 11 / DXGI composition swap chain and custom abstractions for integration with the MVVM architecture. Video frames themselves come from libmpv's software renderer (libmpv has no Direct3D render backend); see `Odeon.Core/Rendering/D3D11SwapChainManager.cs`.
 
 #### Core Playback Components
 - **`IMediaPlayer`**: Media player abstraction interface
-- **`VlcMediaPlayer.cs`**: VLC-based implementation of media player
+- **`MpvMediaPlayer.cs`**: libmpv implementation of media player
 - **`PlaybackItem.cs`**: Media item wrapper with metadata and state
 
 #### Track Management System
 - **`PlaybackAudioTrackList.cs`**: Audio track selection and switching
-- **`PlaybackVideoTrackList.cs`**: Video track and subtitle management  
+- **`PlaybackVideoTrackList.cs`**: Video track and subtitle management
 - **`PlaybackSubtitleTrackList.cs`**: Subtitle track handling
 - **`PlaybackChapterList.cs`**: Chapter navigation support
 
-The playback engine provides a clean interface for the ViewModel layer while abstracting the complexities of the underlying VLC media framework.
+The playback engine provides a clean interface for the ViewModel layer while abstracting the complexities of the underlying mpv media framework.
 
 ### Data Models and Persistence
 
@@ -277,7 +277,7 @@ The playback engine provides a clean interface for the ViewModel layer while abs
 - **`VideoInfo.cs`**: Video-specific metadata and properties
 - **`MusicInfo.cs`**: Audio metadata and music library information
 
-#### Application State Models  
+#### Application State Models
 - **`MusicLibrary.cs`**: Immutable snapshot of the music library — `Songs`, `Albums`, `Artists`, `UnknownAlbum`, and `UnknownArtist`. Replaced by a new instance whenever the library is refreshed, so all relationships stay consistent. Has a static `Empty` instance used as the initial `LibraryContext.Music` value.
 - **`VideosLibrary.cs`**: Immutable snapshot of the video library — `Videos` list. Same replacement model as `MusicLibrary`.
 - **`PersistentMediaRecord.cs`**: Saved playback state and resume positions
@@ -314,10 +314,10 @@ The following table summarizes the allowed dependency directions between layers:
 - **UWP (Universal Windows Platform)**: Windows application framework providing native performance and system integration
 - **C# 10.0**: Primary programming language
 - **XAML**: Declarative markup for user interface definition
-- **LibVLCSharp 3.7.0**: Cross-platform media playback engine with extensive codec support
+- **libmpv (mpv-2.dll)**: High-performance media playback engine (software render API), composited via Direct3D 11
 - **CommunityToolkit.Mvvm**: Modern MVVM framework with source generators and messaging
 
-### Development and Build Tools  
+### Development and Build Tools
 - **Visual Studio 2022**: Primary integrated development environment
 - **MSBuild**: Build system and project management
 - **XAML Styler**: XAML formatting and style enforcement
@@ -333,7 +333,7 @@ The following table summarizes the allowed dependency directions between layers:
 - [Microsoft.Extensions.DependencyInjection](https://www.nuget.org/packages/Microsoft.Extensions.DependencyInjection/) - Service container and dependency injection
 
 #### Media and Data Processing
-- [LibVLCSharp](https://github.com/videolan/libvlcsharp) - VLC media player integration
+- [libmpv](https://mpv.io) - mpv media player client library
 - [TagLibSharp](https://github.com/mono/taglib-sharp) - Audio metadata reading
 - [protobuf-net](https://github.com/protobuf-net/protobuf-net) - Protocol Buffers serialization
 
@@ -405,4 +405,3 @@ For detailed build configuration, see [UWP packaging documentation](https://lear
 - [Accessibility Guidelines for UWP Apps](https://learn.microsoft.com/en-us/windows/uwp/accessibility/accessibility)
 
 This structure enables maintainable, scalable development while supporting the rich feature set of a modern media player application.
-

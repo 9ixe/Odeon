@@ -20,6 +20,7 @@
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:viewModels="using:Odeon.Core.ViewModels"
     muxc:BackdropMaterial.ApplyToRootOrPageBackground="True"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     Loaded="MainPage_Loaded"
     mc:Ignorable="d">
 
@@ -91,17 +92,7 @@
                     </muxc:NavigationViewItem.KeyboardAccelerators>
                     <TextBlock x:Name="HomeNavItemText" Text="{strings:Resources Key=Home}" />
                 </muxc:NavigationViewItem>
-                <muxc:NavigationViewItem
-                    x:Name="PlaylistsNavItem"
-                    extensions:AcceleratorService.ToolTip="{x:Bind PlaylistsNavItemText.Text}"
-                    AccessKey="{strings:KeyboardResources Key=NavigationItemPlaylistKey}"
-                    KeyTipPlacementMode="Right"
-                    Tag="playlists">
-                    <muxc:NavigationViewItem.Icon>
-                        <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" Glyph="{StaticResource PlaylistMusicGlyph}" />
-                    </muxc:NavigationViewItem.Icon>
-                    <TextBlock x:Name="PlaylistsNavItemText" Text="{strings:Resources Key=Playlists}" />
-                </muxc:NavigationViewItem>
+
                 <muxc:NavigationViewItem
                     extensions:AcceleratorService.ToolTip="{x:Bind MusicNavItemText.Text}"
                     AccessKey="{strings:KeyboardResources Key=NavigationItemMusicKey}"
@@ -274,12 +265,7 @@
                                 From="0"
                                 To="1"
                                 Duration="{StaticResource NavItemTextShowDuration}" />
-                            <DoubleAnimation
-                                Storyboard.TargetName="PlaylistsNavItemText"
-                                Storyboard.TargetProperty="Opacity"
-                                From="0"
-                                To="1"
-                                Duration="{StaticResource NavItemTextShowDuration}" />
+
                             <DoubleAnimation
                                 Storyboard.TargetName="MusicNavItemText"
                                 Storyboard.TargetProperty="Opacity"

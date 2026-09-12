@@ -9,8 +9,8 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     xmlns:strings="using:Odeon.Strings"
     xmlns:triggers="using:CommunityToolkit.WinUI"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
-
     <Page.Resources>
         <converters:DefaultStringConverter x:Key="DefaultTitleTextConverter" Default="{strings:Resources Key=Network}" />
     </Page.Resources>

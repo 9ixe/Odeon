@@ -745,10 +745,10 @@
   <data name="SetPlaybackOptionsHelpTextLine2" xml:space="preserve">
     <value>일부 옵션은 전역으로만 설정할 수 있습니다.</value>
   </data>
-  <data name="VlcCommandLineHelpLink" xml:space="preserve">
+  <data name="CommandLineHelpLink" xml:space="preserve">
     <value>VLC 명령줄 ​​도움말</value>
   </data>
-  <data name="VlcCommandLineHelpText" xml:space="preserve">
+  <data name="CommandLineHelpText" xml:space="preserve">
     <value>사용 가능한 옵션의 전체 목록은 {0}을 참조하세요.</value>
     <comment>{0} = VLC command-line help</comment>
   </data>

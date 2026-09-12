@@ -14,8 +14,8 @@
     xmlns:triggers="using:CommunityToolkit.WinUI"
     xmlns:ui="using:CommunityToolkit.WinUI"
     Loaded="ArtistDetailsPage_OnLoaded"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
-
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

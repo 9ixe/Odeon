@@ -10,8 +10,8 @@
     xmlns:strings="using:Odeon.Strings"
     xmlns:triggers="using:CommunityToolkit.WinUI"
     xmlns:ui="using:CommunityToolkit.WinUI"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
     mc:Ignorable="d">
-
     <Page.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
