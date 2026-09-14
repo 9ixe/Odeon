@@ -40,7 +40,7 @@
 
 ## What Is Odeon?
 
-Odeon is a **lightweight, open-source media player for Windows**, built on [libmpv](https://mpv.io) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/).
+Odeon is a **lightweight, open-source media player for Windows**, built on [libmpv](https://mpv.io) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/). It delivers **hardware-accelerated 4K/HDR playback** via Direct3D 11, **zero telemetry**, and a clean, distraction-free interface — all in a small, fast-loading package with no bundled bloatware.
 
 | | |
 | :--- | :--- |
@@ -123,7 +123,7 @@ Most media players for Windows have grown into bloated media centers — backgro
 
 <div align="center">
 
-**Odeon is for people who want to press play and watch a video.** Nothing more.
+**Odeon is for people who want to press play and enjoy their media — nothing more, nothing less — in a minimal and beautifully crafted experience.**
 
 </div>
 
@@ -143,9 +143,9 @@ Most media players for Windows have grown into bloated media centers — backgro
 - WinUI 3 acrylic, glassmorphic backdrops on side panels and context menus
 - Smart, centered titlebar that automatically strips file extensions
 - Auto-dismissing HUD for volume, seek, and status notifications
-- Glassmorphic **Properties HUD** (`Tab`) — instant overlay with resolution, bitrate, duration, and file size
+- **Properties HUD** (`Tab`) — instant overlay with resolution, bitrate, duration, and file size
 - Dynamic seekbar with spring-physics scrubbing
-- Optional custom theme with a Netflix-inspired dark look and red accent
+- Custom theme with a Netflix-inspired dark look and red accent
 
 ### 💬 Subtitle Customization
 
@@ -185,7 +185,7 @@ Most media players for Windows have grown into bloated media centers — backgro
 
 | Shortcut | Action |
 | :--- | :--- |
-| <kbd>Tab</kbd> | Toggle Glassmorphic Video Properties HUD |
+| <kbd>Tab</kbd> | Toggle Video Properties HUD |
 | <kbd>Space</kbd> / <kbd>K</kbd> | Play / Pause |
 | <kbd>F</kbd> / <kbd>F11</kbd> | Toggle Fullscreen |
 | <kbd>←</kbd> / <kbd>→</kbd> | Seek 5 seconds backward / forward |
@@ -203,15 +203,12 @@ Most media players for Windows have grown into bloated media centers — backgro
 
 Odeon is distributed as a standalone, self-contained Windows package:
 
-1. Download the latest **`Odeon_2.0.0.0_x64.msixbundle`** (or `.zip` bundle) from [Releases](https://github.com/9ixe/Odeon/releases).
+1. Download the latest **`Odeon_2.5.0.0_x64.msixbundle`** (or `.zip` bundle) from [Releases](https://github.com/9ixe/Odeon/releases).
 2. Double-click the `.msixbundle` → click **Install** in the Windows App Installer window.
 3. Launch Odeon from your Start Menu and set it as your default player.
 
 > [!NOTE]
 > The `mpv-2.dll` runtime is included in the package — no separate installation required.
-
-> [!TIP]
-> For the intended typography, install the **Futura PT Medium** font on your system (download, right-click → *Install for all users*).
 
 ---
 
@@ -292,7 +289,7 @@ Yes. Odeon includes a redesigned subtitle side panel with instant track switchin
 <summary>🎨 <strong>Does Odeon have a Netflix-style theme?</strong></summary>
 <br>
 
-Odeon's default look is a clean, modern WinUI 3 dark interface. It also includes an optional custom theme with a Netflix-inspired look and red accent, if you'd like that style. Odeon is not affiliated with, endorsed by, or connected to Netflix — it's simply an optional visual theme.
+Odeon's default look is a clean, modern WinUI 3 dark interface. It also includes a custom theme with a Netflix-inspired look and red accent, if you'd like that style. Odeon is not affiliated with, endorsed by, or connected to Netflix — it's simply a visual theme.
 
 </details>
 
@@ -316,7 +313,7 @@ Odeon uses **libmpv** as its playback engine, paired with a Direct3D 11 renderin
 <summary>🔀 <strong>What is the difference between Odeon and Screenbox?</strong></summary>
 <br>
 
-Odeon is a fork of Screenbox that replaces LibVLC with libmpv for the playback engine, removes all telemetry, adds forced subtitle typography and an ASS/SSA override pipeline, includes an optional Netflix-inspired theme, redesigns Play Next with drag-and-drop reordering, and strips unnecessary features like casting.
+Odeon is a fork of Screenbox that replaces LibVLC with libmpv for the playback engine, removes all telemetry, adds forced subtitle typography and an ASS/SSA override pipeline, includes a Netflix-inspired theme, redesigns Play Next with drag-and-drop reordering, and strips unnecessary features like casting.
 
 </details>
 
@@ -332,7 +329,7 @@ Windows 10 (Build 1903 or later) or Windows 11, 64-bit. Odeon has no separate in
 <summary>🔤 <strong>What is the Futura PT Medium font requirement?</strong></summary>
 <br>
 
-Odeon uses Futura PT Medium as its default subtitle and UI typeface for a consistent, cinematic look. Download the font and install it for all users on Windows. Without it, subtitles fall back to system fonts.
+Odeon uses Futura PT Medium as its default subtitle and UI typeface for a consistent, cinematic look. You do not need to install the font yourself as it comes bundled with the app. If any issues occur, it will gracefully fall back to Segoe UI.
 
 </details>
 
