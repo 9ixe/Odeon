@@ -40,9 +40,7 @@
 
 ## What Is Odeon?
 
-Odeon is a **lightweight, open-source media player for Windows**, built on [libmpv](https://mpv.io) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/). It's a focused, debloated fork of [Screenbox](https://github.com/huyn-net/Screenbox) that replaces LibVLC with libmpv for a snappier, more capable playback engine.
-
-If you're after a fast **video player for Windows 11**, a privacy-respecting **VLC alternative**, or simply a clean, modern player without background library scans, casting menus, or ads, Odeon does one thing well — it plays your media, without getting in the way:
+Odeon is a **lightweight, open-source media player for Windows**, built on [libmpv](https://mpv.io) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/).
 
 | | |
 | :--- | :--- |
