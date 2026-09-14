@@ -12,8 +12,6 @@ using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
-// The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
-
 namespace Odeon.Controls
 {
     public sealed partial class ChapterProgressBar : UserControl
@@ -68,7 +66,7 @@ namespace Odeon.Controls
 
         private ObservableCollection<ChapterViewModel> ProgressItems { get; }
 
-        private const double Spacing = 2;
+        private const double Spacing = 3;
 
         private readonly DispatcherQueueTimer _chaptersUpdateTimer;
 
@@ -78,13 +76,20 @@ namespace Odeon.Controls
             ProgressItems = new ObservableCollection<ChapterViewModel>();
             this.InitializeComponent();
             SizeChanged += OnSizeChanged;
+            RegisterPropertyChangedCallback(MinHeightProperty, OnMinHeightChanged);
             Loaded += (s, e) =>
             {
-                if (ProgressItems.Count == 0)
-                {
-                    PopulateProgressItems();
-                }
+                PopulateProgressItems();
             };
+        }
+
+        private void OnMinHeightChanged(DependencyObject sender, DependencyProperty dp)
+        {
+            double h = MinHeight > 0 ? MinHeight : 5.6;
+            foreach (var item in ProgressItems)
+            {
+                item.Height = h;
+            }
         }
 
         private static void OnChaptersChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -112,113 +117,73 @@ namespace Odeon.Controls
         private static void OnMaximumChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             ChapterProgressBar view = (ChapterProgressBar)d;
-            if (view.ProgressItems.Count == 1)
-            {
-                if (view.ProgressItems[0].Width == 0)
-                    view.ProgressItems[0].Width = view.ActualWidth;
-
-                view.ProgressItems[0].Maximum = (double)e.NewValue;
-            }
-            else if (view.ProgressItems.Count > 1)
-            {
-                foreach (ChapterViewModel item in view.ProgressItems)
-                {
-                    item.Width = view.GetItemWidth(item.Maximum - item.Minimum, view.ProgressItems.Count);
-                }
-            }
+            view.PopulateProgressItems();
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (ActualWidth <= 0) return;
+            double h = MinHeight > 0 ? MinHeight : 5.6;
             if (ProgressItems.Count == 1)
             {
                 ProgressItems[0].Width = ActualWidth;
+                ProgressItems[0].Height = h;
             }
-            else
+            else if (ProgressItems.Count > 1)
             {
                 foreach (ChapterViewModel item in ProgressItems)
                 {
                     item.Width = GetItemWidth(item.Maximum - item.Minimum, ProgressItems.Count);
+                    item.Height = h;
                 }
             }
+            UpdateProgress();
         }
 
         private void ChaptersOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            _chaptersUpdateTimer.Debounce(PopulateProgressItems, TimeSpan.FromMilliseconds(100));
+            _chaptersUpdateTimer.Debounce(PopulateProgressItems, TimeSpan.FromMilliseconds(50));
         }
 
         private void UpdateProgress()
         {
-            if (ProgressItems.Count == 1)
+            if (ProgressItems.Count == 0) return;
+
+            double val = Value;
+            int activeIndex = -1;
+
+            for (int i = 0; i < ProgressItems.Count; i++)
             {
-                ProgressItems[0].Value = Value;
-                return;
-            }
-
-            // One easy way to handle progress update is to loop the progress items
-            // and update the Value property. However, it invokes UI update on every
-            // progress item, on every value change, which is expensive.
-            // So we do all the logic below just to update 1 item at a time.
-
-            int activeIndex = ChapterIndex;
-
-            // Find the chapter to change value to minimize UI update
-            if (activeIndex == -1 ||
-                activeIndex >= ProgressItems.Count ||
-                ProgressItems[activeIndex].Maximum < Value ||
-                ProgressItems[activeIndex].Minimum > Value)
-            {
-                if (Value > Maximum)
+                var item = ProgressItems[i];
+                if (val <= item.Minimum)
                 {
-                    activeIndex = -1;
+                    item.FillWidth = 0;
+                }
+                else if (val >= item.Maximum)
+                {
+                    item.FillWidth = item.Width;
                 }
                 else
                 {
-                    for (int i = 0; i < ProgressItems.Count; i++)
-                    {
-                        if (Value <= ProgressItems[i].Maximum)
-                        {
-                            activeIndex = i;
-                            break;
-                        }
-                    }
+                    activeIndex = i;
+                    double duration = item.Maximum - item.Minimum;
+                    double progress = duration > 0 ? (val - item.Minimum) / duration : 0;
+                    item.FillWidth = Math.Clamp(progress * item.Width, 0, item.Width);
                 }
             }
 
-            // Actually update the chapter progress
-            if (activeIndex != ChapterIndex)
+            if (activeIndex != -1 && activeIndex != ChapterIndex)
             {
-                // activeIndex == -1 when Value > total duration of all chapters
-                if (activeIndex == -1 || ChapterIndex == -1)
-                {
-                    foreach (ChapterViewModel item in ProgressItems)
-                    {
-                        item.Value = Value;
-                    }
-                }
-                else
-                {
-                    int from = Math.Min(activeIndex, ChapterIndex);
-                    int to = Math.Max(activeIndex, ChapterIndex);
-                    for (int i = from; i <= to; i++)
-                    {
-                        ProgressItems[i].Value = Value;
-                    }
-                }
-
                 ChapterIndex = activeIndex;
-            }
-            else if (activeIndex >= 0)
-            {
-                ProgressItems[activeIndex].Value = Value;
             }
         }
 
         private void PopulateProgressItems()
         {
             ProgressItems.Clear();
-            if (Chapters?.Count > 0)
+            double h = MinHeight > 0 ? MinHeight : 5.6;
+
+            if (Chapters?.Count > 0 && Maximum > 0)
             {
                 ChapterIndex = -1;
                 var lastChapterEndTime = TimeSpan.Zero;
@@ -227,11 +192,12 @@ namespace Odeon.Controls
                     var gap = cue.StartTime - lastChapterEndTime;
                     if (gap > TimeSpan.FromMilliseconds(500))
                     {
-                        // If there is a gap between chapters, we need to add a dummy chapter
                         ChapterViewModel gapChapter = new()
                         {
                             Minimum = lastChapterEndTime.TotalMilliseconds,
                             Maximum = cue.StartTime.TotalMilliseconds,
+                            Height = h,
+                            Title = string.Empty
                         };
 
                         ProgressItems.Add(gapChapter);
@@ -244,29 +210,32 @@ namespace Odeon.Controls
                     {
                         Minimum = startTime,
                         Maximum = endTime,
+                        Height = h,
+                        Title = cue.Title
                     };
 
                     ProgressItems.Add(chapter);
                 }
 
-                // Check if the last chapter end time matches the media length
                 if (Maximum - lastChapterEndTime.TotalMilliseconds > 500)
                 {
-                    // If not, we need to add a dummy chapter to fill the gap
                     ChapterViewModel gapChapter = new()
                     {
                         Minimum = lastChapterEndTime.TotalMilliseconds,
                         Maximum = Maximum,
+                        Height = h,
+                        Title = string.Empty
                     };
 
                     ProgressItems.Add(gapChapter);
-                    LogService.Log("Chapters duration does not match with media length.");
                 }
 
-                // Update the width of each chapter
-                foreach (ChapterViewModel item in ProgressItems)
+                if (ActualWidth > 0)
                 {
-                    item.Width = GetItemWidth(item.Maximum - item.Minimum, ProgressItems.Count);
+                    foreach (ChapterViewModel item in ProgressItems)
+                    {
+                        item.Width = GetItemWidth(item.Maximum - item.Minimum, ProgressItems.Count);
+                    }
                 }
             }
             else
@@ -274,17 +243,22 @@ namespace Odeon.Controls
                 ChapterIndex = 0;
                 ProgressItems.Add(new ChapterViewModel
                 {
-                    Maximum = Maximum,
-                    Width = ActualWidth
+                    Minimum = 0,
+                    Maximum = Maximum > 0 ? Maximum : 1,
+                    Width = ActualWidth > 0 ? ActualWidth : 0,
+                    Height = h
                 });
             }
+
+            UpdateProgress();
         }
 
         private double GetItemWidth(double durationMs, int chapterCount)
         {
-            double totalSpacing = Spacing * (chapterCount > 1 ? chapterCount - 1 : 0);
+            if (chapterCount <= 1) return ActualWidth;
+            double totalSpacing = Spacing * (chapterCount - 1);
             double availableWidth = Math.Max(0, ActualWidth - totalSpacing);
-            return Maximum > 0 ? durationMs / Maximum * availableWidth : 0;
+            return Maximum > 0 ? Math.Max(0, (durationMs / Maximum) * availableWidth) : 0;
         }
     }
 }

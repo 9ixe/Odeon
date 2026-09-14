@@ -949,6 +949,9 @@
   <data name="SettingsShowChaptersHeader" xml:space="preserve">
     <value>Show chapters</value>
   </data>
+  <data name="HideChapters" xml:space="preserve">
+    <value>Hide chapters</value>
+  </data>
   <data name="SettingsOnScreenControlsHideDelayHeader" xml:space="preserve">
     <value>Dismiss controls after this amount of time</value>
   </data>

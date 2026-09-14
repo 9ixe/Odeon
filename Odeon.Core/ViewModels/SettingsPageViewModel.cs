@@ -43,7 +43,6 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     [ObservableProperty] private int _volumeBoost;
     [ObservableProperty] private bool _useIndexer;
     [ObservableProperty] private bool _showRecent;
-    [ObservableProperty] private int _theme;
     [ObservableProperty] private bool _enqueueAllFilesInFolder;
     [ObservableProperty] private bool _restorePlaybackPosition;
     [ObservableProperty] private bool _searchRemovableStorage;
@@ -131,7 +130,6 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         _useIndexer = _settingsService.UseIndexer;
         _showRecent = _settingsService.ShowRecent;
         _persistPlaybackPosition = _settingsService.PersistPlaybackPosition;
-        _theme = ((int)_settingsService.Theme + 2) % 3;
         _enqueueAllFilesInFolder = _settingsService.EnqueueAllFilesInFolder;
         _restorePlaybackPosition = _settingsService.RestorePlaybackPosition;
         _searchRemovableStorage = _settingsService.SearchRemovableStorage;
@@ -154,14 +152,6 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         CheckForRelaunch();
 
         IsActive = true;
-    }
-
-    partial void OnThemeChanged(int value)
-    {
-        // The recommended theme option order is Light, Dark, System
-        // So we need to map the value to the correct ThemeOption
-        _settingsService.Theme = (ThemeOption)((value + 1) % 3);
-        Messenger.Send(new SettingsChangedMessage(nameof(Theme), typeof(SettingsPageViewModel)));
     }
 
     partial void OnSelectedLanguageChanged(int value)

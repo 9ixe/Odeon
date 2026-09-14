@@ -7,10 +7,12 @@ using System.Linq;
 using CommunityToolkit.WinUI;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Odeon.Core.Helpers;
+using Odeon.Core.Services;
 using Odeon.Core.ViewModels;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Shapes;
@@ -20,6 +22,8 @@ namespace Odeon.Controls;
 public sealed partial class AudioSidePanel : UserControl
 {
     private int _lastSelectedIndex = -1;
+    private ListViewItem? _currentlyHoveredItem;
+    private bool _isSyncingSelection;
 
     public event EventHandler? CloseRequested;
 
@@ -50,7 +54,87 @@ public sealed partial class AudioSidePanel : UserControl
         // (which raised no change notification for an already-set property) is re-applied here.
         ApplySettingsDataContext(PlayerControlsViewModel);
 
-        ViewModel.AudioTracks.CollectionChanged += (_, _) => RebuildAudioDisplayList();
+        ViewModel.AudioTracks.CollectionChanged += (_, _) =>
+        {
+            RebuildAudioDisplayList();
+            SyncSelectionAndScroll();
+        };
+
+        ViewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(CompositeTrackPickerViewModel.AudioTrackIndex))
+            {
+                SyncSelectionAndScroll();
+            }
+        };
+    }
+
+    private void SyncSelectionAndScroll()
+    {
+        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+        {
+            if (Visibility != Visibility.Visible) return;
+
+            if (ViewModel.AudioTrackIndex >= 0 && ViewModel.AudioTrackIndex < AudioDisplayList.Count)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    if (AudioTrackListView.SelectedIndex != ViewModel.AudioTrackIndex)
+                    {
+                        AudioTrackListView.SelectedIndex = ViewModel.AudioTrackIndex;
+                    }
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+
+                try
+                {
+                    AudioTrackListView.ScrollIntoView(AudioDisplayList[ViewModel.AudioTrackIndex]);
+                }
+                catch (Exception ex)
+                {
+                    LogService.Log(ex);
+                }
+
+                try
+                {
+                    int targetIndex = ViewModel.AudioTrackIndex;
+                    for (int i = 0; i < AudioTrackListView.Items.Count; i++)
+                    {
+                        if (AudioTrackListView.ContainerFromIndex(i) is ListViewItem container)
+                        {
+                            if (i == targetIndex)
+                            {
+                                ApplySingleSelectionVisuals(container);
+                            }
+                            else
+                            {
+                                ResetTrackItemVisuals(container);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogService.Log(ex);
+                }
+            }
+            else if (ViewModel.AudioTrackIndex < 0 || AudioDisplayList.Count == 0)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    AudioTrackListView.SelectedIndex = -1;
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+            }
+        });
     }
 
     private static void OnPlayerControlsViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -73,19 +157,46 @@ public sealed partial class AudioSidePanel : UserControl
 
     public void OnOpening()
     {
-        // Place the indicator on the current track instead of animating it into view.
         _lastSelectedIndex = -1;
+        _currentlyHoveredItem = null;
+        ClearAllHoverStates();
+
         ViewModel.OnFlyoutOpening();
         RebuildAudioDisplayList();
-        if (ViewModel.AudioTrackIndex >= 0 && ViewModel.AudioTrackIndex < AudioDisplayList.Count)
+        SyncSelectionAndScroll();
+
+        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
         {
-            AudioTrackListView.SelectedIndex = ViewModel.AudioTrackIndex;
-            AudioTrackListView.ScrollIntoView(AudioDisplayList[ViewModel.AudioTrackIndex]);
-        }
+            if (Visibility != Visibility.Visible) return;
+            try
+            {
+                int selectedIndex = ViewModel.AudioTrackIndex;
+                for (int i = 0; i < AudioTrackListView.Items.Count; i++)
+                {
+                    if (AudioTrackListView.ContainerFromIndex(i) is ListViewItem container)
+                    {
+                        if (i == selectedIndex)
+                        {
+                            ApplySingleSelectionVisuals(container);
+                        }
+                        else
+                        {
+                            ResetTrackItemVisuals(container);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
+        });
     }
 
     private void AudioTrackListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_isSyncingSelection) return;
+
         if (ViewModel != null && AudioTrackListView.SelectedIndex >= 0)
         {
             ViewModel.AudioTrackIndex = AudioTrackListView.SelectedIndex;
@@ -96,6 +207,18 @@ public sealed partial class AudioSidePanel : UserControl
 
     public void OnClosed()
     {
+        _lastSelectedIndex = -1;
+        _currentlyHoveredItem = null;
+        ClearAllHoverStates();
+
+        for (int i = 0; i < AudioTrackListView.Items.Count; i++)
+        {
+            if (AudioTrackListView.ContainerFromIndex(i) is ListViewItem container)
+            {
+                ResetTrackItemVisuals(container);
+            }
+        }
+
         ViewModel.OnFlyoutClosed();
     }
 
@@ -117,6 +240,117 @@ public sealed partial class AudioSidePanel : UserControl
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    private void AudioTrackListView_OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs e)
+    {
+        if (e.ItemContainer is ListViewItem container)
+        {
+            container.PointerEntered -= Container_OnPointerEntered;
+            container.PointerExited -= Container_OnPointerExited;
+            container.PointerCanceled -= Container_OnPointerCanceled;
+            container.PointerCaptureLost -= Container_OnPointerCaptureLost;
+
+            container.PointerEntered += Container_OnPointerEntered;
+            container.PointerExited += Container_OnPointerExited;
+            container.PointerCanceled += Container_OnPointerCanceled;
+            container.PointerCaptureLost += Container_OnPointerCaptureLost;
+
+            int itemIndex = e.ItemIndex;
+            bool isSelected = itemIndex >= 0 && itemIndex == ViewModel.AudioTrackIndex;
+            bool isHovered = container == _currentlyHoveredItem;
+
+            if (isSelected)
+            {
+                ApplySingleSelectionVisuals(container);
+            }
+            else
+            {
+                ResetTrackItemVisuals(container, isHovered);
+            }
+
+            if (!isHovered)
+            {
+                ClearHoverState(container);
+            }
+        }
+    }
+
+    private void Container_OnPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container)
+        {
+            SetHoveredItem(container);
+        }
+    }
+
+    private void Container_OnPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container && _currentlyHoveredItem == container)
+        {
+            SetHoveredItem(null);
+        }
+    }
+
+    private void Container_OnPointerCanceled(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container && _currentlyHoveredItem == container)
+        {
+            SetHoveredItem(null);
+        }
+    }
+
+    private void Container_OnPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container && _currentlyHoveredItem == container)
+        {
+            SetHoveredItem(null);
+        }
+    }
+
+    internal void AudioTrackListView_OnPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        ClearAllHoverStates();
+    }
+
+    private void SetHoveredItem(ListViewItem? container)
+    {
+        if (_currentlyHoveredItem == container) return;
+
+        ListViewItem? previous = _currentlyHoveredItem;
+        _currentlyHoveredItem = container;
+
+        if (previous != null)
+            ClearHoverState(previous);
+
+        if (container != null)
+            ApplyHoverState(container);
+    }
+
+    private static void ApplyHoverState(ListViewItem container)
+    {
+        if (container.FindDescendant<Border>(b => b.Name == "HoverBackground") is { } hoverBg)
+            hoverBg.Opacity = 0.08;
+    }
+
+    private static void ClearHoverState(ListViewItem container)
+    {
+        if (container.FindDescendant<Border>(b => b.Name == "HoverBackground") is { } hoverBg)
+        {
+            hoverBg.Opacity = 0;
+        }
+    }
+
+    private void ClearAllHoverStates()
+    {
+        _currentlyHoveredItem = null;
+        for (int i = 0; i < AudioTrackListView.Items.Count; i++)
+        {
+            if (AudioTrackListView.ContainerFromIndex(i) is ListViewItem container)
+            {
+                ClearHoverState(container);
+            }
+        }
+    }
+
     private void AnimateSelectionChange(ListView listView)
     {
         int selectedIndex = listView.SelectedIndex;
@@ -125,40 +359,54 @@ public sealed partial class AudioSidePanel : UserControl
 
         _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
         {
-            // Signed vertical distance the indicator travels between the two tracks.
-            double travel = previousIndex >= 0 && selectedIndex >= 0
-                ? GetItemExtent(listView) * (selectedIndex - previousIndex)
-                : 0;
-
-            for (int index = 0; index < listView.Items.Count; index++)
+            if (Visibility != Visibility.Visible) return;
+            try
             {
-                if (listView.ContainerFromIndex(index) is not ListViewItem itemContainer) continue;
+                double travel = previousIndex >= 0 && selectedIndex >= 0
+                    ? GetItemExtent(listView) * (selectedIndex - previousIndex)
+                    : 0;
 
-                if (itemContainer.IsSelected)
+                for (int index = 0; index < listView.Items.Count; index++)
                 {
-                    PlayTrackItemSelectionAnimation(itemContainer, travel);
+                    if (listView.ContainerFromIndex(index) is not ListViewItem itemContainer) continue;
+
+                    bool isHovered = itemContainer == _currentlyHoveredItem;
+
+                    if (itemContainer.IsSelected)
+                    {
+                        PlayTrackItemSelectionAnimation(itemContainer, travel);
+                    }
+                    else if (index == previousIndex)
+                    {
+                        PlayTrackItemDeselectionAnimation(itemContainer, travel);
+                        if (!isHovered)
+                        {
+                            ClearHoverState(itemContainer);
+                        }
+                    }
+                    else
+                    {
+                        ResetTrackItemVisuals(itemContainer, isHovered);
+                    }
                 }
-                else if (index == previousIndex)
+
+                try
                 {
-                    // Deselecting is animated here instead of being left to the item's visual
-                    // states, otherwise the previous track keeps its highlight until the panel
-                    // is reopened.
-                    PlayTrackItemDeselectionAnimation(itemContainer, travel);
+                    listView.Focus(FocusState.Programmatic);
                 }
-                else
+                catch
                 {
-                    ResetTrackItemVisuals(itemContainer);
                 }
             }
-
-            listView.Focus(FocusState.Programmatic);
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
         });
     }
 
     private static double GetItemExtent(ListView listView)
     {
-        // The first realized container is used as a template for the row height, since the
-        // topmost track can be virtualized while the list is scrolled.
         for (int index = 0; index < listView.Items.Count; index++)
         {
             if (listView.ContainerFromIndex(index) is ListViewItem container)
@@ -175,11 +423,27 @@ public sealed partial class AudioSidePanel : UserControl
         return itemContainer.FindDescendant<Grid>(grid => grid.Name == "IndicatorHost")?.RenderTransform as TranslateTransform;
     }
 
-    private static void ResetTrackItemVisuals(ListViewItem itemContainer)
+    private static void ApplySingleSelectionVisuals(ListViewItem itemContainer)
     {
-        // Only the selection visuals are cleared here. Hover and pressed are owned by the item's
-        // own visual states, so touching them would fight the framework and drop a hover that is
-        // still under the pointer.
+        if (itemContainer.FindDescendant<Border>(border => border.Name == "SelectedBackground") is { } selectedBackground)
+            selectedBackground.Opacity = 1;
+
+        if (itemContainer.FindDescendant<Rectangle>(rectangle => rectangle.Name == "SelectionIndicator") is { } selectionIndicator)
+        {
+            selectionIndicator.Opacity = 1;
+            if (selectionIndicator.RenderTransform is ScaleTransform indicatorScale)
+                indicatorScale.ScaleY = 1;
+        }
+
+        if (GetIndicatorTranslate(itemContainer) is { } indicatorTranslate)
+            indicatorTranslate.Y = 0;
+
+        if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
+            contentTransform.X = 4;
+    }
+
+    private static void ResetTrackItemVisuals(ListViewItem itemContainer, bool isHovered = false)
+    {
         if (itemContainer.FindDescendant<Border>(border => border.Name == "SelectedBackground") is { } selectedBackground)
             selectedBackground.Opacity = 0;
 
@@ -195,6 +459,9 @@ public sealed partial class AudioSidePanel : UserControl
 
         if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
             contentTransform.X = 0;
+
+        if (!isHovered)
+            ClearHoverState(itemContainer);
     }
 
     private static void PlayTrackItemSelectionAnimation(ListViewItem itemContainer, double travel)
@@ -221,9 +488,11 @@ public sealed partial class AudioSidePanel : UserControl
 
         if (GetIndicatorTranslate(itemContainer) is { } indicatorTranslate)
         {
-            // Start the indicator on the previously selected track and slide it into place.
             indicatorTranslate.Y = 0;
-            AddAnimation(storyboard, indicatorTranslate, "Y", -travel, 0, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            if (Math.Abs(travel) > 0.1)
+            {
+                AddAnimation(storyboard, indicatorTranslate, "Y", -travel, 0, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            }
         }
 
         if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
@@ -232,7 +501,14 @@ public sealed partial class AudioSidePanel : UserControl
             AddAnimation(storyboard, contentTransform, "X", 0, 4, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
         }
 
-        storyboard.Begin();
+        try
+        {
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            LogService.Log(ex);
+        }
     }
 
     private static void PlayTrackItemDeselectionAnimation(ListViewItem itemContainer, double travel)
@@ -259,9 +535,11 @@ public sealed partial class AudioSidePanel : UserControl
 
         if (GetIndicatorTranslate(itemContainer) is { } indicatorTranslate)
         {
-            // Let the indicator carry on towards the newly selected track before it disappears.
             indicatorTranslate.Y = travel;
-            AddAnimation(storyboard, indicatorTranslate, "Y", 0, travel, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            if (Math.Abs(travel) > 0.1)
+            {
+                AddAnimation(storyboard, indicatorTranslate, "Y", 0, travel, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            }
         }
 
         if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
@@ -270,7 +548,14 @@ public sealed partial class AudioSidePanel : UserControl
             AddAnimation(storyboard, contentTransform, "X", 4, 0, TimeSpan.FromMilliseconds(140), new CubicEase { EasingMode = EasingMode.EaseIn });
         }
 
-        storyboard.Begin();
+        try
+        {
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            LogService.Log(ex);
+        }
     }
 
     private static void AddAnimation(Storyboard storyboard, DependencyObject target, string propertyPath, double from, double to, TimeSpan duration, EasingFunctionBase? easingFunction = null)
@@ -280,8 +565,6 @@ public sealed partial class AudioSidePanel : UserControl
             From = from,
             To = to,
             Duration = duration,
-            // Callers apply the final value to the element up front, so the animation must not
-            // keep holding its own value once it has completed.
             FillBehavior = FillBehavior.Stop,
             EasingFunction = easingFunction
         };

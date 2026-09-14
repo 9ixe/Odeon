@@ -14,10 +14,10 @@
 
     <UserControl.ContextFlyout>
         <MenuFlyout Opening="MenuFlyout_OnOpening">
-            <ToggleMenuFlyoutItem
+            <MenuFlyoutItem
                 x:Name="FlyoutShowChaptersItem"
+                Click="FlyoutShowChaptersItem_Click"
                 Icon="{ui:FontIcon Glyph=&#xE75B;}"
-                IsChecked="{x:Bind ShowChapterName, Mode=TwoWay}"
                 Text="{strings:Resources Key=SettingsShowChaptersHeader}" />
             <MenuFlyoutSeparator />
             <muxc:RadioMenuFlyoutItem

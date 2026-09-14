@@ -1,9 +1,11 @@
-﻿#nullable enable
+#nullable enable
 
+using System;
 using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using Microsoft.Xaml.Interactivity;
+using Odeon.Core.Services;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -97,6 +99,15 @@ internal sealed class ListViewSelectionBehavior : Behavior<ListViewBase>
             return;
         }
 
+        // Only synchronize SelectedItems when the associated control is in Multiple or Extended selection mode.
+        // In Single or None mode, mutating or synchronizing the multi-select collection is invalid.
+        if (AssociatedObject is null ||
+            (AssociatedObject.SelectionMode != ListViewSelectionMode.Multiple &&
+             AssociatedObject.SelectionMode != ListViewSelectionMode.Extended))
+        {
+            return;
+        }
+
         _isUpdating = true;
         try
         {
@@ -113,6 +124,10 @@ internal sealed class ListViewSelectionBehavior : Behavior<ListViewBase>
                 }
             }
         }
+        catch (Exception ex)
+        {
+            Odeon.Core.Services.LogService.Log(ex);
+        }
         finally
         {
             _isUpdating = false;
@@ -126,36 +141,56 @@ internal sealed class ListViewSelectionBehavior : Behavior<ListViewBase>
             return;
         }
 
+        // In Single or None selection mode, ListViewBase.SelectedItems is read-only and mutating it
+        // throws E_UNEXPECTED (0x8000FFFF). Only synchronize when in Multiple or Extended mode.
+        if (listViewBase.SelectionMode != ListViewSelectionMode.Multiple &&
+            listViewBase.SelectionMode != ListViewSelectionMode.Extended)
+        {
+            return;
+        }
+
         _isUpdating = true;
         try
         {
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                    foreach (var item in e.NewItems)
+                    if (e.NewItems != null)
                     {
-                        if (!listViewBase.SelectedItems.Contains(item))
+                        foreach (var item in e.NewItems)
                         {
-                            listViewBase.SelectedItems.Add(item);
+                            if (!listViewBase.SelectedItems.Contains(item))
+                            {
+                                listViewBase.SelectedItems.Add(item);
+                            }
                         }
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    foreach (var item in e.OldItems)
+                    if (e.OldItems != null)
                     {
-                        listViewBase.SelectedItems.Remove(item);
+                        foreach (var item in e.OldItems)
+                        {
+                            listViewBase.SelectedItems.Remove(item);
+                        }
                     }
                     break;
                 case NotifyCollectionChangedAction.Replace:
-                    foreach (var oldItem in e.OldItems)
+                    if (e.OldItems != null)
                     {
-                        listViewBase.SelectedItems.Remove(oldItem);
-                    }
-                    foreach (var newItem in e.NewItems)
-                    {
-                        if (!listViewBase.SelectedItems.Contains(newItem))
+                        foreach (var oldItem in e.OldItems)
                         {
-                            listViewBase.SelectedItems.Add(newItem);
+                            listViewBase.SelectedItems.Remove(oldItem);
+                        }
+                    }
+                    if (e.NewItems != null)
+                    {
+                        foreach (var newItem in e.NewItems)
+                        {
+                            if (!listViewBase.SelectedItems.Contains(newItem))
+                            {
+                                listViewBase.SelectedItems.Add(newItem);
+                            }
                         }
                     }
                     break;
@@ -166,6 +201,10 @@ internal sealed class ListViewSelectionBehavior : Behavior<ListViewBase>
                     listViewBase.SelectedItems.Clear();
                     break;
             }
+        }
+        catch (Exception ex)
+        {
+            Odeon.Core.Services.LogService.Log(ex);
         }
         finally
         {

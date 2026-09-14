@@ -15,6 +15,7 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Navigation;
 
@@ -102,6 +103,7 @@ namespace Odeon.Pages
             Window.Current.Dispatcher.AcceleratorKeyActivated += CoreDispatcher_AcceleratorKeyActivated;
             SystemNavigationManager.GetForCurrentView().BackRequested += System_BackRequested;
             Window.Current.CoreWindow.PointerPressed += CoreWindow_PointerPressed;
+            PreviewKeyDown += MainPage_PreviewKeyDown;
             ViewModel.NavigationViewDisplayMode = (Windows.UI.Xaml.Controls.NavigationViewDisplayMode)NavView.DisplayMode;
             if (!ViewModel.PlayerVisible)
             {
@@ -164,6 +166,16 @@ namespace Odeon.Pages
 
         private void CoreDispatcher_AcceleratorKeyActivated(CoreDispatcher sender, AcceleratorKeyEventArgs args)
         {
+            if (args.VirtualKey == VirtualKey.Tab)
+            {
+                args.Handled = true;
+                if (args.EventType is CoreAcceleratorKeyEventType.KeyDown or CoreAcceleratorKeyEventType.SystemKeyDown)
+                {
+                    TryOpenProperties();
+                }
+                return;
+            }
+
             if (args is
                 {
                     EventType: CoreAcceleratorKeyEventType.SystemKeyDown,
@@ -173,6 +185,32 @@ namespace Odeon.Pages
                 })
             {
                 args.Handled = TryGoBack();
+            }
+        }
+
+        private void MainPage_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.Tab || e.OriginalKey == VirtualKey.Tab)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void TryOpenProperties()
+        {
+            // Do not open if any dialog, popup, or flyout is currently open
+            if (VisualTreeHelper.GetOpenPopups(Window.Current).Count > 0)
+            {
+                return;
+            }
+
+            if (ViewModel.PlayerVisible && PlayerFrame.Content is PlayerPage playerPage)
+            {
+                var media = playerPage.ViewModel?.Media;
+                if (media != null && Application.Current.Resources["ShowPropertiesCommand"] is System.Windows.Input.ICommand command && command.CanExecute(media))
+                {
+                    command.Execute(media);
+                }
             }
         }
 

@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -38,6 +38,8 @@ namespace Odeon.Core.ViewModels
 
             if (MediaPlayer != null)
             {
+                MediaPlayer.Volume = _volume / 100d;
+                MediaPlayer.IsMuted = _isMute;
                 MediaPlayer.VolumeChanged += OnVolumeChanged;
                 MediaPlayer.IsMutedChanged += OnIsMutedChanged;
             }
@@ -58,6 +60,8 @@ namespace Odeon.Core.ViewModels
 
             if (MediaPlayer != null)
             {
+                MediaPlayer.Volume = Volume / 100d;
+                MediaPlayer.IsMuted = IsMute;
                 MediaPlayer.VolumeChanged += OnVolumeChanged;
                 MediaPlayer.IsMutedChanged += OnIsMutedChanged;
             }
@@ -67,6 +71,10 @@ namespace Odeon.Core.ViewModels
         {
             if (message.SettingsName != nameof(SettingsPageViewModel.VolumeBoost)) return;
             MaxVolume = _settingsService.MaxVolume;
+            if (Volume > MaxVolume)
+            {
+                Volume = MaxVolume;
+            }
         }
 
         public void Receive(ChangeVolumeRequestMessage message)

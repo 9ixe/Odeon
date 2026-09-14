@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Odeon.Core.ViewModels
 {
@@ -15,5 +15,14 @@ namespace Odeon.Core.ViewModels
 
         [ObservableProperty]
         private double _width;
+
+        [ObservableProperty]
+        private double _fillWidth;
+
+        [ObservableProperty]
+        private double _height = 5.6;
+
+        [ObservableProperty]
+        private string? _title;
     }
 }

@@ -11,12 +11,14 @@ using Microsoft.UI.Xaml.Controls;
 using Odeon.Core.Messages;
 using Odeon.Core.ViewModels;
 using Odeon.Helpers;
+using Odeon.Pages;
 using Windows.System;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 
 // The User Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234236
 
@@ -210,6 +212,14 @@ public sealed partial class PlayerControls : UserControl
     {
         // Ignore the play/pause shortcut when the spacebar is pressed in mini-player visual state.
         if (args.KeyboardAccelerator.Key == VirtualKey.Space && ViewModel.IsMinimal) return;
+
+        // Ignore Space when any side panel or flyout is open — it should close the flyout, not toggle playback.
+        if (args.KeyboardAccelerator.Key == VirtualKey.Space &&
+            (PlayerPage.IsAnySidePanelOpen || Windows.UI.Xaml.Media.VisualTreeHelper.GetOpenPopups(Window.Current).Count > 0))
+        {
+            args.Handled = true;
+            return;
+        }
 
         // Override default keyboard accelerator to show badge.
         args.Handled = true;

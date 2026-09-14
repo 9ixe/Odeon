@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections.Generic;
@@ -490,7 +490,6 @@ public sealed partial class PlayQueueCoordinator : ObservableRecipient, IPlayQue
         }
 
         SetCurrentItem(vm);
-        MediaPlayer.PlaybackItem = vm.Item.Value;
         MediaPlayer.Play();
     }
 

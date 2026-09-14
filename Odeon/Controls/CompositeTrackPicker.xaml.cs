@@ -1,5 +1,6 @@
 #nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -96,9 +97,27 @@ public sealed partial class CompositeTrackPicker : UserControl
         // Index 0 = "Disable" in the display list (maps to VM SubtitleTrackIndex = -1)
         var newList = new List<string>();
         newList.Add(Odeon.Strings.Resources.Disable);
+
+        var labelCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < ViewModel.SubtitleTracks.Count; i++)
         {
-            newList.Add(GetTrackDisplayName(ViewModel.SubtitleTracks[i], i + 1));
+            string name = GetTrackDisplayName(ViewModel.SubtitleTracks[i], i + 1);
+            labelCounts[name] = labelCounts.TryGetValue(name, out int count) ? count + 1 : 1;
+        }
+
+        var seenCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < ViewModel.SubtitleTracks.Count; i++)
+        {
+            string name = GetTrackDisplayName(ViewModel.SubtitleTracks[i], i + 1);
+            if (labelCounts[name] > 1)
+            {
+                seenCounts[name] = seenCounts.TryGetValue(name, out int count) ? count + 1 : 1;
+                newList.Add($"{name} [{seenCounts[name]}]");
+            }
+            else
+            {
+                newList.Add(name);
+            }
         }
 
         if (SubtitleDisplayList.SequenceEqual(newList)) return;

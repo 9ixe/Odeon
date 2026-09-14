@@ -10,6 +10,12 @@ namespace Odeon.Core.Playback
     public class SingleSelectTrackList<T> : IReadOnlyList<T>, ISingleSelectMediaTrackList where T : IMediaTrack
     {
         public event TypedEventHandler<ISingleSelectMediaTrackList, object?>? SelectedIndexChanged;
+        public event TypedEventHandler<ISingleSelectMediaTrackList, object?>? TrackListChanged;
+
+        public void NotifyTrackListChanged()
+        {
+            TrackListChanged?.Invoke(this, null);
+        }
 
         public T this[int index] => TrackList[index];
 

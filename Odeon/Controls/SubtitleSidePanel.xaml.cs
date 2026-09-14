@@ -7,10 +7,12 @@ using System.Linq;
 using CommunityToolkit.WinUI;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Odeon.Core.Helpers;
+using Odeon.Core.Services;
 using Odeon.Core.ViewModels;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Animation;
 using Windows.UI.Xaml.Shapes;
@@ -20,6 +22,8 @@ namespace Odeon.Controls;
 public sealed partial class SubtitleSidePanel : UserControl
 {
     private int _lastSelectedIndex = -1;
+    private ListViewItem? _currentlyHoveredItem;
+    private bool _isSyncingSelection;
 
     public event EventHandler? CloseRequested;
 
@@ -50,7 +54,87 @@ public sealed partial class SubtitleSidePanel : UserControl
         // (which raised no change notification for an already-set property) is re-applied here.
         ApplySettingsDataContext(PlayerControlsViewModel);
 
-        ViewModel.SubtitleTracks.CollectionChanged += (_, _) => RebuildSubtitleDisplayList();
+        ViewModel.SubtitleTracks.CollectionChanged += (_, _) =>
+        {
+            RebuildSubtitleDisplayList();
+            SyncSelectionAndScroll();
+        };
+
+        ViewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(CompositeTrackPickerViewModel.SubtitleTrackIndex))
+            {
+                SyncSelectionAndScroll();
+            }
+        };
+    }
+
+    private void SyncSelectionAndScroll()
+    {
+        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+        {
+            if (Visibility != Visibility.Visible) return;
+
+            if (ViewModel.SubtitleTrackIndex >= 0 && ViewModel.SubtitleTrackIndex < SubtitleDisplayList.Count)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    if (SubtitleTrackListView.SelectedIndex != ViewModel.SubtitleTrackIndex)
+                    {
+                        SubtitleTrackListView.SelectedIndex = ViewModel.SubtitleTrackIndex;
+                    }
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+
+                try
+                {
+                    SubtitleTrackListView.ScrollIntoView(SubtitleDisplayList[ViewModel.SubtitleTrackIndex]);
+                }
+                catch (Exception ex)
+                {
+                    LogService.Log(ex);
+                }
+
+                try
+                {
+                    int targetIndex = ViewModel.SubtitleTrackIndex;
+                    for (int i = 0; i < SubtitleTrackListView.Items.Count; i++)
+                    {
+                        if (SubtitleTrackListView.ContainerFromIndex(i) is ListViewItem container)
+                        {
+                            if (i == targetIndex)
+                            {
+                                ApplySingleSelectionVisuals(container);
+                            }
+                            else
+                            {
+                                ResetTrackItemVisuals(container);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogService.Log(ex);
+                }
+            }
+            else if (ViewModel.SubtitleTrackIndex < 0 || SubtitleDisplayList.Count == 0)
+            {
+                _isSyncingSelection = true;
+                try
+                {
+                    SubtitleTrackListView.SelectedIndex = -1;
+                }
+                finally
+                {
+                    _isSyncingSelection = false;
+                }
+            }
+        });
     }
 
     private static void OnPlayerControlsViewModelChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -73,19 +157,46 @@ public sealed partial class SubtitleSidePanel : UserControl
 
     public void OnOpening()
     {
-        // Place the indicator on the current track instead of animating it into view.
         _lastSelectedIndex = -1;
+        _currentlyHoveredItem = null;
+        ClearAllHoverStates();
+
         ViewModel.OnFlyoutOpening();
         RebuildSubtitleDisplayList();
-        if (ViewModel.SubtitleTrackIndex >= 0 && ViewModel.SubtitleTrackIndex < SubtitleDisplayList.Count)
+        SyncSelectionAndScroll();
+
+        _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
         {
-            SubtitleTrackListView.SelectedIndex = ViewModel.SubtitleTrackIndex;
-            SubtitleTrackListView.ScrollIntoView(SubtitleDisplayList[ViewModel.SubtitleTrackIndex]);
-        }
+            if (Visibility != Visibility.Visible) return;
+            try
+            {
+                int selectedIndex = ViewModel.SubtitleTrackIndex;
+                for (int i = 0; i < SubtitleTrackListView.Items.Count; i++)
+                {
+                    if (SubtitleTrackListView.ContainerFromIndex(i) is ListViewItem container)
+                    {
+                        if (i == selectedIndex)
+                        {
+                            ApplySingleSelectionVisuals(container);
+                        }
+                        else
+                        {
+                            ResetTrackItemVisuals(container);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
+        });
     }
 
     private void SubtitleTrackListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_isSyncingSelection) return;
+
         if (ViewModel != null && SubtitleTrackListView.SelectedIndex >= 0)
         {
             ViewModel.SubtitleTrackIndex = SubtitleTrackListView.SelectedIndex;
@@ -96,6 +207,18 @@ public sealed partial class SubtitleSidePanel : UserControl
 
     public void OnClosed()
     {
+        _lastSelectedIndex = -1;
+        _currentlyHoveredItem = null;
+        ClearAllHoverStates();
+
+        for (int i = 0; i < SubtitleTrackListView.Items.Count; i++)
+        {
+            if (SubtitleTrackListView.ContainerFromIndex(i) is ListViewItem container)
+            {
+                ResetTrackItemVisuals(container);
+            }
+        }
+
         ViewModel.OnFlyoutClosed();
     }
 
@@ -108,9 +231,27 @@ public sealed partial class SubtitleSidePanel : UserControl
     {
         var newList = new List<string>();
         newList.Add(Odeon.Strings.Resources.Disable);
+
+        var labelCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int i = 0; i < ViewModel.SubtitleTracks.Count; i++)
         {
-            newList.Add(GetTrackDisplayName(ViewModel.SubtitleTracks[i], i + 1));
+            string name = GetTrackDisplayName(ViewModel.SubtitleTracks[i], i + 1);
+            labelCounts[name] = labelCounts.TryGetValue(name, out int count) ? count + 1 : 1;
+        }
+
+        var seenCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < ViewModel.SubtitleTracks.Count; i++)
+        {
+            string name = GetTrackDisplayName(ViewModel.SubtitleTracks[i], i + 1);
+            if (labelCounts[name] > 1)
+            {
+                seenCounts[name] = seenCounts.TryGetValue(name, out int count) ? count + 1 : 1;
+                newList.Add($"{name} [{seenCounts[name]}]");
+            }
+            else
+            {
+                newList.Add(name);
+            }
         }
 
         if (SubtitleDisplayList.SequenceEqual(newList)) return;
@@ -122,6 +263,117 @@ public sealed partial class SubtitleSidePanel : UserControl
         CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
+    private void SubtitleTrackListView_OnContainerContentChanging(ListViewBase sender, ContainerContentChangingEventArgs e)
+    {
+        if (e.ItemContainer is ListViewItem container)
+        {
+            container.PointerEntered -= Container_OnPointerEntered;
+            container.PointerExited -= Container_OnPointerExited;
+            container.PointerCanceled -= Container_OnPointerCanceled;
+            container.PointerCaptureLost -= Container_OnPointerCaptureLost;
+
+            container.PointerEntered += Container_OnPointerEntered;
+            container.PointerExited += Container_OnPointerExited;
+            container.PointerCanceled += Container_OnPointerCanceled;
+            container.PointerCaptureLost += Container_OnPointerCaptureLost;
+
+            int itemIndex = e.ItemIndex;
+            bool isSelected = itemIndex >= 0 && itemIndex == ViewModel.SubtitleTrackIndex;
+            bool isHovered = container == _currentlyHoveredItem;
+
+            if (isSelected)
+            {
+                ApplySingleSelectionVisuals(container);
+            }
+            else
+            {
+                ResetTrackItemVisuals(container, isHovered);
+            }
+
+            if (!isHovered)
+            {
+                ClearHoverState(container);
+            }
+        }
+    }
+
+    private void Container_OnPointerEntered(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container)
+        {
+            SetHoveredItem(container);
+        }
+    }
+
+    private void Container_OnPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container && _currentlyHoveredItem == container)
+        {
+            SetHoveredItem(null);
+        }
+    }
+
+    private void Container_OnPointerCanceled(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container && _currentlyHoveredItem == container)
+        {
+            SetHoveredItem(null);
+        }
+    }
+
+    private void Container_OnPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+    {
+        if (sender is ListViewItem container && _currentlyHoveredItem == container)
+        {
+            SetHoveredItem(null);
+        }
+    }
+
+    internal void SubtitleTrackListView_OnPointerExited(object sender, PointerRoutedEventArgs e)
+    {
+        ClearAllHoverStates();
+    }
+
+    private void SetHoveredItem(ListViewItem? container)
+    {
+        if (_currentlyHoveredItem == container) return;
+
+        ListViewItem? previous = _currentlyHoveredItem;
+        _currentlyHoveredItem = container;
+
+        if (previous != null)
+            ClearHoverState(previous);
+
+        if (container != null)
+            ApplyHoverState(container);
+    }
+
+    private static void ApplyHoverState(ListViewItem container)
+    {
+        if (container.FindDescendant<Border>(b => b.Name == "HoverBackground") is { } hoverBg)
+            hoverBg.Opacity = 0.08;
+    }
+
+    private static void ClearHoverState(ListViewItem container)
+    {
+        if (container.FindDescendant<Border>(b => b.Name == "HoverBackground") is { } hoverBg)
+        {
+            hoverBg.Opacity = 0;
+        }
+    }
+
+    private void ClearAllHoverStates()
+    {
+        _currentlyHoveredItem = null;
+        for (int i = 0; i < SubtitleTrackListView.Items.Count; i++)
+        {
+            if (SubtitleTrackListView.ContainerFromIndex(i) is ListViewItem container)
+            {
+                ClearHoverState(container);
+            }
+        }
+    }
+
     private void AnimateSelectionChange(ListView listView)
     {
         int selectedIndex = listView.SelectedIndex;
@@ -130,40 +382,54 @@ public sealed partial class SubtitleSidePanel : UserControl
 
         _ = Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
         {
-            // Signed vertical distance the indicator travels between the two tracks.
-            double travel = previousIndex >= 0 && selectedIndex >= 0
-                ? GetItemExtent(listView) * (selectedIndex - previousIndex)
-                : 0;
-
-            for (int index = 0; index < listView.Items.Count; index++)
+            if (Visibility != Visibility.Visible) return;
+            try
             {
-                if (listView.ContainerFromIndex(index) is not ListViewItem itemContainer) continue;
+                double travel = previousIndex >= 0 && selectedIndex >= 0
+                    ? GetItemExtent(listView) * (selectedIndex - previousIndex)
+                    : 0;
 
-                if (itemContainer.IsSelected)
+                for (int index = 0; index < listView.Items.Count; index++)
                 {
-                    PlayTrackItemSelectionAnimation(itemContainer, travel);
+                    if (listView.ContainerFromIndex(index) is not ListViewItem itemContainer) continue;
+
+                    bool isHovered = itemContainer == _currentlyHoveredItem;
+
+                    if (itemContainer.IsSelected)
+                    {
+                        PlayTrackItemSelectionAnimation(itemContainer, travel);
+                    }
+                    else if (index == previousIndex)
+                    {
+                        PlayTrackItemDeselectionAnimation(itemContainer, travel);
+                        if (!isHovered)
+                        {
+                            ClearHoverState(itemContainer);
+                        }
+                    }
+                    else
+                    {
+                        ResetTrackItemVisuals(itemContainer, isHovered);
+                    }
                 }
-                else if (index == previousIndex)
+
+                try
                 {
-                    // Deselecting is animated here instead of being left to the item's visual
-                    // states, otherwise the previous track keeps its highlight until the panel
-                    // is reopened.
-                    PlayTrackItemDeselectionAnimation(itemContainer, travel);
+                    listView.Focus(FocusState.Programmatic);
                 }
-                else
+                catch
                 {
-                    ResetTrackItemVisuals(itemContainer);
                 }
             }
-
-            listView.Focus(FocusState.Programmatic);
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
         });
     }
 
     private static double GetItemExtent(ListView listView)
     {
-        // The first realized container is used as a template for the row height, since the
-        // topmost track can be virtualized while the list is scrolled.
         for (int index = 0; index < listView.Items.Count; index++)
         {
             if (listView.ContainerFromIndex(index) is ListViewItem container)
@@ -180,11 +446,27 @@ public sealed partial class SubtitleSidePanel : UserControl
         return itemContainer.FindDescendant<Grid>(grid => grid.Name == "IndicatorHost")?.RenderTransform as TranslateTransform;
     }
 
-    private static void ResetTrackItemVisuals(ListViewItem itemContainer)
+    private static void ApplySingleSelectionVisuals(ListViewItem itemContainer)
     {
-        // Only the selection visuals are cleared here. Hover and pressed are owned by the item's
-        // own visual states, so touching them would fight the framework and drop a hover that is
-        // still under the pointer.
+        if (itemContainer.FindDescendant<Border>(border => border.Name == "SelectedBackground") is { } selectedBackground)
+            selectedBackground.Opacity = 1;
+
+        if (itemContainer.FindDescendant<Rectangle>(rectangle => rectangle.Name == "SelectionIndicator") is { } selectionIndicator)
+        {
+            selectionIndicator.Opacity = 1;
+            if (selectionIndicator.RenderTransform is ScaleTransform indicatorScale)
+                indicatorScale.ScaleY = 1;
+        }
+
+        if (GetIndicatorTranslate(itemContainer) is { } indicatorTranslate)
+            indicatorTranslate.Y = 0;
+
+        if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
+            contentTransform.X = 4;
+    }
+
+    private static void ResetTrackItemVisuals(ListViewItem itemContainer, bool isHovered = false)
+    {
         if (itemContainer.FindDescendant<Border>(border => border.Name == "SelectedBackground") is { } selectedBackground)
             selectedBackground.Opacity = 0;
 
@@ -200,6 +482,9 @@ public sealed partial class SubtitleSidePanel : UserControl
 
         if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
             contentTransform.X = 0;
+
+        if (!isHovered)
+            ClearHoverState(itemContainer);
     }
 
     private static void PlayTrackItemSelectionAnimation(ListViewItem itemContainer, double travel)
@@ -226,9 +511,11 @@ public sealed partial class SubtitleSidePanel : UserControl
 
         if (GetIndicatorTranslate(itemContainer) is { } indicatorTranslate)
         {
-            // Start the indicator on the previously selected track and slide it into place.
             indicatorTranslate.Y = 0;
-            AddAnimation(storyboard, indicatorTranslate, "Y", -travel, 0, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            if (Math.Abs(travel) > 0.1)
+            {
+                AddAnimation(storyboard, indicatorTranslate, "Y", -travel, 0, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            }
         }
 
         if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
@@ -237,7 +524,14 @@ public sealed partial class SubtitleSidePanel : UserControl
             AddAnimation(storyboard, contentTransform, "X", 0, 4, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
         }
 
-        storyboard.Begin();
+        try
+        {
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            LogService.Log(ex);
+        }
     }
 
     private static void PlayTrackItemDeselectionAnimation(ListViewItem itemContainer, double travel)
@@ -264,9 +558,11 @@ public sealed partial class SubtitleSidePanel : UserControl
 
         if (GetIndicatorTranslate(itemContainer) is { } indicatorTranslate)
         {
-            // Let the indicator carry on towards the newly selected track before it disappears.
             indicatorTranslate.Y = travel;
-            AddAnimation(storyboard, indicatorTranslate, "Y", 0, travel, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            if (Math.Abs(travel) > 0.1)
+            {
+                AddAnimation(storyboard, indicatorTranslate, "Y", 0, travel, TimeSpan.FromMilliseconds(220), new CubicEase { EasingMode = EasingMode.EaseOut });
+            }
         }
 
         if (itemContainer.FindDescendant<ContentPresenter>(presenter => presenter.Name == "ContentPresenter")?.RenderTransform is TranslateTransform contentTransform)
@@ -275,7 +571,14 @@ public sealed partial class SubtitleSidePanel : UserControl
             AddAnimation(storyboard, contentTransform, "X", 4, 0, TimeSpan.FromMilliseconds(140), new CubicEase { EasingMode = EasingMode.EaseIn });
         }
 
-        storyboard.Begin();
+        try
+        {
+            storyboard.Begin();
+        }
+        catch (Exception ex)
+        {
+            LogService.Log(ex);
+        }
     }
 
     private static void AddAnimation(Storyboard storyboard, DependencyObject target, string propertyPath, double from, double to, TimeSpan duration, EasingFunctionBase? easingFunction = null)
@@ -285,8 +588,6 @@ public sealed partial class SubtitleSidePanel : UserControl
             From = from,
             To = to,
             Duration = duration,
-            // Callers apply the final value to the element up front, so the animation must not
-            // keep holding its own value once it has completed.
             FillBehavior = FillBehavior.Stop,
             EasingFunction = easingFunction
         };

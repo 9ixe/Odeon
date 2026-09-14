@@ -111,9 +111,9 @@
                     Storyboard.TargetProperty="X"
                     From="440"
                     To="0"
-                    Duration="0:0:0.28">
+                    Duration="0:0:0.35">
                     <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseOut" />
+                        <BackEase Amplitude="0.15" EasingMode="EaseOut" />
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation
@@ -130,9 +130,9 @@
                     Storyboard.TargetProperty="X"
                     From="0"
                     To="440"
-                    Duration="0:0:0.22">
+                    Duration="0:0:0.28">
                     <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseIn" />
+                        <BackEase Amplitude="0.1" EasingMode="EaseIn" />
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation
@@ -149,9 +149,9 @@
                     Storyboard.TargetProperty="X"
                     From="440"
                     To="0"
-                    Duration="0:0:0.28">
+                    Duration="0:0:0.35">
                     <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseOut" />
+                        <BackEase Amplitude="0.15" EasingMode="EaseOut" />
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation
@@ -168,9 +168,9 @@
                     Storyboard.TargetProperty="X"
                     From="0"
                     To="440"
-                    Duration="0:0:0.22">
+                    Duration="0:0:0.28">
                     <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseIn" />
+                        <BackEase Amplitude="0.1" EasingMode="EaseIn" />
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation
@@ -187,9 +187,9 @@
                     Storyboard.TargetProperty="X"
                     From="440"
                     To="0"
-                    Duration="0:0:0.28">
+                    Duration="0:0:0.35">
                     <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseOut" />
+                        <BackEase Amplitude="0.15" EasingMode="EaseOut" />
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation
@@ -206,9 +206,9 @@
                     Storyboard.TargetProperty="X"
                     From="0"
                     To="440"
-                    Duration="0:0:0.22">
+                    Duration="0:0:0.28">
                     <DoubleAnimation.EasingFunction>
-                        <CubicEase EasingMode="EaseIn" />
+                        <BackEase Amplitude="0.1" EasingMode="EaseIn" />
                     </DoubleAnimation.EasingFunction>
                 </DoubleAnimation>
                 <DoubleAnimation

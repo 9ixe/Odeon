@@ -96,6 +96,16 @@ namespace Odeon.Core.Interop
                         case "title":
                             if (valNode.Format == MpvFormat.String) track.Title = Utf8ToString(valNode.Value.String);
                             break;
+                        case "external-filename":
+                            if (valNode.Format == MpvFormat.String && string.IsNullOrEmpty(track.Title))
+                            {
+                                string? extFile = Utf8ToString(valNode.Value.String);
+                                if (!string.IsNullOrEmpty(extFile) && !extFile.StartsWith("fdclose://", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    track.Title = System.IO.Path.GetFileName(extFile);
+                                }
+                            }
+                            break;
                         case "lang":
                             if (valNode.Format == MpvFormat.String) track.Language = Utf8ToString(valNode.Value.String);
                             break;

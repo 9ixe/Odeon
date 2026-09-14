@@ -122,11 +122,8 @@
                     CommandParameter="{x:Bind ViewModel.PlayQueue.CurrentItem, Mode=OneWay}"
                     Icon="{ui:FontIcon Glyph=&#xE946;}"
                     IsEnabled="{x:Bind ViewModel.HasActiveItem, Mode=OneWay}"
-                    Text="{x:Bind strings:Resources.Properties}">
-                    <MenuFlyoutItem.KeyboardAccelerators>
-                        <KeyboardAccelerator Key="Tab" />
-                    </MenuFlyoutItem.KeyboardAccelerators>
-                </MenuFlyoutItem>
+                    KeyboardAcceleratorTextOverride="Tab"
+                    Text="{x:Bind strings:Resources.Properties}" />
                 <MenuFlyoutSeparator />
                 <MenuFlyoutSubItem
                     x:Name="PlaybackSpeedSubMenu"
@@ -279,9 +276,9 @@
                 <MenuFlyoutItem
                     x:Name="ShowChaptersMenuItem"
                     Command="{x:Bind ViewModel.ToggleShowChaptersCommand}"
-                    Text="{strings:Resources Key=SettingsShowChaptersHeader}">
+                    Text="{x:Bind converters:GlyphConverter.ToChaptersText(ViewModel.PlayerShowChapters), Mode=OneWay}">
                     <MenuFlyoutItem.Icon>
-                        <FontIcon Glyph="{x:Bind converters:GlyphConverter.ToChaptersGlyph(ViewModel.PlayerShowChapters), Mode=OneWay}" />
+                        <FontIcon Glyph="&#xE75B;" />
                     </MenuFlyoutItem.Icon>
                 </MenuFlyoutItem>
                 <MenuFlyoutSeparator />

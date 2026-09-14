@@ -30,7 +30,8 @@ public sealed partial class SeekBarViewModel :
     IRecipient<PlayerControlsVisibilityChangedMessage>,
     IRecipient<QueueCurrentItemChangedMessage>,
     IRecipient<PropertyChangedMessage<PlayerVisibilityState>>,
-    IRecipient<PropertyChangedMessage<IMediaPlayer?>>
+    IRecipient<PropertyChangedMessage<IMediaPlayer?>>,
+    IRecipient<SettingsChangedMessage>
 {
     [ObservableProperty] private double _length;
 
@@ -97,6 +98,8 @@ public sealed partial class SeekBarViewModel :
             MediaPlayer.BufferingEnded += OnBufferingEnded;
             MediaPlayer.PlaybackItemChanged += OnPlaybackItemChanged;
             MediaPlayer.CanSeekChanged += OnCanSeekChanged;
+            MediaPlayer.ChaptersLoaded += OnChaptersLoaded;
+            MediaPlayer.MediaOpened += OnMediaOpened;
         }
 
         // Activate the view model's messenger
@@ -140,6 +143,8 @@ public sealed partial class SeekBarViewModel :
             oldPlayer.BufferingEnded -= OnBufferingEnded;
             oldPlayer.PlaybackItemChanged -= OnPlaybackItemChanged;
             oldPlayer.CanSeekChanged -= OnCanSeekChanged;
+            oldPlayer.ChaptersLoaded -= OnChaptersLoaded;
+            oldPlayer.MediaOpened -= OnMediaOpened;
         }
 
         if (MediaPlayer != null)
@@ -152,6 +157,8 @@ public sealed partial class SeekBarViewModel :
             MediaPlayer.BufferingEnded += OnBufferingEnded;
             MediaPlayer.PlaybackItemChanged += OnPlaybackItemChanged;
             MediaPlayer.CanSeekChanged += OnCanSeekChanged;
+            MediaPlayer.ChaptersLoaded += OnChaptersLoaded;
+            MediaPlayer.MediaOpened += OnMediaOpened;
 
             if (!_playbackProgressTracker.IsLoaded)
             {
@@ -425,9 +432,40 @@ public sealed partial class SeekBarViewModel :
         }
     }
 
+    public void Receive(SettingsChangedMessage message)
+    {
+        if (message.SettingsName == nameof(ISettingsService.PlayerShowChapters))
+        {
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateChapters(MediaPlayer?.PlaybackItem?.Chapters);
+            });
+        }
+    }
+
+    private void OnChaptersLoaded(IMediaPlayer sender, EventArgs args)
+    {
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            UpdateChapters(sender.PlaybackItem?.Chapters);
+        });
+    }
+
+    private void OnMediaOpened(IMediaPlayer sender, EventArgs args)
+    {
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            if (sender.PlaybackItem?.Chapters != null)
+            {
+                UpdateChapters(sender.PlaybackItem.Chapters);
+            }
+        });
+    }
+
     private void UpdateChapters(PlaybackChapterList? chapterList)
     {
         Chapters.Clear();
+        if (!_settingsService.PlayerShowChapters) return;
         if (chapterList == null) return;
         if (MediaPlayer != null)
         {

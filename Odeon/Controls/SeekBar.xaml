@@ -106,6 +106,8 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
             AutomationProperties.Name="{strings:Resources Key=Seek}"
+            Background="Transparent"
+            Foreground="Transparent"
             IsEnabled="{x:Bind ViewModel.IsSeekable, Mode=OneWay, FallbackValue=False}"
             IsKeyDownEnabled="{x:Bind ViewModel.ShouldHandleKeyDown, Mode=OneWay}"
             IsThumbToolTipEnabled="{x:Bind ViewModel.ShouldShowPreview, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}"

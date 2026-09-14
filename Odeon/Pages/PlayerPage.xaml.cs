@@ -10,6 +10,7 @@ using CommunityToolkit.WinUI;
 using Odeon.Controls;
 using Odeon.Core.Enums;
 using Odeon.Core.Messages;
+using Odeon.Core.Services;
 using Odeon.Core.ViewModels;
 using Odeon.Helpers;
 using Windows.ApplicationModel.DataTransfer;
@@ -33,6 +34,8 @@ namespace Odeon.Pages;
 public sealed partial class PlayerPage : Page
 {
     internal PlayerPageViewModel ViewModel => (PlayerPageViewModel)DataContext;
+
+    internal static bool IsAnySidePanelOpen { get; private set; }
 
     private readonly DispatcherQueueTimer _controlsAutoHideTimer;
     private readonly DispatcherQueueTimer _titleBarHoverTimer;
@@ -65,6 +68,8 @@ public sealed partial class PlayerPage : Page
 
         WeakReferenceMessenger.Default.Register<TogglePlayQueueSidePanelMessage>(this, (_, m) => TogglePlayQueueSidePanel(m.ForceState));
         PlayQueueSidePanel.CloseRequested += (_, _) => ClosePlayQueueSidePanel();
+
+        PreviewKeyDown += PlayerPage_PreviewKeyDown;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -95,21 +100,10 @@ public sealed partial class PlayerPage : Page
             return;
         }
 
-        // Handle Tab to open properties directly (prevent focus cycling)
-        if (e.OriginalKey == VirtualKey.Tab)
+        // Handle Tab to prevent focus cycling (Properties is opened via global accelerator)
+        if (e.OriginalKey == VirtualKey.Tab || e.Key == VirtualKey.Tab)
         {
             e.Handled = true;
-            if (Windows.UI.Xaml.Media.VisualTreeHelper.GetOpenPopups(Window.Current).Count == 0)
-            {
-                if (ViewModel.Media != null)
-                {
-                    var command = Application.Current.Resources["ShowPropertiesCommand"] as System.Windows.Input.ICommand;
-                    if (command != null && command.CanExecute(ViewModel.Media))
-                    {
-                        command.Execute(ViewModel.Media);
-                    }
-                }
-            }
             return;
         }
 
@@ -131,6 +125,14 @@ public sealed partial class PlayerPage : Page
             default:
                 base.OnKeyDown(e);
                 return;
+        }
+    }
+
+    private void PlayerPage_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == VirtualKey.Tab || e.OriginalKey == VirtualKey.Tab)
+        {
+            e.Handled = true;
         }
     }
 
@@ -384,26 +386,19 @@ public sealed partial class PlayerPage : Page
 
     private void UpdateRootTheme()
     {
-        bool isDark = !ViewModel.AudioOnly && ViewModel.PlayerVisibility == PlayerVisibilityState.Visible;
-        LayoutRoot.RequestedTheme = isDark
-            ? ElementTheme.Dark
-            : ElementTheme.Default;
-
-        if (Window.Current.Content is Frame rootFrame)
-        {
-            App.SetupTitleBarColors(isDark ? ElementTheme.Dark : rootFrame.ActualTheme);
-        }
+        LayoutRoot.RequestedTheme = ElementTheme.Dark;
+        App.SetupTitleBarColors(ElementTheme.Dark);
     }
 
     private void OnActualThemeChanged(FrameworkElement sender, object args)
     {
-        UpdateBackgroundAcrylicOpacity(ActualTheme);
+        UpdateBackgroundAcrylicOpacity(ElementTheme.Dark);
     }
 
     private void UpdateBackgroundAcrylicOpacity(ElementTheme theme)
     {
         // Set in code due to XAML compiler not setting it in Release
-        BackgroundAcrylicBrush.TintLuminosityOpacity = theme == ElementTheme.Light ? 0.5 : 0.4;
+        BackgroundAcrylicBrush.TintLuminosityOpacity = 0.4;
     }
 
     private void PlayerControlsBackground_OnTapped(object sender, TappedRoutedEventArgs e)
@@ -503,6 +498,36 @@ public sealed partial class PlayerPage : Page
             !KeyboardAcceleratorHelper.IsShiftKeyDown &&
             !e.KeyStatus.IsMenuKeyDown)
         {
+            // Close any open side panel or flyout on Space instead of toggling play/pause.
+            if (_isSubtitlePanelOpen)
+            {
+                CloseSubtitleSidePanel();
+                e.Handled = true;
+                return;
+            }
+
+            if (_isAudioPanelOpen)
+            {
+                CloseAudioSidePanel();
+                e.Handled = true;
+                return;
+            }
+
+            if (_isPlayQueuePanelOpen)
+            {
+                ClosePlayQueueSidePanel();
+                e.Handled = true;
+                return;
+            }
+
+            // Close any open UWP flyout (VolumeControlFlyout, CustomPlaybackSpeedFlyout, etc.)
+            var openPopups = VisualTreeHelper.GetOpenPopups(Window.Current);
+            if (openPopups.Count > 0)
+            {
+                e.Handled = true;
+                return;
+            }
+
             e.Handled = true;
             ViewModel.TryHideControls(true);
             ViewModel.ProcessSpaceKeyDown();
@@ -604,7 +629,11 @@ public sealed partial class PlayerPage : Page
     /// Keeps the view model informed about whether a side panel is open, so that the control
     /// auto-hide never leaves a panel floating on screen on its own.
     /// </summary>
-    private void UpdateSidePanelState() => ViewModel.IsSidePanelOpen = _isSubtitlePanelOpen || _isAudioPanelOpen || _isPlayQueuePanelOpen;
+    private void UpdateSidePanelState()
+    {
+        ViewModel.IsSidePanelOpen = _isSubtitlePanelOpen || _isAudioPanelOpen || _isPlayQueuePanelOpen;
+        IsAnySidePanelOpen = ViewModel.IsSidePanelOpen;
+    }
 
     private void ToggleSubtitleSidePanel(bool? forceState = null)
     {
@@ -669,8 +698,15 @@ public sealed partial class PlayerPage : Page
     {
         if (!_isSubtitlePanelOpen)
         {
+            try
+            {
+                SubtitleSidePanel.OnClosed();
+            }
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
             SubtitleSidePanel.Visibility = Visibility.Collapsed;
-            SubtitleSidePanel.OnClosed();
         }
     }
 
@@ -737,8 +773,15 @@ public sealed partial class PlayerPage : Page
     {
         if (!_isAudioPanelOpen)
         {
+            try
+            {
+                AudioSidePanel.OnClosed();
+            }
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
             AudioSidePanel.Visibility = Visibility.Collapsed;
-            AudioSidePanel.OnClosed();
         }
     }
 
@@ -805,8 +848,15 @@ public sealed partial class PlayerPage : Page
     {
         if (!_isPlayQueuePanelOpen)
         {
+            try
+            {
+                PlayQueueSidePanel.OnClosed();
+            }
+            catch (Exception ex)
+            {
+                LogService.Log(ex);
+            }
             PlayQueueSidePanel.Visibility = Visibility.Collapsed;
-            PlayQueueSidePanel.OnClosed();
         }
     }
 

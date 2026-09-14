@@ -143,6 +143,19 @@
                                         <TranslateTransform x:Name="ContentTransform" />
                                     </ContentPresenter.RenderTransform>
                                 </ContentPresenter>
+
+                                <!-- Item divider -->
+                                <Rectangle
+                                    x:Name="ItemDivider"
+                                    Height="1"
+                                    Margin="12,0,12,0"
+                                    VerticalAlignment="Bottom"
+                                    HorizontalAlignment="Stretch"
+                                    Fill="{ThemeResource SidePanelBorderBrush}"
+                                    Opacity="0.5"
+                                    Visibility="Collapsed"
+                                    IsHitTestVisible="False" />
+
                                 <VisualStateManager.VisualStateGroups>
                                     <VisualStateGroup x:Name="CommonStates">
                                         <VisualState x:Name="Normal">
@@ -269,62 +282,61 @@
             <StackPanel
                 x:Name="ActionButtonRow"
                 Grid.Row="1"
-                Margin="8,0,8,8"
+                Margin="18,0,14,8"
                 Orientation="Horizontal"
-                Spacing="4">
-                <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="8" Padding="10,4,12,4">
-                    <Button
-                        x:Name="AddFilesButton"
-                        AutomationProperties.Name="{strings:Resources Key=AddFiles}"
-                        Command="{x:Bind ViewModel.AddFilesCommand}"
-                        Padding="0"
-                        Background="Transparent"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="{strings:Resources Key=AddFiles}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon FontSize="12" Glyph="&#xE710;" />
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Text="{strings:Resources Key=AddFiles}" />
-                        </StackPanel>
-                    </Button>
-                </Border>
-                <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="8" Padding="10,4,12,4">
-                    <Button
-                        x:Name="ClearButton"
-                        AutomationProperties.Name="{strings:Resources Key=Clear}"
-                        Command="{x:Bind ViewModel.ClearCommand}"
-                        Padding="0"
-                        Background="Transparent"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        IsEnabled="{x:Bind ViewModel.HasItems, Mode=OneWay}"
-                        Style="{StaticResource SubtleButtonStyle}"
-                        ToolTipService.ToolTip="{strings:Resources Key=Clear}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" FontSize="12" Glyph="{StaticResource DeleteGlyph}" />
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Text="{strings:Resources Key=Clear}" />
-                        </StackPanel>
-                    </Button>
-                </Border>
-                <Border Background="{ThemeResource SubtleFillColorSecondaryBrush}" CornerRadius="8" Padding="10,4,12,4">
-                    <ToggleButton
-                        x:Name="MultiSelectToggle"
-                        AutomationProperties.Name="{strings:Resources Key=Multiselect}"
-                        Padding="0"
-                        Background="Transparent"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch"
-                        IsChecked="{x:Bind ViewModel.Selection.IsSelectionModeActive, Mode=TwoWay}"
-                        IsEnabled="{x:Bind ViewModel.HasItems, Mode=OneWay}"
-                        Style="{StaticResource SubtleToggleButtonStyle}"
-                        ToolTipService.ToolTip="{strings:Resources Key=Multiselect}">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon FontSize="12" Glyph="&#xE762;" />
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource CaptionTextBlockStyle}" Text="{strings:Resources Key=Multiselect}" />
-                        </StackPanel>
-                    </ToggleButton>
-                </Border>
+                Spacing="8">
+                <Button
+                    x:Name="AddFilesButton"
+                    AutomationProperties.Name="{strings:Resources Key=AddFiles}"
+                    Command="{x:Bind ViewModel.AddFilesCommand}"
+                    ToolTipService.ToolTip="{strings:Resources Key=AddFiles}">
+                    <StackPanel Orientation="Horizontal">
+                        <FontIcon
+                            Margin="{StaticResource IconButtonStandardIconMargin}"
+                            FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
+                            Glyph="{StaticResource FolderOpenGlyph}" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{strings:Resources Key=AddFiles}" />
+                    </StackPanel>
+                </Button>
+                <Button
+                    x:Name="ClearButton"
+                    AutomationProperties.Name="{strings:Resources Key=Clear}"
+                    Command="{x:Bind ViewModel.ClearCommand}"
+                    IsEnabled="{x:Bind ViewModel.HasItems, Mode=OneWay}"
+                    ToolTipService.ToolTip="{strings:Resources Key=Clear}">
+                    <StackPanel Orientation="Horizontal">
+                        <FontIcon
+                            Margin="{StaticResource IconButtonStandardIconMargin}"
+                            FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
+                            Glyph="{StaticResource DeleteGlyph}" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{strings:Resources Key=Clear}" />
+                    </StackPanel>
+                </Button>
+                <ToggleButton
+                    x:Name="MultiSelectToggle"
+                    AutomationProperties.Name="{strings:Resources Key=Multiselect}"
+                    IsChecked="{x:Bind ViewModel.Selection.IsSelectionModeActive, Mode=TwoWay}"
+                    IsEnabled="{x:Bind ViewModel.HasItems, Mode=OneWay}"
+                    ToolTipService.ToolTip="{strings:Resources Key=Multiselect}">
+                    <StackPanel Orientation="Horizontal">
+                        <FontIcon
+                            Margin="{StaticResource IconButtonStandardIconMargin}"
+                            Glyph="&#xE762;" />
+                        <TextBlock
+                            Margin="8,0,0,0"
+                            VerticalAlignment="Center"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{strings:Resources Key=Multiselect}" />
+                    </StackPanel>
+                </ToggleButton>
             </StackPanel>
 
             <!-- Selection Command Bar (shown in multi-select mode) -->
@@ -355,7 +367,7 @@
                     <Button
                         AutomationProperties.Name="{strings:Resources Key=PlayNext}"
                         Command="{x:Bind ViewModel.PlaySelectedNextCommand}"
-                        CommandParameter="{x:Bind PlaylistListView.SelectedItems}"
+                        CommandParameter="{x:Bind ViewModel.Selection.SelectedItems}"
                         Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="{strings:Resources Key=PlayNext}">
                         <FontIcon FontFamily="{StaticResource OdeonSymbolThemeFontFamily}" FontSize="14" Glyph="{StaticResource PlayAddGlyph}" />
@@ -363,7 +375,7 @@
                     <Button
                         AutomationProperties.Name="{strings:Resources Key=Remove}"
                         Command="{x:Bind ViewModel.RemoveSelectedCommand}"
-                        CommandParameter="{x:Bind PlaylistListView.SelectedItems}"
+                        CommandParameter="{x:Bind ViewModel.Selection.SelectedItems}"
                         Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="{strings:Resources Key=Remove}">
                         <FontIcon FontSize="14" Glyph="&#xE894;" />
@@ -371,7 +383,7 @@
                     <Button
                         AutomationProperties.Name="{strings:Resources Key=MoveUp}"
                         Command="{x:Bind ViewModel.MoveSelectedItemUpCommand}"
-                        CommandParameter="{x:Bind PlaylistListView.SelectedItems}"
+                        CommandParameter="{x:Bind ViewModel.Selection.SelectedItems}"
                         Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="{strings:Resources Key=MoveUp}">
                         <FontIcon FontSize="14" Glyph="&#xE74A;" />
@@ -379,7 +391,7 @@
                     <Button
                         AutomationProperties.Name="{strings:Resources Key=MoveDown}"
                         Command="{x:Bind ViewModel.MoveSelectedItemDownCommand}"
-                        CommandParameter="{x:Bind PlaylistListView.SelectedItems}"
+                        CommandParameter="{x:Bind ViewModel.Selection.SelectedItems}"
                         Style="{StaticResource SubtleButtonStyle}"
                         ToolTipService.ToolTip="{strings:Resources Key=MoveDown}">
                         <FontIcon FontSize="14" Glyph="&#xE74B;" />
@@ -432,6 +444,8 @@
                 CanReorderItems="True"
                 DragOver="PlaylistListView_OnDragOver"
                 Drop="PlaylistListView_OnDrop"
+                ContainerContentChanging="PlaylistListView_OnContainerContentChanging"
+                PointerExited="PlaylistListView_OnPointerExited"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 ScrollViewer.VerticalScrollMode="Enabled"
                 ScrollViewer.HorizontalScrollMode="Disabled"
@@ -477,7 +491,6 @@
                         <VisualState.Setters>
                             <Setter Target="SelectionCommandRow.Visibility" Value="Visible" />
                             <Setter Target="ActionButtonRow.Visibility" Value="Collapsed" />
-                            <Setter Target="PlaylistListView.SelectionMode" Value="Multiple" />
                         </VisualState.Setters>
                     </VisualState>
                 </VisualStateGroup>

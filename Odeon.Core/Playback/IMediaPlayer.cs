@@ -26,6 +26,7 @@ namespace Odeon.Core.Playback
         event TypedEventHandler<IMediaPlayer, EventArgs>? CanSeekChanged;
         event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<TimeSpan>>? PositionChanged;
         event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<ChapterCue?>>? ChapterChanged;
+        event TypedEventHandler<IMediaPlayer, EventArgs>? ChaptersLoaded;
         event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<MediaPlaybackState>>? PlaybackStateChanged;
         event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<double>>? PlaybackRateChanged;
 

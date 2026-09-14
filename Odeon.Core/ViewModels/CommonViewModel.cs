@@ -60,11 +60,6 @@ public sealed partial class CommonViewModel : ObservableRecipient,
 
     public void Receive(SettingsChangedMessage message)
     {
-        if (message.SettingsName == nameof(SettingsPageViewModel.Theme) &&
-            Window.Current.Content is Frame rootFrame)
-        {
-            rootFrame.RequestedTheme = _settingsService.Theme.ToElementTheme();
-        }
     }
 
     public void Receive(PropertyChangedMessage<NavigationViewDisplayMode> message)

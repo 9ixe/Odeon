@@ -374,14 +374,33 @@ libmpv*.dll
 *.appxrecipe
 *.appinstaller
 
-# AI coding agent workspaces
+# Modern IDEs & Editors
+.vscode/
+.idea/
+*.sln.iml
+
+# AI coding agent workspaces & configs
 .kilo/
+.claude/
+.gemini/
+.agents/
+.cursor/
+.copilot/
+.opencode/
+opencode.json
 
 # OS metadata
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Temp build logs
+# Temp, backup, and log files
 log.md
 build_out.txt
+*.bak
+*.orig
+*.swp
+*~
+*.env
+*.env.local
+

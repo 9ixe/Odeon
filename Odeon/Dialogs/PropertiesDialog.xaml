@@ -8,6 +8,7 @@
     xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:strings="using:Odeon.Strings"
     Title="{strings:Resources Key=Properties}"
+    CloseButtonStyle="{StaticResource AccentButtonStyle}"
     CloseButtonText="{strings:Resources Key=Close}"
     DefaultButton="Close"
     Style="{StaticResource DefaultContentDialogStyle}"

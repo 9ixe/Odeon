@@ -175,12 +175,20 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         {
             MediaPlayer.PlaybackStateChanged += OnPlaybackStateChanged;
             MediaPlayer.ChapterChanged += OnChapterChanged;
+            MediaPlayer.ChaptersLoaded += OnChaptersLoaded;
             MediaPlayer.NaturalVideoSizeChanged += OnNaturalVideoSizeChanged;
             ChapterName = MediaPlayer.Chapter?.Title;
             if (MediaPlayer is MpvMediaPlayer mpvPlayer)
             {
                 mpvPlayer.SetSubtitleFontSize(_subtitleFontSize);
-                mpvPlayer.SetSubtitlePosition(_subtitlePosition);
+                try
+                {
+                    mpvPlayer.SetSubtitlePosition(_subtitlePosition);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error setting subtitle position: {ex.Message}");
+                }
                 mpvPlayer.SetSubtitleBackgroundOpacity(_subtitleBackgroundOpacity);
                 mpvPlayer.SetSubtitleBackground(_subtitleBackgroundEnabled);
                 mpvPlayer.SetSubtitleOutline(_subtitleOutlineEnabled);
@@ -236,20 +244,39 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         get => _subtitlePosition;
         set
         {
+            value = Math.Clamp(value, 50, 115);
             if (_subtitlePosition != value)
             {
                 _subtitlePosition = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(SubtitlePositionDisplay));
+                OnPropertyChanged(nameof(SubtitlePositionOffset));
 
                 if (MediaPlayer is MpvMediaPlayer mpvPlayer)
                 {
-                    mpvPlayer.SetSubtitlePosition(value);
+                    try
+                    {
+                        mpvPlayer.SetSubtitlePosition(value);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error setting subtitle position: {ex.Message}");
+                    }
                 }
 
                 _subtitlePositionDebounceTimer.Stop();
                 _subtitlePositionDebounceTimer.Start();
             }
+        }
+    }
+
+    public int SubtitlePositionOffset
+    {
+        get => 100 - _subtitlePosition;
+        set
+        {
+            int clampedOffset = Math.Clamp(value, -15, 50);
+            SubtitlePosition = 100 - clampedOffset;
         }
     }
 
@@ -378,9 +405,17 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
                     _subtitlePosition = _settingsService.SubtitlePosition;
                     OnPropertyChanged(nameof(SubtitlePosition));
                     OnPropertyChanged(nameof(SubtitlePositionDisplay));
+                    OnPropertyChanged(nameof(SubtitlePositionOffset));
                     if (MediaPlayer is MpvMediaPlayer mpvPos)
                     {
-                        mpvPos.SetSubtitlePosition(_subtitlePosition);
+                        try
+                        {
+                            mpvPos.SetSubtitlePosition(_subtitlePosition);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Error setting subtitle position: {ex.Message}");
+                        }
                     }
                 }
                 break;
@@ -427,6 +462,7 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         {
             oldPlayer.PlaybackStateChanged -= OnPlaybackStateChanged;
             oldPlayer.ChapterChanged -= OnChapterChanged;
+            oldPlayer.ChaptersLoaded -= OnChaptersLoaded;
             oldPlayer.NaturalVideoSizeChanged -= OnNaturalVideoSizeChanged;
         }
 
@@ -434,12 +470,20 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         {
             MediaPlayer.PlaybackStateChanged += OnPlaybackStateChanged;
             MediaPlayer.ChapterChanged += OnChapterChanged;
+            MediaPlayer.ChaptersLoaded += OnChaptersLoaded;
             MediaPlayer.NaturalVideoSizeChanged += OnNaturalVideoSizeChanged;
             ChapterName = MediaPlayer.Chapter?.Title;
             if (MediaPlayer is MpvMediaPlayer mpvPlayer)
             {
                 mpvPlayer.SetSubtitleFontSize(_subtitleFontSize);
-                mpvPlayer.SetSubtitlePosition(_subtitlePosition);
+                try
+                {
+                    mpvPlayer.SetSubtitlePosition(_subtitlePosition);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error setting subtitle position: {ex.Message}");
+                }
                 mpvPlayer.SetSubtitleBackgroundOpacity(_subtitleBackgroundOpacity);
                 mpvPlayer.SetSubtitleBackground(_subtitleBackgroundEnabled);
                 mpvPlayer.SetSubtitleOutline(_subtitleOutlineEnabled);
@@ -651,6 +695,17 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         _dispatcherQueue.TryEnqueue(() => ChapterName = sender.Chapter?.Title);
     }
 
+    private void OnChaptersLoaded(IMediaPlayer sender, EventArgs args)
+    {
+        _dispatcherQueue.TryEnqueue(() =>
+        {
+            if (string.IsNullOrEmpty(ChapterName))
+            {
+                ChapterName = sender.Chapter?.Title;
+            }
+        });
+    }
+
     public void Receive(PropertyChangedMessage<WindowViewMode> message)
     {
         if (message.Sender is not WindowContext) return;
@@ -711,6 +766,7 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
     partial void OnPlayerShowChaptersChanged(bool value)
     {
         _settingsService.PlayerShowChapters = value;
+        Messenger.Send(new SettingsChangedMessage(nameof(ISettingsService.PlayerShowChapters), typeof(PlayerControlsViewModel)));
     }
 
     [RelayCommand]

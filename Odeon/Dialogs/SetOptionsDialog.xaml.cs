@@ -26,7 +26,7 @@ public sealed partial class SetOptionsDialog : ContentDialog
     {
         this.InitializeComponent();
         FlowDirection = GlobalizationHelper.GetFlowDirection();
-        RequestedTheme = ((FrameworkElement)Window.Current.Content).RequestedTheme;
+        RequestedTheme = ElementTheme.Dark;
         OptionTextBoxPlaceholder = "--option=value";
         Options = existingOptions;
         OptionsTextBox.Text = Options;

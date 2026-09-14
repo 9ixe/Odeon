@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="Odeon.Pages.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -282,26 +282,6 @@
                 <!--  Personalization section  -->
                 <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{strings:Resources Key=SettingsCategoryPersonalization}" />
 
-                <ctc:SettingsCard
-                    Margin="{StaticResource SettingsCardMargin}"
-                    Description="{strings:Resources Key=SettingsThemeSelectionDescription}"
-                    Header="{strings:Resources Key=SettingsThemeSelectionHeader}"
-                    HeaderIcon="{ui:FontIcon FontFamily={StaticResource OdeonSymbolThemeFontFamily},
-                                             Glyph={StaticResource FiltersGlyph}}">
-                    <ComboBox
-                        MinWidth="150"
-                        ItemTemplate="{StaticResource ResourceNameToResourceStringTemplate}"
-                        SelectedIndex="{x:Bind ViewModel.Theme, Mode=TwoWay}">
-                        <interactivity:Interaction.Behaviors>
-                            <behaviors:ComboBoxWidthFromPopupBehavior />
-                        </interactivity:Interaction.Behaviors>
-                        <!--  The app settings guidelines recommend theme options to follow this order.  -->
-                        <!--  https://learn.microsoft.com/en-us/windows/apps/design/app-settings/guidelines-for-app-settings#color-mode-settings  -->
-                        <x:String>ThemeLight</x:String>
-                        <x:String>ThemeDark</x:String>
-                        <x:String>ThemeAuto</x:String>
-                    </ComboBox>
-                </ctc:SettingsCard>
                 <ctc:SettingsCard
                     Margin="{StaticResource SettingsCardMargin}"
                     Description="{strings:Resources Key=SettingsLanguageSelectionDescription}"

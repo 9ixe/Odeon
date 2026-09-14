@@ -41,6 +41,7 @@ namespace Odeon.Core.Playback
         public event TypedEventHandler<IMediaPlayer, EventArgs>? CanSeekChanged;
         public event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<TimeSpan>>? PositionChanged;
         public event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<ChapterCue?>>? ChapterChanged;
+        public event TypedEventHandler<IMediaPlayer, EventArgs>? ChaptersLoaded;
         public event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<MediaPlaybackState>>? PlaybackStateChanged;
         public event TypedEventHandler<IMediaPlayer, ValueChangedEventArgs<double>>? PlaybackRateChanged;
         public event TypedEventHandler<MpvMediaPlayer, ValueChangedEventArgs<double>>? SubtitleDelayChanged;
@@ -188,7 +189,7 @@ namespace Odeon.Core.Playback
             {
                 if (_mpv == IntPtr.Zero || _isMuted == value) return;
                 _isMuted = value;
-                MpvInterop.SetPropertyBool(_mpv, "ao-mute", value);
+                MpvInterop.SetPropertyBool(_mpv, "mute", value);
                 DispatcherEnqueue(() => IsMutedChanged?.Invoke(this, EventArgs.Empty));
             }
         }
@@ -199,11 +200,11 @@ namespace Odeon.Core.Playback
             set
             {
                 if (_mpv == IntPtr.Zero) return;
-                double clamped = Math.Clamp(value, 0.0, 1.0);
+                double clamped = Math.Clamp(value, 0.0, 3.0);
                 if (Math.Abs(_volume - clamped) > 0.001)
                 {
                     _volume = clamped;
-                    MpvInterop.SetPropertyDouble(_mpv, "ao-volume", clamped * 100.0);
+                    MpvInterop.SetPropertyDouble(_mpv, "volume", clamped * 100.0);
                     DispatcherEnqueue(() => VolumeChanged?.Invoke(this, EventArgs.Empty));
                 }
             }
@@ -280,9 +281,44 @@ namespace Odeon.Core.Playback
             get => null;
             set
             {
-                if (_mpv == IntPtr.Zero || value?.Id == null) return;
-                MpvInterop.SetPropertyString(_mpv, "audio-device", $"wasapi/{value.Id}");
+                if (_mpv == IntPtr.Zero) return;
+                if (value?.Id == null)
+                {
+                    MpvInterop.SetPropertyString(_mpv, "audio-device", "auto");
+                    return;
+                }
+
+                string endpointId = ExtractEndpointId(value.Id);
+                MpvInterop.SetPropertyString(_mpv, "audio-device", !string.IsNullOrEmpty(endpointId) ? $"wasapi/{endpointId}" : "auto");
             }
+        }
+
+        private static string ExtractEndpointId(string deviceId)
+        {
+            if (string.IsNullOrEmpty(deviceId)) return string.Empty;
+
+            // UWP DeviceInformation.Id format: \\?\SWD#MMDEVAPI#{0.0.0.00000000}.{guid}#{interface_guid}
+            string[] parts = deviceId.Split('#');
+            if (parts.Length >= 3 && parts[1].Equals("MMDEVAPI", StringComparison.OrdinalIgnoreCase))
+            {
+                return parts[2];
+            }
+
+            // Already an endpoint GUID format: {0.0.0.00000000}.{guid}
+            if (deviceId.StartsWith("{0.0.", StringComparison.OrdinalIgnoreCase))
+            {
+                int end = deviceId.IndexOf('}');
+                if (end >= 0 && end + 1 < deviceId.Length && deviceId[end + 1] == '.')
+                {
+                    int secondEnd = deviceId.IndexOf('}', end + 1);
+                    if (secondEnd >= 0)
+                    {
+                        return deviceId.Substring(0, secondEnd + 1);
+                    }
+                }
+            }
+
+            return deviceId;
         }
 
         public MediaPlaybackState PlaybackState
@@ -305,10 +341,14 @@ namespace Odeon.Core.Playback
                 if (_playbackItem == value) return;
                 PlaybackItem? oldValue = _playbackItem;
 
+                if (_playbackItem != null)
+                {
+                    RemoveItemHandlers(_playbackItem);
+                }
+
                 if (value == null)
                 {
                     Stop();
-                    if (_playbackItem != null) RemoveItemHandlers(_playbackItem);
                     _playbackItem = null;
                     _currentLoadedPath = null;
                     _cachedChapters = null;
@@ -503,6 +543,8 @@ namespace Odeon.Core.Playback
             MpvInterop.SetOptionString(_mpv, "vo", "libmpv");
             MpvInterop.mpv_request_log_messages(_mpv, MpvInterop.GetUtf8Bytes("info"));
             MpvInterop.SetOptionString(_mpv, "hwdec", "auto-copy");
+            MpvInterop.SetOptionString(_mpv, "audio-device", "auto");
+            MpvInterop.SetOptionString(_mpv, "volume-max", "300.0");
 
             // Scaler selection: use high-quality shaders for HD+ content on capable hardware,
             // faster scalers for SD content to reduce GPU workload on integrated graphics.
@@ -550,8 +592,8 @@ namespace Odeon.Core.Playback
             MpvInterop.mpv_observe_property(_mpv, PropIdleActive, MpvInterop.GetUtf8Bytes("idle-active"), MpvFormat.Flag);
             MpvInterop.mpv_observe_property(_mpv, PropEofReached, MpvInterop.GetUtf8Bytes("eof-reached"), MpvFormat.Flag);
             MpvInterop.mpv_observe_property(_mpv, PropBuffering, MpvInterop.GetUtf8Bytes("cache-buffering-state"), MpvFormat.Int64);
-            MpvInterop.mpv_observe_property(_mpv, PropMute, MpvInterop.GetUtf8Bytes("ao-mute"), MpvFormat.Flag);
-            MpvInterop.mpv_observe_property(_mpv, PropVolume, MpvInterop.GetUtf8Bytes("ao-volume"), MpvFormat.Double);
+            MpvInterop.mpv_observe_property(_mpv, PropMute, MpvInterop.GetUtf8Bytes("mute"), MpvFormat.Flag);
+            MpvInterop.mpv_observe_property(_mpv, PropVolume, MpvInterop.GetUtf8Bytes("volume"), MpvFormat.Double);
             MpvInterop.mpv_observe_property(_mpv, PropChapter, MpvInterop.GetUtf8Bytes("chapter"), MpvFormat.Int64);
             MpvInterop.mpv_observe_property(_mpv, PropSeekable, MpvInterop.GetUtf8Bytes("seekable"), MpvFormat.Flag);
             MpvInterop.mpv_observe_property(_mpv, PropVideoW, MpvInterop.GetUtf8Bytes("video-params/w"), MpvFormat.Int64);
@@ -659,6 +701,15 @@ namespace Odeon.Core.Playback
                     RestoreMediaTimingOffsets();
                     var tracks = GetTrackList();
                     var chapters = GetChapters();
+                    if (chapters.Count == 0 && _mpv != IntPtr.Zero)
+                    {
+                        var freshChapters = Odeon.Core.Interop.MpvNodeReader.GetChapterList(_mpv);
+                        if (freshChapters != null && freshChapters.Count > 0)
+                        {
+                            chapters = freshChapters;
+                            _cachedChapters = freshChapters;
+                        }
+                    }
                     DispatcherEnqueue(() =>
                     {
                         UpdatePlaybackState();
@@ -750,6 +801,12 @@ namespace Odeon.Core.Playback
                             NaturalDuration = TimeSpan.FromSeconds(secs);
                             _canSeek = true;
                             DispatcherEnqueue(() => CanSeekChanged?.Invoke(this, EventArgs.Empty));
+
+                            if (PlaybackItem != null && _cachedChapters != null && _cachedChapters.Count > 0)
+                            {
+                                PlaybackItem.Chapters.Load(_cachedChapters, NaturalDuration);
+                                DispatcherEnqueue(() => ChaptersLoaded?.Invoke(this, EventArgs.Empty));
+                            }
                         }
                     }
                     break;
@@ -920,6 +977,8 @@ namespace Odeon.Core.Playback
                         {
                             if (PlaybackItem != null && ch >= 0 && ch < PlaybackItem.Chapters.Count)
                                 Chapter = PlaybackItem.Chapters[(int)ch];
+                            else if (PlaybackItem != null && PlaybackItem.Chapters.Count > 0 && ch < 0)
+                                Chapter = FindChapterAtPosition(Position);
                             else
                                 Chapter = null;
                         });
@@ -1087,7 +1146,7 @@ namespace Odeon.Core.Playback
                         var tracks = GetTrackList();
                         foreach (var track in tracks)
                         {
-                            if (track.Type == "sub" && (track.Title == file.Name || track.External))
+                            if (track.Type == "sub" && (track.Title == file.Name || (track.Title != null && track.Title.StartsWith(file.Name, StringComparison.OrdinalIgnoreCase))))
                             {
                                 MpvInterop.SetPropertyLong(_mpv, "sid", track.Id);
                                 break;
@@ -1141,7 +1200,7 @@ namespace Odeon.Core.Playback
                 prevSid = MpvInterop.GetPropertyString(_mpv, "sid");
             }
 
-            MpvInterop.Command(_mpv, "sub-add", path, select ? "select" : "auto");
+            MpvInterop.Command(_mpv, "sub-add", path, select ? "select" : "auto", System.IO.Path.GetFileName(path));
 
             if (!select && !string.IsNullOrEmpty(prevSid) && _mpv != IntPtr.Zero)
             {
@@ -1246,7 +1305,7 @@ namespace Odeon.Core.Playback
             item.AudioTracks.SelectedIndexChanged += AudioTracksOnSelectedIndexChanged;
             item.VideoTracks.SelectedIndexChanged += VideoTracksOnSelectedIndexChanged;
 
-            if (_mpv != IntPtr.Zero)
+            if (_mpv != IntPtr.Zero && _currentLoadedPath != null && _currentLoadedPath == item.FilePath)
             {
                 var tracks = GetTrackList();
                 if (tracks.Count > 0)
@@ -1325,12 +1384,15 @@ namespace Odeon.Core.Playback
                 _initialTracksResolved = true;
             }
 
+            var currentItem = PlaybackItem;
+            if (currentItem == null) return;
+
             _isUpdatingTracks = true;
             try
             {
-                PlaybackItem.AudioTracks.UpdateTracks(audioTracks, selectedAudio);
-                PlaybackItem.VideoTracks.UpdateTracks(videoTracks, selectedVideo);
-                PlaybackItem.SubtitleTracks.UpdateTracks(subTracks, selectedSub);
+                currentItem.AudioTracks.UpdateTracks(audioTracks, selectedAudio);
+                currentItem.VideoTracks.UpdateTracks(videoTracks, selectedVideo);
+                currentItem.SubtitleTracks.UpdateTracks(subTracks, selectedSub);
             }
             finally
             {
@@ -1340,30 +1402,60 @@ namespace Odeon.Core.Playback
 
         private void UpdateChaptersFromMpv(List<Odeon.Core.Interop.MpvChapterInfo> rawChapters)
         {
-            _cachedChapters = rawChapters;
-            if (PlaybackItem != null)
+            if (rawChapters != null && rawChapters.Count > 0)
             {
-                PlaybackItem.Chapters.Load(rawChapters, NaturalDuration);
-                if (_mpv != IntPtr.Zero && PlaybackItem.Chapters.Count > 0)
+                _cachedChapters = rawChapters;
+            }
+            var currentItem = PlaybackItem;
+            if (currentItem != null)
+            {
+                if (rawChapters != null && rawChapters.Count > 0)
                 {
-                    long? ch = Odeon.Core.Interop.MpvInterop.GetPropertyLong(_mpv, "chapter");
-                    if (ch.HasValue && ch.Value >= 0 && ch.Value < PlaybackItem.Chapters.Count)
+                    currentItem.Chapters.Load(rawChapters, NaturalDuration);
+                    if (currentItem.Chapters.Count > 0)
                     {
-                        Chapter = PlaybackItem.Chapters[(int)ch.Value];
+                        long? ch = _mpv != IntPtr.Zero ? Odeon.Core.Interop.MpvInterop.GetPropertyLong(_mpv, "chapter") : null;
+                        if (ch.HasValue && ch.Value >= 0 && ch.Value < currentItem.Chapters.Count)
+                        {
+                            Chapter = currentItem.Chapters[(int)ch.Value];
+                        }
+                        else if (Chapter == null)
+                        {
+                            Chapter = FindChapterAtPosition(Position) ?? currentItem.Chapters[0];
+                        }
                     }
                 }
+                DispatcherEnqueue(() => ChaptersLoaded?.Invoke(this, EventArgs.Empty));
             }
+        }
+
+        private ChapterCue? FindChapterAtPosition(TimeSpan pos)
+        {
+            if (PlaybackItem == null || PlaybackItem.Chapters.Count == 0) return null;
+            for (int i = 0; i < PlaybackItem.Chapters.Count; i++)
+            {
+                var cue = PlaybackItem.Chapters[i];
+                if (pos >= cue.StartTime && (cue.Duration == TimeSpan.Zero || pos < cue.StartTime + cue.Duration))
+                {
+                    return cue;
+                }
+            }
+            return PlaybackItem.Chapters[0];
         }
 
         public IReadOnlyList<Odeon.Core.Interop.MpvChapterInfo> GetChapters()
         {
-            if (_cachedChapters != null) return _cachedChapters;
+            if (_cachedChapters != null && _cachedChapters.Count > 0) return _cachedChapters;
             if (_mpv != IntPtr.Zero)
             {
-                _cachedChapters = Odeon.Core.Interop.MpvNodeReader.GetChapterList(_mpv);
-                return _cachedChapters;
+                var list = Odeon.Core.Interop.MpvNodeReader.GetChapterList(_mpv);
+                if (list != null && list.Count > 0)
+                {
+                    _cachedChapters = list;
+                    return _cachedChapters;
+                }
             }
-            return Array.Empty<Odeon.Core.Interop.MpvChapterInfo>();
+            return _cachedChapters ?? (IReadOnlyList<Odeon.Core.Interop.MpvChapterInfo>)Array.Empty<Odeon.Core.Interop.MpvChapterInfo>();
         }
 
         public IReadOnlyList<Odeon.Core.Interop.MpvTrackInfo> GetTrackList()
@@ -1679,6 +1771,14 @@ namespace Odeon.Core.Playback
 
                 if (targetPreference is not { Length: > 0 })
                 {
+                    if (defaultSelectedAudio < 0 && audioTracks.Count > 0)
+                    {
+                        if (_mpv != IntPtr.Zero && audioTracks[0].TrackId >= 0)
+                        {
+                            MpvInterop.SetPropertyLong(_mpv, "aid", audioTracks[0].TrackId);
+                        }
+                        return 0;
+                    }
                     return defaultSelectedAudio;
                 }
 
@@ -1720,6 +1820,15 @@ namespace Odeon.Core.Playback
                 // Fallback to default
             }
 
+            if (defaultSelectedAudio < 0 && audioTracks.Count > 0)
+            {
+                if (_mpv != IntPtr.Zero && audioTracks[0].TrackId >= 0)
+                {
+                    MpvInterop.SetPropertyLong(_mpv, "aid", audioTracks[0].TrackId);
+                }
+                return 0;
+            }
+
             return defaultSelectedAudio;
         }
 
@@ -1756,7 +1865,7 @@ namespace Odeon.Core.Playback
         {
             if (args.Role == AudioDeviceRole.Default && _mpv != IntPtr.Zero)
             {
-                MpvInterop.SetPropertyString(_mpv, "audio-device", $"wasapi/{args.Id}");
+                MpvInterop.SetPropertyString(_mpv, "audio-device", "auto");
             }
         }
 

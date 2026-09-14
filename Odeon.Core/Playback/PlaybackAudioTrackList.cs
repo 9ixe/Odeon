@@ -79,7 +79,8 @@ namespace Odeon.Core.Playback
         {
             TrackList.Clear();
             TrackList.AddRange(tracks);
-            SelectedIndex = selectedIndex;
+            SetSelectedIndexSilently(selectedIndex);
+            NotifyTrackListChanged();
         }
 
         public void Refresh()

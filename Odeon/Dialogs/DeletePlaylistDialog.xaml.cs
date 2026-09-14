@@ -1,4 +1,4 @@
-﻿using Odeon.Helpers;
+using Odeon.Helpers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -15,7 +15,7 @@ public sealed partial class DeletePlaylistDialog : ContentDialog
         this.DefaultStyleKey = typeof(ContentDialog);
         this.InitializeComponent();
         FlowDirection = GlobalizationHelper.GetFlowDirection();
-        RequestedTheme = ((FrameworkElement)Window.Current.Content).RequestedTheme;
+        RequestedTheme = ElementTheme.Dark;
         PlaylistName = playlistName;
     }
 }

@@ -60,8 +60,8 @@ public sealed class SettingsService : ISettingsService
 
     public ThemeOption Theme
     {
-        get => (ThemeOption)GetValue<int>(GeneralThemeKey);
-        set => SetValue(GeneralThemeKey, (int)value);
+        get => ThemeOption.Dark;
+        set => SetValue(GeneralThemeKey, (int)ThemeOption.Dark);
     }
 
     public PlayerAutoResizeOption PlayerAutoResize

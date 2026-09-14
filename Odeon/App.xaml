@@ -1,5 +1,6 @@
-﻿<Application
+<Application
     x:Class="Odeon.App"
+    RequestedTheme="Dark"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:commands="using:Odeon.Commands"
@@ -13,369 +14,355 @@
     xmlns:strings="using:Odeon.Strings">
 
     <Application.Resources>
-        <muxc:XamlControlsResources>
-            <muxc:XamlControlsResources.MergedDictionaries>
-                <ResourceDictionary>
-                    <ResourceDictionary.ThemeDictionaries>
-                        <ResourceDictionary x:Key="Default">
-                            <!--  App font — shared across all themes (defined here for StaticResource access)  -->
-                            <FontFamily x:Key="AppFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <!--  Symbol font — all glyph icons (FontIcon, toggles, checkboxes, etc.) use bundled Odeon glyph fonts  -->
-                            <contract13NotPresent:FontFamily x:Key="SymbolThemeFontFamily">Segoe MDL2 Assets</contract13NotPresent:FontFamily>
-                            <contract13Present:FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons</contract13Present:FontFamily>
-                            <Color x:Key="SystemAccentColor">#FFE81123</Color>
-                            <Color x:Key="SystemAccentColorDark1">#FFC50E1F</Color>
-                            <Color x:Key="SystemAccentColorDark2">#FFA20B19</Color>
-                            <Color x:Key="SystemAccentColorDark3">#FF7F0914</Color>
-                            <Color x:Key="SystemAccentColorLight1">#FFEA3848</Color>
-                            <Color x:Key="SystemAccentColorLight2">#FFEE606D</Color>
-                            <Color x:Key="SystemAccentColorLight3">#FFE81123</Color>
-                            <Color x:Key="AccentFillColorCustom">#FFE81123</Color>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <muxc:XamlControlsResources>
+                    <muxc:XamlControlsResources.MergedDictionaries>
+                        <ResourceDictionary Source="ms-appx:///Controls/ContentUnavailableView/ContentUnavailableView.xaml" />
+                        <ResourceDictionary Source="ms-appx:///Controls/ContentUnavailableView/ContentUnavailableView_themeresources.xaml" />
+                        <ResourceDictionary Source="ms-appx:///Controls/TitleBar/TitleBar.xaml" />
+                        <ResourceDictionary Source="ms-appx:///Controls/TitleBar/TitleBar_themeresources.xaml" />
+                        <ResourceDictionary Source="ms-appx:///Styles/Button.xaml" />
+                        <ResourceDictionary Source="ms-appx:///Styles/Icon.xaml" />
+                        <ResourceDictionary Source="ms-appx:///Styles/ItemContainer.xaml" />
+                    </muxc:XamlControlsResources.MergedDictionaries>
+                </muxc:XamlControlsResources>
+            </ResourceDictionary.MergedDictionaries>
 
-                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6E81123" />
-                            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CCE81123" />
-                            <SolidColorBrush x:Key="AccentFillColorCustomBrush" Color="#FFE81123" />
+            <!--
+                ThemeDictionaries defined here — outside XamlControlsResources — so our
+                ContentControlThemeFontFamily override wins over WinUI's Segoe UI default.
+            -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <!--  App font — Linotte applied to every theme resource key WinUI reads  -->
+                    <FontFamily x:Key="AppFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="BodyStrongTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="OverlineTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <!--  Symbol font — all glyph icons (FontIcon, toggles, checkboxes, etc.) use bundled Odeon glyph fonts  -->
+                    <contract13NotPresent:FontFamily x:Key="SymbolThemeFontFamily">Segoe MDL2 Assets</contract13NotPresent:FontFamily>
+                    <contract13Present:FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons</contract13Present:FontFamily>
+                    <Color x:Key="SystemAccentColor">#FFE81123</Color>
+                    <Color x:Key="SystemAccentColorDark1">#FFC50E1F</Color>
+                    <Color x:Key="SystemAccentColorDark2">#FFA20B19</Color>
+                    <Color x:Key="SystemAccentColorDark3">#FF7F0914</Color>
+                    <Color x:Key="SystemAccentColorLight1">#FFE81123</Color>
+                    <Color x:Key="SystemAccentColorLight2">#FFE81123</Color>
+                    <Color x:Key="SystemAccentColorLight3">#FFE81123</Color>
+                    <Color x:Key="AccentFillColorCustom">#FFE81123</Color>
 
-                            <SolidColorBrush x:Key="AccentButtonBackground" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="AccentButtonForeground" Color="Black" />
-                            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="Black" />
+                    <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6E81123" />
+                    <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CCE81123" />
+                    <SolidColorBrush x:Key="AccentFillColorCustomBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentTextFillColorSecondaryBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentTextFillColorTertiaryBrush" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentTextFillColorDisabledBrush" Color="#80E81123" />
 
-                            <Color x:Key="TextOnAccentFillColorPrimary">#FF000000</Color>
-                            <Color x:Key="TextOnAccentFillColorSecondary">#CC000000</Color>
-                            <Color x:Key="TextOnAccentFillColorDisabled">#66000000</Color>
-                            <Color x:Key="TextOnAccentFillColorSelectedText">#FF000000</Color>
-                            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FF000000" />
-                            <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="#CC000000" />
-                            <SolidColorBrush x:Key="TextOnAccentFillColorDisabledBrush" Color="#66000000" />
-                            <SolidColorBrush x:Key="TextOnAccentFillColorSelectedTextBrush" Color="#FF000000" />
+                    <SolidColorBrush x:Key="AccentButtonBackground" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="AccentButtonForeground" Color="Black" />
+                    <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="Black" />
+                    <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="Black" />
 
-                            <!-- ToggleSwitch on-state brushes (Windows Accent Red) -->
-                            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#80E81123" />
+                    <Color x:Key="TextOnAccentFillColorPrimary">#FF000000</Color>
+                    <Color x:Key="TextOnAccentFillColorSecondary">#CC000000</Color>
+                    <Color x:Key="TextOnAccentFillColorDisabled">#66000000</Color>
+                    <Color x:Key="TextOnAccentFillColorSelectedText">#FF000000</Color>
+                    <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FF000000" />
+                    <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="#CC000000" />
+                    <SolidColorBrush x:Key="TextOnAccentFillColorDisabledBrush" Color="#66000000" />
+                    <SolidColorBrush x:Key="TextOnAccentFillColorSelectedTextBrush" Color="#FF000000" />
 
-                            <!-- ToggleButton checked brushes -->
-                            <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="Black" />
-                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="Black" />
-                            <SolidColorBrush x:Key="ToggleButtonBorderBrushChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPressed" Color="#FFC50E1F" />
+                    <!-- ToggleSwitch on-state brushes (Windows Accent Red) -->
+                    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#80E81123" />
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#80E81123" />
 
-                            <!-- CheckBox checked brushes -->
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="Black" />
-                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="Black" />
+                    <!-- ToggleButton checked brushes -->
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="Black" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="Black" />
+                    <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="Black" />
+                    <SolidColorBrush x:Key="ToggleButtonBorderBrushChecked" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPressed" Color="#FFC50E1F" />
 
-                            <!-- RadioButton checked brushes -->
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillChecked" Color="Black" />
-                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPressed" Color="Black" />
+                    <!-- CheckBox checked brushes -->
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="Black" />
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="Black" />
+                    <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="Black" />
 
-                            <media:AcrylicBrush
-                                x:Key="SidePanelBackgroundBrush"
-                                BackgroundSource="Backdrop"
-                                FallbackColor="#1E1E1E"
-                                TintColor="#141414"
-                                TintOpacity="0.88" />
-                            <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#33FFFFFF" />
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="Light">
-                            <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
-                            <!--  Symbol font — all glyph icons (FontIcon, toggles, checkboxes, etc.) use bundled Odeon glyph fonts  -->
-                            <contract13NotPresent:FontFamily x:Key="SymbolThemeFontFamily">Segoe MDL2 Assets</contract13NotPresent:FontFamily>
-                            <contract13Present:FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons</contract13Present:FontFamily>
+                    <!-- RadioButton checked brushes -->
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillChecked" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeChecked" Color="#FFE81123" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
+                    <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
+                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFillChecked" Color="Black" />
+                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPointerOver" Color="Black" />
+                    <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPressed" Color="Black" />
 
-                            <Color x:Key="SystemAccentColor">#FFE81123</Color>
-                            <Color x:Key="SystemAccentColorDark1">#FFC50E1F</Color>
-                            <Color x:Key="SystemAccentColorDark2">#FFA20B19</Color>
-                            <Color x:Key="SystemAccentColorDark3">#FF7F0914</Color>
-                            <Color x:Key="SystemAccentColorLight1">#FFEA3848</Color>
-                            <Color x:Key="SystemAccentColorLight2">#FFEE606D</Color>
-                            <Color x:Key="SystemAccentColorLight3">#FFE81123</Color>
-                            <Color x:Key="AccentFillColorCustom">#FFE81123</Color>
+                    <media:AcrylicBrush
+                        x:Key="SidePanelBackgroundBrush"
+                        BackgroundSource="Backdrop"
+                        FallbackColor="#1E1E1E"
+                        TintColor="#141414"
+                        TintOpacity="0.88" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#33FFFFFF" />
 
-                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemControlBackgroundAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemControlHighlightAltAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemAccentColorBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6E81123" />
-                            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CCE81123" />
-                            <SolidColorBrush x:Key="AccentFillColorCustomBrush" Color="#FFE81123" />
-
-                            <SolidColorBrush x:Key="AccentButtonBackground" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="AccentButtonForeground" Color="Black" />
-                            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="Black" />
-
-                            <Color x:Key="TextOnAccentFillColorPrimary">#FF000000</Color>
-                            <Color x:Key="TextOnAccentFillColorSecondary">#CC000000</Color>
-                            <Color x:Key="TextOnAccentFillColorDisabled">#66000000</Color>
-                            <Color x:Key="TextOnAccentFillColorSelectedText">#FF000000</Color>
-                            <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#FF000000" />
-                            <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="#CC000000" />
-                            <SolidColorBrush x:Key="TextOnAccentFillColorDisabledBrush" Color="#66000000" />
-                            <SolidColorBrush x:Key="TextOnAccentFillColorSelectedTextBrush" Color="#FF000000" />
-
-                            <!-- ToggleSwitch on-state brushes (Windows Accent Red) -->
-                            <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="#80E81123" />
-
-                            <!-- ToggleButton checked brushes -->
-                            <SolidColorBrush x:Key="ToggleButtonBackgroundChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleButtonBackgroundCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="ToggleButtonForegroundChecked" Color="Black" />
-                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="ToggleButtonForegroundCheckedPressed" Color="Black" />
-                            <SolidColorBrush x:Key="ToggleButtonBorderBrushChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="ToggleButtonBorderBrushCheckedPressed" Color="#FFC50E1F" />
-
-                            <!-- CheckBox checked brushes -->
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="CheckBoxCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundChecked" Color="Black" />
-                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="CheckBoxCheckGlyphForegroundCheckedPressed" Color="Black" />
-
-                            <!-- RadioButton checked brushes -->
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundFillCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeChecked" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPointerOver" Color="#FFEA3848" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedPressed" Color="#FFC50E1F" />
-                            <SolidColorBrush x:Key="RadioButtonCheckBackgroundStrokeCheckedDisabled" Color="#80E81123" />
-                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillChecked" Color="Black" />
-                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPointerOver" Color="Black" />
-                            <SolidColorBrush x:Key="RadioButtonCheckGlyphFillCheckedPressed" Color="Black" />
-
-                            <media:AcrylicBrush
-                                x:Key="SidePanelBackgroundBrush"
-                                BackgroundSource="Backdrop"
-                                FallbackColor="#F4F4F4"
-                                TintColor="#FAFAFA"
-                                TintOpacity="0.88" />
-                            <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#22000000" />
-                        </ResourceDictionary>
-                        <ResourceDictionary x:Key="HighContrast">
-                            <StaticResource x:Key="AccentFillColorCustomBrush" ResourceKey="SystemColorHighlightColor" />
-                            <SolidColorBrush x:Key="SidePanelBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
-                            <SolidColorBrush x:Key="SidePanelBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                        </ResourceDictionary>
-                    </ResourceDictionary.ThemeDictionaries>
-
-                    <!--  Commands  -->
-                    <commands:SelectDeselectAllCommand x:Key="SelectDeselectAllCommand" />
-                    <commands:ShowPropertiesCommand x:Key="ShowPropertiesCommand" />
-                    <commands:OpenWithCommand x:Key="OpenWithCommand" />
-
-                    <!--  Converters  -->
-                    <converters:FirstOrDefaultConverter x:Key="FirstOrDefaultConverter" />
-                    <converters:HumanizedDurationConverter x:Key="HumanizedDurationConverter" />
-                    <converters:MediaGlyphConverter x:Key="MediaGlyphConverter" />
-                    <converters:PlayPauseGlyphConverter x:Key="PlayPauseGlyphConverter" />
-                    <converters:CheckBoxToToolTipConverter x:Key="CheckBoxToToolTipConverter" />
-                    <!--<converters:ThicknessFiltersConverter x:Key="LeftThicknessFiltersConverter" Filters="Left" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="TopThicknessFiltersConverter" Filters="Top" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="RightThicknessFiltersConverter" Filters="Right" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="BottomThicknessFiltersConverter" Filters="Bottom" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="HorizontalThicknessFiltersConverter" Filters="Left,Right" />-->
-                    <converters:ThicknessFiltersConverter x:Key="VerticalThicknessFiltersConverter" Filters="Top,Bottom" />
-                    <!--<converters:ThicknessFiltersConverter x:Key="TopAndLeftThicknessFiltersConverter" Filters="Left,Top" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="TopAndRightThicknessFiltersConverter" Filters="Top,Right" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="BottomAndLeftThicknessFiltersConverter" Filters="Left,Bottom" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="BottomAndRightThicknessFiltersConverter" Filters="Right,Bottom" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="HorizontalAndTopThicknessFiltersConverter" Filters="Left,Top,Right" />-->
-                    <!--<converters:ThicknessFiltersConverter x:Key="HorizontalAndBottomThicknessFiltersConverter" Filters="Left,Right,Bottom" />-->
-                    <converters:ThicknessFiltersConverter x:Key="VerticalAndLeftThicknessFiltersConverter" Filters="Left,Top,Bottom" />
-                    <converters:ThicknessFiltersConverter x:Key="VerticalAndRightThicknessFiltersConverter" Filters="Top,Right,Bottom" />
-                    <ctConverters:BoolNegationConverter x:Key="BoolNegationConverter" />
-                    <ctConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-                    <ctConverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
-                    <ctConverters:EmptyObjectToObjectConverter
-                        x:Key="EmptyObjectToVisibilityConverter"
-                        EmptyValue="Collapsed"
-                        NotEmptyValue="Visible" />
-                    <ctConverters:CollectionVisibilityConverter x:Key="CollectionVisibilityConverter" />
-                    <ctConverters:DoubleToObjectConverter
-                        x:Key="DoubleToBoolConverter"
-                        FalseValue="False"
-                        GreaterThan="0"
-                        NullValue="False"
-                        TrueValue="True" />
-                    <ctConverters:BoolToObjectConverter
-                        x:Key="BoolToPlayPauseTextConverter"
-                        FalseValue="{strings:Resources Key=Play}"
-                        TrueValue="{strings:Resources Key=Pause}" />
-                    <converters:DefaultStringConverter x:Key="GenreTextConverter" Default="{strings:Resources Key=UnknownGenre}" />
-                    <converters:DefaultStringConverter x:Key="ArtistTextConverter" Default="{strings:Resources Key=UnknownArtist}" />
-                    <converters:DefaultStringConverter x:Key="AlbumTextConverter" Default="{strings:Resources Key=UnknownAlbum}" />
-
-                    <!--  Font sizes  -->
-                    <x:Double x:Key="TopNavigationViewItemFontSize">18</x:Double>
-                    <x:Double x:Key="TitleMediumTextBlockFontSize">32</x:Double>
-
-                    <!--  Standardize header height with or without top nav  -->
-                    <x:Double x:Key="PageHeaderMinHeight">48</x:Double>
-
-                    <!--  Grid item sizes  -->
-                    <x:Double x:Key="CommonGridViewItemWidth">168</x:Double>
-                    <x:Double x:Key="CommonGridViewItemThumbnailHeight">160</x:Double>
-                    <x:Double x:Key="WideGridViewItemWidth">232</x:Double>
-                    <x:Double x:Key="WideGridViewItemThumbnailHeight">128</x:Double>
-
-                    <!--  Content margins  -->
-                    <Thickness x:Key="ContentPagePadding">56,0</Thickness>
-                    <Thickness x:Key="ContentPageMinimalPadding">16,0</Thickness>
-                    <Thickness x:Key="GridViewContentPagePadding">52,0</Thickness>
-                    <Thickness x:Key="GridViewContentPageMinimalPadding">14,0</Thickness>
-
-                    <Thickness x:Key="TopMediumMargin">0,12,0,0</Thickness>
-                    <Thickness x:Key="TopLargeMargin">0,16,0,0</Thickness>
-                    <Thickness x:Key="BottomMediumMargin">0,0,0,12</Thickness>
-                    <Thickness x:Key="BottomLargeMargin">0,0,0,16</Thickness>
-
-                    <Thickness x:Key="ContentPageScrollBarMargin">0,0,0,100</Thickness>
-                    <Thickness x:Key="ContentPageBottomMargin">0,0,0,106</Thickness>
-                    <x:Double x:Key="ContentPageBottomPaddingHeight">106</x:Double>
-
-                    <CornerRadius x:Key="CircularCornerRadius">99</CornerRadius>
-
-                    <!--  Global MenuFlyout paddings to align glyphs and text to the left  -->
-                    <Thickness x:Key="MenuFlyoutItemThemePadding">8,6,12,6</Thickness>
-                    <Thickness x:Key="MenuFlyoutSubItemThemePadding">8,6,12,6</Thickness>
-                    <Thickness x:Key="ToggleMenuFlyoutItemThemePadding">8,6,12,6</Thickness>
-                    <Thickness x:Key="RadioMenuFlyoutItemThemePadding">8,6,12,6</Thickness>
-
-                    <!--  Acrylic background for all context menus  -->
-                    <Style TargetType="MenuFlyoutPresenter">
-                        <Setter Property="Background" Value="{ThemeResource SidePanelBackgroundBrush}" />
-                    </Style>
-
-                    <NavigationViewDisplayMode x:Key="MinimalNavigationViewDisplayMode">Minimal</NavigationViewDisplayMode>
-
-                    <!--  Animations  -->
-                    <ctAnimations:ImplicitAnimationSet x:Key="FadeInImplicitAnimation">
-                        <ctAnimations:OpacityAnimation
-                            EasingType="Linear"
-                            To="1"
-                            Duration="{StaticResource ControlFasterAnimationDuration}" />
-                    </ctAnimations:ImplicitAnimationSet>
-                    <ctAnimations:ImplicitAnimationSet x:Key="FadeOutImplicitAnimation">
-                        <ctAnimations:OpacityAnimation
-                            EasingType="Linear"
-                            To="0"
-                            Duration="{StaticResource ControlFasterAnimationDuration}" />
-                    </ctAnimations:ImplicitAnimationSet>
-
-                    <!--  Shadow  -->
-                    <ThemeShadow x:Key="ElevationThemeShadow" />
-
-                    <!--  Styles  -->
-                    <Style TargetType="TextBlock">
-                        <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" />
-                    </Style>
-                    <Style
-                        x:Key="TitleMediumTextBlockStyle"
-                        BasedOn="{StaticResource BaseTextBlockStyle}"
-                        TargetType="TextBlock">
-                        <Setter Property="AutomationProperties.HeadingLevel" Value="Level1" />
-                        <Setter Property="FontSize" Value="{StaticResource TitleMediumTextBlockFontSize}" />
-                        <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
-                    </Style>
-
-                    <!--  Semantic zoom group-level style  -->
-                    <DataTemplate x:Key="GroupOverviewLetterItemTemplate">
-                        <Button
-                            MinWidth="{StaticResource GridViewHeaderItemMinHeight}"
-                            MinHeight="{StaticResource GridViewHeaderItemMinHeight}"
-                            HorizontalAlignment="Stretch"
-                            Background="Transparent"
-                            BorderBrush="Transparent"
-                            ClickMode="Hover"
-                            IsEnabled="{Binding Group.Count, Converter={StaticResource DoubleToBoolConverter}, Mode=OneWay}">
-                            <TextBlock
-                                Style="{StaticResource SubtitleTextBlockStyle}"
-                                Text="{Binding Group.Key}"
-                                TextWrapping="NoWrap" />
-                        </Button>
-                    </DataTemplate>
+                    <!-- Focus visual overrides to eliminate focus rings -->
+                    <SolidColorBrush x:Key="FocusVisualPrimaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="FocusVisualSecondaryBrush" Color="Transparent" />
+                    <Thickness x:Key="FocusVisualPrimaryThickness">0</Thickness>
+                    <Thickness x:Key="FocusVisualSecondaryThickness">0</Thickness>
+                    <SolidColorBrush x:Key="GridViewItemFocusVisualPrimaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="GridViewItemFocusVisualSecondaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemFocusVisualPrimaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemFocusVisualSecondaryBrush" Color="Transparent" />
+                    <x:Boolean x:Key="UseSystemFocusVisuals">False</x:Boolean>
                 </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <FontFamily x:Key="AppFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="ContentControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="TextControlThemeFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="HeaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="SubheaderTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="TitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="SubtitleTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="BodyTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="BodyStrongTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="CaptionTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <FontFamily x:Key="OverlineTextBlockStyleFontFamily">ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular</FontFamily>
+                    <StaticResource x:Key="AccentFillColorCustomBrush" ResourceKey="SystemColorHighlightColor" />
+                    <SolidColorBrush x:Key="SidePanelBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
 
-                <ResourceDictionary Source="ms-appx:///Controls/ContentUnavailableView/ContentUnavailableView.xaml" />
-                <ResourceDictionary Source="ms-appx:///Controls/ContentUnavailableView/ContentUnavailableView_themeresources.xaml" />
-                <ResourceDictionary Source="ms-appx:///Controls/TitleBar/TitleBar.xaml" />
-                <ResourceDictionary Source="ms-appx:///Controls/TitleBar/TitleBar_themeresources.xaml" />
-                <ResourceDictionary Source="ms-appx:///Styles/Button.xaml" />
-                <ResourceDictionary Source="ms-appx:///Styles/Icon.xaml" />
-                <ResourceDictionary Source="ms-appx:///Styles/ItemContainer.xaml" />
+                    <!-- Focus visual overrides to eliminate focus rings -->
+                    <SolidColorBrush x:Key="FocusVisualPrimaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="FocusVisualSecondaryBrush" Color="Transparent" />
+                    <Thickness x:Key="FocusVisualPrimaryThickness">0</Thickness>
+                    <Thickness x:Key="FocusVisualSecondaryThickness">0</Thickness>
+                    <SolidColorBrush x:Key="GridViewItemFocusVisualPrimaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="GridViewItemFocusVisualSecondaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemFocusVisualPrimaryBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="ListViewItemFocusVisualSecondaryBrush" Color="Transparent" />
+                    <x:Boolean x:Key="UseSystemFocusVisuals">False</x:Boolean>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
 
-            </muxc:XamlControlsResources.MergedDictionaries>
-        </muxc:XamlControlsResources>
+            <!-- Focus visual overrides to eliminate focus rings -->
+            <SolidColorBrush x:Key="FocusVisualPrimaryBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="FocusVisualSecondaryBrush" Color="Transparent" />
+            <Thickness x:Key="FocusVisualPrimaryThickness">0</Thickness>
+            <Thickness x:Key="FocusVisualSecondaryThickness">0</Thickness>
+            <SolidColorBrush x:Key="GridViewItemFocusVisualPrimaryBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="GridViewItemFocusVisualSecondaryBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="ListViewItemFocusVisualPrimaryBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="ListViewItemFocusVisualSecondaryBrush" Color="Transparent" />
+            <x:Boolean x:Key="UseSystemFocusVisuals">False</x:Boolean>
+
+            <!--  Commands  -->
+            <commands:SelectDeselectAllCommand x:Key="SelectDeselectAllCommand" />
+            <commands:ShowPropertiesCommand x:Key="ShowPropertiesCommand" />
+            <commands:OpenWithCommand x:Key="OpenWithCommand" />
+
+            <!--  Converters  -->
+            <converters:FirstOrDefaultConverter x:Key="FirstOrDefaultConverter" />
+            <converters:HumanizedDurationConverter x:Key="HumanizedDurationConverter" />
+            <converters:MediaGlyphConverter x:Key="MediaGlyphConverter" />
+            <converters:PlayPauseGlyphConverter x:Key="PlayPauseGlyphConverter" />
+            <converters:CheckBoxToToolTipConverter x:Key="CheckBoxToToolTipConverter" />
+            <!--<converters:ThicknessFiltersConverter x:Key="LeftThicknessFiltersConverter" Filters="Left" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="TopThicknessFiltersConverter" Filters="Top" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="RightThicknessFiltersConverter" Filters="Right" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="BottomThicknessFiltersConverter" Filters="Bottom" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="HorizontalThicknessFiltersConverter" Filters="Left,Right" />-->
+            <converters:ThicknessFiltersConverter x:Key="VerticalThicknessFiltersConverter" Filters="Top,Bottom" />
+            <!--<converters:ThicknessFiltersConverter x:Key="TopAndLeftThicknessFiltersConverter" Filters="Left,Top" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="TopAndRightThicknessFiltersConverter" Filters="Top,Right" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="BottomAndLeftThicknessFiltersConverter" Filters="Left,Bottom" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="BottomAndRightThicknessFiltersConverter" Filters="Right,Bottom" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="HorizontalAndTopThicknessFiltersConverter" Filters="Left,Top,Right" />-->
+            <!--<converters:ThicknessFiltersConverter x:Key="HorizontalAndBottomThicknessFiltersConverter" Filters="Left,Right,Bottom" />-->
+            <converters:ThicknessFiltersConverter x:Key="VerticalAndLeftThicknessFiltersConverter" Filters="Left,Top,Bottom" />
+            <converters:ThicknessFiltersConverter x:Key="VerticalAndRightThicknessFiltersConverter" Filters="Top,Right,Bottom" />
+            <ctConverters:BoolNegationConverter x:Key="BoolNegationConverter" />
+            <ctConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <ctConverters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
+            <ctConverters:EmptyObjectToObjectConverter
+                x:Key="EmptyObjectToVisibilityConverter"
+                EmptyValue="Collapsed"
+                NotEmptyValue="Visible" />
+            <ctConverters:CollectionVisibilityConverter x:Key="CollectionVisibilityConverter" />
+            <ctConverters:DoubleToObjectConverter
+                x:Key="DoubleToBoolConverter"
+                FalseValue="False"
+                GreaterThan="0"
+                NullValue="False"
+                TrueValue="True" />
+            <ctConverters:BoolToObjectConverter
+                x:Key="BoolToPlayPauseTextConverter"
+                FalseValue="{strings:Resources Key=Play}"
+                TrueValue="{strings:Resources Key=Pause}" />
+            <converters:DefaultStringConverter x:Key="GenreTextConverter" Default="{strings:Resources Key=UnknownGenre}" />
+            <converters:DefaultStringConverter x:Key="ArtistTextConverter" Default="{strings:Resources Key=UnknownArtist}" />
+            <converters:DefaultStringConverter x:Key="AlbumTextConverter" Default="{strings:Resources Key=UnknownAlbum}" />
+
+            <!--  Font sizes  -->
+            <x:Double x:Key="TopNavigationViewItemFontSize">18</x:Double>
+            <x:Double x:Key="TitleMediumTextBlockFontSize">32</x:Double>
+
+            <!--  Standardize header height with or without top nav  -->
+            <x:Double x:Key="PageHeaderMinHeight">48</x:Double>
+
+            <!--  Grid item sizes  -->
+            <x:Double x:Key="CommonGridViewItemWidth">168</x:Double>
+            <x:Double x:Key="CommonGridViewItemThumbnailHeight">160</x:Double>
+            <x:Double x:Key="WideGridViewItemWidth">232</x:Double>
+            <x:Double x:Key="WideGridViewItemThumbnailHeight">128</x:Double>
+
+            <!--  Content margins  -->
+            <Thickness x:Key="ContentPagePadding">56,0</Thickness>
+            <Thickness x:Key="ContentPageMinimalPadding">16,0</Thickness>
+            <Thickness x:Key="GridViewContentPagePadding">52,0</Thickness>
+            <Thickness x:Key="GridViewContentPageMinimalPadding">14,0</Thickness>
+
+            <Thickness x:Key="TopMediumMargin">0,12,0,0</Thickness>
+            <Thickness x:Key="TopLargeMargin">0,16,0,0</Thickness>
+            <Thickness x:Key="BottomMediumMargin">0,0,0,12</Thickness>
+            <Thickness x:Key="BottomLargeMargin">0,0,0,16</Thickness>
+
+            <Thickness x:Key="ContentPageScrollBarMargin">0,0,0,100</Thickness>
+            <Thickness x:Key="ContentPageBottomMargin">0,0,0,106</Thickness>
+            <x:Double x:Key="ContentPageBottomPaddingHeight">106</x:Double>
+
+            <CornerRadius x:Key="CircularCornerRadius">99</CornerRadius>
+
+            <!--  Global MenuFlyout paddings to align glyphs and text to the left  -->
+            <Thickness x:Key="MenuFlyoutItemThemePadding">8,6,12,6</Thickness>
+            <Thickness x:Key="MenuFlyoutSubItemThemePadding">8,6,12,6</Thickness>
+            <Thickness x:Key="ToggleMenuFlyoutItemThemePadding">8,6,12,6</Thickness>
+            <Thickness x:Key="RadioMenuFlyoutItemThemePadding">8,6,12,6</Thickness>
+
+            <!--  Acrylic background for all context menus  -->
+            <Style TargetType="MenuFlyoutPresenter">
+                <Setter Property="Background" Value="{ThemeResource SidePanelBackgroundBrush}" />
+            </Style>
+
+            <NavigationViewDisplayMode x:Key="MinimalNavigationViewDisplayMode">Minimal</NavigationViewDisplayMode>
+
+            <!--  Animations  -->
+            <ctAnimations:ImplicitAnimationSet x:Key="FadeInImplicitAnimation">
+                <ctAnimations:OpacityAnimation
+                    EasingType="Linear"
+                    To="1"
+                    Duration="{StaticResource ControlFasterAnimationDuration}" />
+            </ctAnimations:ImplicitAnimationSet>
+            <ctAnimations:ImplicitAnimationSet x:Key="FadeOutImplicitAnimation">
+                <ctAnimations:OpacityAnimation
+                    EasingType="Linear"
+                    To="0"
+                    Duration="{StaticResource ControlFasterAnimationDuration}" />
+            </ctAnimations:ImplicitAnimationSet>
+
+            <!--  Shadow  -->
+            <ThemeShadow x:Key="ElevationThemeShadow" />
+
+            <!--  Styles  -->
+            <Style TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular" />
+            </Style>
+            <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="LineStackingStrategy" Value="MaxHeight" />
+                <Setter Property="TextLineBounds" Value="Full" />
+                <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
+            </Style>
+            <Style x:Key="CaptionTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="OpticalMarginAlignment" Value="None" />
+            </Style>
+            <Style x:Key="BodyTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="Normal" />
+                <Setter Property="OpticalMarginAlignment" Value="None" />
+            </Style>
+            <Style x:Key="BodyStrongTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="OpticalMarginAlignment" Value="None" />
+            </Style>
+            <Style x:Key="SubtitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style x:Key="TitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+                <Setter Property="FontSize" Value="28" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style
+                x:Key="TitleMediumTextBlockStyle"
+                BasedOn="{StaticResource BaseTextBlockStyle}"
+                TargetType="TextBlock">
+                <Setter Property="AutomationProperties.HeadingLevel" Value="Level1" />
+                <Setter Property="FontSize" Value="{StaticResource TitleMediumTextBlockFontSize}" />
+                <Setter Property="OpticalMarginAlignment" Value="TrimSideBearings" />
+            </Style>
+
+            <!--  Semantic zoom group-level style  -->
+            <DataTemplate x:Key="GroupOverviewLetterItemTemplate">
+                <Button
+                    MinWidth="{StaticResource GridViewHeaderItemMinHeight}"
+                    MinHeight="{StaticResource GridViewHeaderItemMinHeight}"
+                    HorizontalAlignment="Stretch"
+                    Background="Transparent"
+                    BorderBrush="Transparent"
+                    ClickMode="Hover"
+                    IsEnabled="{Binding Group.Count, Converter={StaticResource DoubleToBoolConverter}, Mode=OneWay}">
+                    <TextBlock
+                        Style="{StaticResource SubtitleTextBlockStyle}"
+                        Text="{Binding Group.Key}"
+                        TextWrapping="NoWrap" />
+                </Button>
+            </DataTemplate>
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
+

@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Collections;
@@ -20,31 +20,25 @@ public static class CollectionExtensions
 
     public static void SyncItems<T>(this IList<T> target, IReadOnlyList<T> reference)
     {
-        // Sync items in order. Assume items are unique
-        for (int i = 0; i < reference.Count; i++)
+        // 1. Trim target if it has more items than reference
+        while (target.Count > reference.Count)
         {
-            T item = reference[i];
-            if (i >= target.Count)
-            {
-                target.Add(item);
-            }
-            else
-            {
-                int existingIndex = target.IndexOf(item);
-                if (existingIndex == i) continue;
-                if (existingIndex >= 0 && existingIndex != i)
-                {
-                    target.RemoveAt(existingIndex);
-                }
+            target.RemoveAt(target.Count - 1);
+        }
 
-                target.Insert(i, item);
+        // 2. Update existing elements in place
+        for (int i = 0; i < target.Count; i++)
+        {
+            if (!EqualityComparer<T>.Default.Equals(target[i], reference[i]))
+            {
+                target[i] = reference[i];
             }
         }
 
-        // Remove items not in "reference"
-        for (int i = target.Count - 1; i >= reference.Count; i--)
+        // 3. Add any new elements at the end
+        for (int i = target.Count; i < reference.Count; i++)
         {
-            target.RemoveAt(i);
+            target.Add(reference[i]);
         }
     }
 

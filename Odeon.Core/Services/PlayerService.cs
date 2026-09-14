@@ -81,7 +81,8 @@ public sealed class PlayerService : IPlayerService
             ["sub-ass-style-overrides"] = overrideEnabled ? forceStyle : "",
             ["osd-level"] = "0",
             ["vo"] = "libmpv",
-            ["hwdec"] = "auto-copy"
+            ["hwdec"] = "auto-copy",
+            ["volume-max"] = "300.0"
         };
 
         // Add any extra arguments passed from settings or caller

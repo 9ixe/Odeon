@@ -35,6 +35,7 @@ namespace Odeon.Controls
 
         internal SeekBarViewModel ViewModel => (SeekBarViewModel)DataContext;
         private readonly DispatcherQueueTimer _previewToolTipTimer;
+        private readonly DispatcherQueueTimer _scrollExpandTimer;
         private Thumb? _seekBarThumb;
 
         private readonly ToolTip _previewToolTip;
@@ -47,6 +48,17 @@ namespace Odeon.Controls
             DispatcherQueue dispatcherQueue = DispatcherQueue.GetForCurrentThread();
             _previewToolTipTimer = dispatcherQueue.CreateTimer();
             _previewToolTip = new ToolTip { Padding = new Thickness(8, 3, 8, 5), FontSize = 15, VerticalOffset = 20 };
+
+            _scrollExpandTimer = dispatcherQueue.CreateTimer();
+            _scrollExpandTimer.Interval = TimeSpan.FromMilliseconds(600);
+            _scrollExpandTimer.IsRepeating = false;
+            _scrollExpandTimer.Tick += (s, e) =>
+            {
+                if (!_isSeekingPointerPressed)
+                {
+                    VisualStateManager.GoToState(this, "Normal", true);
+                }
+            };
 
             ViewModel.PropertyChanged += ViewModelOnPropertyChanged;
         }
@@ -73,7 +85,10 @@ namespace Odeon.Controls
         {
             _isSeekingPointerPressed = false;
             ViewModel.OnSeekBarPointerEvent(false);
-            VisualStateManager.GoToState(this, "Normal", true);
+            if (!_scrollExpandTimer.IsRunning)
+            {
+                VisualStateManager.GoToState(this, "Normal", true);
+            }
         }
 
         private void PointerPressedEventHandler(object sender, PointerRoutedEventArgs e)
@@ -104,7 +119,7 @@ namespace Odeon.Controls
 
         private void SeekBarSlider_OnPointerExited(object sender, PointerRoutedEventArgs e)
         {
-            if (!_isSeekingPointerPressed)
+            if (!_isSeekingPointerPressed && !_scrollExpandTimer.IsRunning)
             {
                 VisualStateManager.GoToState(this, "Normal", true);
             }
@@ -133,12 +148,15 @@ namespace Odeon.Controls
         private void SeekBarThumb_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             _isSeekingPointerPressed = false;
+            if (!_scrollExpandTimer.IsRunning)
+            {
+                VisualStateManager.GoToState(this, "Normal", true);
+            }
             var position = e.GetCurrentPoint(SeekBarSlider).Position;
             bool inBound = position.X >= 0 && position.X <= SeekBarSlider.ActualWidth &&
                            position.Y >= 0 && position.Y <= SeekBarSlider.ActualHeight;
             if (!inBound)
             {
-                VisualStateManager.GoToState(this, "Normal", true);
                 SeekBarSlider_OnPointerExited(sender, e);
             }
         }
@@ -146,6 +164,10 @@ namespace Odeon.Controls
         private void SeekBarSlider_OnPointerWheelChanged(object sender, PointerRoutedEventArgs e)
         {
             if (e.IsGenerated) return;
+            VisualStateManager.GoToState(this, "Seeking", true);
+            _scrollExpandTimer.Stop();
+            _scrollExpandTimer.Start();
+
             PointerPoint pointer = e.GetCurrentPoint((UIElement)sender);
             int mouseWheelDelta = pointer.Properties.MouseWheelDelta;
             ViewModel.OnSeekBarPointerWheelChanged(mouseWheelDelta);

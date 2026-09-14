@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Threading.Tasks;
@@ -17,7 +17,7 @@ namespace Odeon.Dialogs
             this.DefaultStyleKey = typeof(ContentDialog);
             this.InitializeComponent();
             FlowDirection = GlobalizationHelper.GetFlowDirection();
-            RequestedTheme = ((FrameworkElement)Window.Current.Content).RequestedTheme;
+            RequestedTheme = ElementTheme.Dark;
         }
 
         public static async Task<Uri?> GetUrlAsync()

@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Name="Root"
     x:Class="Odeon.Controls.ChapterProgressBar"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -23,28 +23,31 @@
             <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
 
             <DataTemplate x:Key="ItemTemplate" x:DataType="viewModels:ChapterViewModel">
-                <muxc:ProgressBar
-                    Width="{Binding Width}"
-                    Maximum="{Binding Maximum}"
-                    Minimum="{Binding Minimum}"
-                    MinHeight="{Binding ElementName=Root, Path=MinHeight}"
-                    Style="{StaticResource NoAnimationProgressBarStyle}"
-                    Padding="0"
-                    BorderThickness="0"
-                    Background="{ThemeResource ProgressBarBackground}"
-                    Foreground="{ThemeResource SystemControlHighlightAccentBrush}"
-                    Value="{Binding Value}">
-                    <muxc:ProgressBar.Resources>
-            <CornerRadius x:Key="ProgressBarCornerRadius">4</CornerRadius>
-            <CornerRadius x:Key="ProgressBarTrackCornerRadius">4</CornerRadius>
-                    </muxc:ProgressBar.Resources>
-                </muxc:ProgressBar>
+                <Grid
+                    Width="{x:Bind Width, Mode=OneWay}"
+                    Height="{x:Bind Height, Mode=OneWay}"
+                    VerticalAlignment="Center"
+                    CornerRadius="3">
+                    <Rectangle
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch"
+                        RadiusX="3"
+                        RadiusY="3"
+                        Fill="{ThemeResource ProgressBarBackground}" />
+                    <Rectangle
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Stretch"
+                        Width="{x:Bind FillWidth, Mode=OneWay}"
+                        RadiusX="3"
+                        RadiusY="3"
+                        Fill="{ThemeResource SystemControlHighlightAccentBrush}" />
+                </Grid>
             </DataTemplate>
 
             <muxc:StackLayout
                 x:Key="HorizontalStackLayout"
                 Orientation="Horizontal"
-                Spacing="2" />
+                Spacing="3" />
         </ResourceDictionary>
     </UserControl.Resources>
 

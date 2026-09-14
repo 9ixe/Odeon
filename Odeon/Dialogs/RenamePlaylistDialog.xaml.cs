@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Threading.Tasks;
@@ -17,7 +17,7 @@ public sealed partial class RenamePlaylistDialog : ContentDialog
         this.DefaultStyleKey = typeof(ContentDialog);
         this.InitializeComponent();
         FlowDirection = GlobalizationHelper.GetFlowDirection();
-        RequestedTheme = ((FrameworkElement)Window.Current.Content).RequestedTheme;
+        RequestedTheme = ElementTheme.Dark;
         PlaylistNameTextBox.Text = currentName;
         PlaylistNameTextBox.SelectAll();
     }

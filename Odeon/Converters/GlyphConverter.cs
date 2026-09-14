@@ -198,19 +198,24 @@ public static partial class GlyphConverter
     }
 
     /// <summary>
-    /// Gets the chapters glyph code based on whether chapters are shown.
+    /// Gets the chapters glyph code.
     /// </summary>
     /// <param name="showChapters">A <see cref="bool"/> indicating whether chapters are visible.</param>
-    /// <returns>
-    /// <b>CheckMark</b> glyph code <see cref="string"/> if <paramref name="showChapters"/> is <see langword="true"/>;
-    /// otherwise, <b>Chapters</b> glyph code.
-    /// </returns>
-    public static string ToChaptersGlyph(bool showChapters)
+    /// <returns>Chapters glyph code.</returns>
+    public static string ToChaptersGlyph(bool showChapters = false)
     {
-        const string CheckMarkGlyph = "\uE73E";
         const string ChaptersGlyph = "\uE75B";
+        return ChaptersGlyph;
+    }
 
-        return showChapters ? CheckMarkGlyph : ChaptersGlyph;
+    /// <summary>
+    /// Gets the chapters menu item text based on whether chapters are currently shown.
+    /// </summary>
+    /// <param name="showChapters">A <see cref="bool"/> indicating whether chapters are visible.</param>
+    /// <returns>Localized string for "Hide chapters" when true; otherwise, "Show chapters".</returns>
+    public static string ToChaptersText(bool showChapters)
+    {
+        return showChapters ? Strings.Resources.HideChapters : Strings.Resources.SettingsShowChaptersHeader;
     }
 }
 

@@ -89,12 +89,12 @@
         <Setter Property="MinWidth" Value="{ThemeResource GridViewItemMinWidth}" />
         <Setter Property="MinHeight" Value="{ThemeResource GridViewItemMinHeight}" />
         <Setter Property="AllowDrop" Value="False" />
-        <Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />
+        <Setter Property="UseSystemFocusVisuals" Value="False" />
         <Setter Property="FocusVisualMargin" Value="-2" />
         <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GridViewItemFocusVisualPrimaryBrush}" />
-        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="0" />
         <Setter Property="FocusVisualSecondaryBrush" Value="{ThemeResource GridViewItemFocusVisualSecondaryBrush}" />
-        <Setter Property="FocusVisualSecondaryThickness" Value="1" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GridViewItem">
@@ -220,12 +220,12 @@
         <Setter Property="MinWidth" Value="{ThemeResource GridViewItemMinWidth}" />
         <Setter Property="MinHeight" Value="{ThemeResource GridViewItemMinHeight}" />
         <Setter Property="AllowDrop" Value="True" />
-        <Setter Property="UseSystemFocusVisuals" Value="{StaticResource UseSystemFocusVisuals}" />
+        <Setter Property="UseSystemFocusVisuals" Value="False" />
         <Setter Property="FocusVisualMargin" Value="-3" />
         <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource GridViewItemFocusVisualPrimaryBrush}" />
-        <Setter Property="FocusVisualPrimaryThickness" Value="2" />
+        <Setter Property="FocusVisualPrimaryThickness" Value="0" />
         <Setter Property="FocusVisualSecondaryBrush" Value="{ThemeResource GridViewItemFocusVisualSecondaryBrush}" />
-        <Setter Property="FocusVisualSecondaryThickness" Value="1" />
+        <Setter Property="FocusVisualSecondaryThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GridViewItem">

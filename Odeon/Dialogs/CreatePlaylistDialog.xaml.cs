@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using System;
 using System.Threading.Tasks;
@@ -19,7 +19,7 @@ public sealed partial class CreatePlaylistDialog : ContentDialog
         this.DefaultStyleKey = typeof(ContentDialog);
         this.InitializeComponent();
         FlowDirection = GlobalizationHelper.GetFlowDirection();
-        RequestedTheme = ((FrameworkElement)Window.Current.Content).RequestedTheme;
+        RequestedTheme = ElementTheme.Dark;
     }
 
     public static async Task<string?> GetPlaylistNameAsync()

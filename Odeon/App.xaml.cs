@@ -19,6 +19,7 @@ using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 namespace Odeon;
@@ -50,6 +51,7 @@ sealed partial class App : Application
             // https://learn.microsoft.com/en-us/windows/apps/design/input/gamepad-and-remote-interactions#reveal-focus
             FocusVisualKind = FocusVisualKind.Reveal;
         }
+
 
         // Disable automatic High Contrast adjustments
         // https://learn.microsoft.com/en-us/windows/apps/design/accessibility/high-contrast-themes#setting-highcontrastadjustment-to-none
@@ -247,22 +249,20 @@ sealed partial class App : Application
                 rootFrame.FlowDirection = FlowDirection.RightToLeft;
             }
 
-            var settings = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<ISettingsService>();
-            var theme = settings.Theme.ToElementTheme();
-            rootFrame.RequestedTheme = theme;
+            rootFrame.RequestedTheme = ElementTheme.Dark;
 
             CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
-            SetupTitleBarColors(theme);
+            SetupTitleBarColors(ElementTheme.Dark);
             rootFrame.ActualThemeChanged += (sender, args) =>
             {
-                SetupTitleBarColors(sender.ActualTheme);
+                SetupTitleBarColors(ElementTheme.Dark);
             };
         }
 
         return rootFrame;
     }
 
-    public static void SetupTitleBarColors(ElementTheme theme)
+    public static void SetupTitleBarColors(ElementTheme theme = ElementTheme.Dark)
     {
         var titleBar = Windows.UI.ViewManagement.ApplicationView.GetForCurrentView().TitleBar;
         if (titleBar == null) return;
@@ -270,23 +270,11 @@ sealed partial class App : Application
         titleBar.ButtonBackgroundColor = Windows.UI.Colors.Transparent;
         titleBar.ButtonInactiveBackgroundColor = Windows.UI.Colors.Transparent;
 
-        if (theme == ElementTheme.Dark)
-        {
-            titleBar.ButtonForegroundColor = Windows.UI.Colors.White;
-            titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(24, 255, 255, 255);
-            titleBar.ButtonHoverForegroundColor = Windows.UI.Colors.White;
-            titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(48, 255, 255, 255);
-            titleBar.ButtonPressedForegroundColor = Windows.UI.Colors.White;
-            titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(255, 113, 113, 113);
-        }
-        else
-        {
-            titleBar.ButtonForegroundColor = Windows.UI.Colors.Black;
-            titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(24, 0, 0, 0);
-            titleBar.ButtonHoverForegroundColor = Windows.UI.Colors.Black;
-            titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(48, 0, 0, 0);
-            titleBar.ButtonPressedForegroundColor = Windows.UI.Colors.Black;
-            titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(255, 166, 166, 166);
-        }
+        titleBar.ButtonForegroundColor = Windows.UI.Colors.White;
+        titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(24, 255, 255, 255);
+        titleBar.ButtonHoverForegroundColor = Windows.UI.Colors.White;
+        titleBar.ButtonPressedBackgroundColor = Windows.UI.Color.FromArgb(48, 255, 255, 255);
+        titleBar.ButtonPressedForegroundColor = Windows.UI.Colors.White;
+        titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(255, 113, 113, 113);
     }
 }

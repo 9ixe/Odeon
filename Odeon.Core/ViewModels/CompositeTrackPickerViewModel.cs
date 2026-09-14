@@ -17,12 +17,14 @@ using Odeon.Core.Messages;
 using Odeon.Core.Playback;
 using Odeon.Core.Services;
 using Windows.Storage;
+using Windows.Media.Core;
 using Windows.Storage.Search;
 
 namespace Odeon.Core.ViewModels;
 
 public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
-    IRecipient<QueueCurrentItemChangedMessage>
+    IRecipient<QueueCurrentItemChangedMessage>,
+    IRecipient<SubtitleAddedNotificationMessage>
 {
     public ObservableCollection<string> SubtitleTracks { get; }
 
@@ -63,6 +65,8 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     private readonly PlayerContext _playerContext;
     private bool _flyoutOpened;
     private string? _lastProcessedMediaKey;
+    private IMediaPlayer? _currentHookedPlayer;
+    private PlaybackItem? _currentSubscribedPlaybackItem;
 
     public CompositeTrackPickerViewModel(PlayerContext playerContext, IFilesService filesService,
         ISettingsService settingsService)
@@ -75,6 +79,127 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
         VideoTracks = new ObservableCollection<string>();
 
         IsActive = true;
+
+        _playerContext.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(PlayerContext.MediaPlayer))
+            {
+                HookMediaPlayer(_playerContext.MediaPlayer);
+            }
+        };
+        HookMediaPlayer(_playerContext.MediaPlayer);
+    }
+
+    private void HookMediaPlayer(IMediaPlayer? player)
+    {
+        if (_currentHookedPlayer == player) return;
+        if (_currentHookedPlayer != null)
+        {
+            _currentHookedPlayer.PlaybackItemChanged -= OnPlaybackItemChanged;
+        }
+        _currentHookedPlayer = player;
+        if (_currentHookedPlayer != null)
+        {
+            _currentHookedPlayer.PlaybackItemChanged += OnPlaybackItemChanged;
+            SubscribeToPlaybackItem(_currentHookedPlayer.PlaybackItem);
+        }
+        else
+        {
+            SubscribeToPlaybackItem(null);
+        }
+    }
+
+    private void OnPlaybackItemChanged(IMediaPlayer sender, Events.ValueChangedEventArgs<PlaybackItem?> args)
+    {
+        SubscribeToPlaybackItem(args.NewValue);
+    }
+
+    private void SubscribeToPlaybackItem(PlaybackItem? item)
+    {
+        if (_currentSubscribedPlaybackItem == item) return;
+
+        if (_currentSubscribedPlaybackItem != null)
+        {
+            _currentSubscribedPlaybackItem.SubtitleTracks.TrackListChanged -= OnSubtitleTracksChanged;
+            _currentSubscribedPlaybackItem.SubtitleTracks.SelectedIndexChanged -= OnSubtitleSelectedIndexChanged;
+            _currentSubscribedPlaybackItem.AudioTracks.TrackListChanged -= OnAudioTracksChanged;
+            _currentSubscribedPlaybackItem.AudioTracks.SelectedIndexChanged -= OnAudioSelectedIndexChanged;
+            _currentSubscribedPlaybackItem.VideoTracks.TrackListChanged -= OnVideoTracksChanged;
+            _currentSubscribedPlaybackItem.VideoTracks.SelectedIndexChanged -= OnVideoSelectedIndexChanged;
+        }
+
+        _currentSubscribedPlaybackItem = item;
+
+        if (_currentSubscribedPlaybackItem != null)
+        {
+            _currentSubscribedPlaybackItem.SubtitleTracks.TrackListChanged += OnSubtitleTracksChanged;
+            _currentSubscribedPlaybackItem.SubtitleTracks.SelectedIndexChanged += OnSubtitleSelectedIndexChanged;
+            _currentSubscribedPlaybackItem.AudioTracks.TrackListChanged += OnAudioTracksChanged;
+            _currentSubscribedPlaybackItem.AudioTracks.SelectedIndexChanged += OnAudioSelectedIndexChanged;
+            _currentSubscribedPlaybackItem.VideoTracks.TrackListChanged += OnVideoTracksChanged;
+            _currentSubscribedPlaybackItem.VideoTracks.SelectedIndexChanged += OnVideoSelectedIndexChanged;
+        }
+
+        UpdateSubtitleTrackList();
+        UpdateAudioTrackList();
+        UpdateVideoTrackList();
+        SubtitleTrackIndex = (_currentSubscribedPlaybackItem?.SubtitleTracks.SelectedIndex + 1) ?? 0;
+        AudioTrackIndex = _currentSubscribedPlaybackItem?.AudioTracks.SelectedIndex ?? -1;
+        VideoTrackIndex = _currentSubscribedPlaybackItem?.VideoTracks.SelectedIndex ?? -1;
+    }
+
+    private void OnSubtitleTracksChanged(ISingleSelectMediaTrackList sender, object? args)
+    {
+        UpdateSubtitleTrackList();
+        SubtitleTrackIndex = (ItemSubtitleTrackList?.SelectedIndex + 1) ?? 0;
+    }
+
+    private void OnSubtitleSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
+    {
+        int newIndex = (sender.SelectedIndex + 1);
+        if (_subtitleTrackIndex != newIndex)
+        {
+            _subtitleTrackIndex = newIndex;
+            OnPropertyChanged(nameof(SubtitleTrackIndex));
+        }
+    }
+
+    private void OnAudioTracksChanged(ISingleSelectMediaTrackList sender, object? args)
+    {
+        UpdateAudioTrackList();
+        AudioTrackIndex = ItemAudioTrackList?.SelectedIndex ?? -1;
+    }
+
+    private void OnAudioSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
+    {
+        int newIndex = sender.SelectedIndex;
+        if (_audioTrackIndex != newIndex)
+        {
+            _audioTrackIndex = newIndex;
+            OnPropertyChanged(nameof(AudioTrackIndex));
+        }
+    }
+
+    private void OnVideoTracksChanged(ISingleSelectMediaTrackList sender, object? args)
+    {
+        UpdateVideoTrackList();
+        VideoTrackIndex = ItemVideoTrackList?.SelectedIndex ?? -1;
+    }
+
+    private void OnVideoSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
+    {
+        int newIndex = sender.SelectedIndex;
+        if (_videoTrackIndex != newIndex)
+        {
+            _videoTrackIndex = newIndex;
+            OnPropertyChanged(nameof(VideoTrackIndex));
+        }
+    }
+
+    public void Receive(SubtitleAddedNotificationMessage message)
+    {
+        UpdateSubtitleTrackList();
+        SubtitleTrackIndex = (ItemSubtitleTrackList?.SelectedIndex + 1) ?? 0;
     }
 
     /// <summary>
@@ -95,6 +220,8 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
 
         // 1. Auto-discover neighboring subtitles in same folder
         IReadOnlyList<StorageFile> subtitles = await GetSubtitlesForFile(file, message.NeighboringFilesQuery);
+        if (player.PlaybackItem != media.Item.Value) return;
+
         foreach (StorageFile subtitleFile in subtitles)
         {
             playbackSubtitleTrackList.AddExternalSubtitle(player, subtitleFile, null, false);
@@ -109,6 +236,8 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
                 if (System.IO.File.Exists(extPath))
                 {
                     StorageFile extFile = await StorageFile.GetFileFromPathAsync(extPath);
+                    if (player.PlaybackItem != media.Item.Value) return;
+
                     if (extFile != null)
                     {
                         playbackSubtitleTrackList.AddExternalSubtitle(player, extFile, null, false);
@@ -121,6 +250,7 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
             LogService.Log(ex);
         }
 
+        if (player.PlaybackItem != media.Item.Value) return;
         TrySetSubtitleFromLanguage(playbackSubtitleTrackList, _settingsService.PersistentSubtitleLanguage);
 
         var playbackAudioTrackList = media.Item.Value?.AudioTracks;
@@ -128,6 +258,8 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
         {
             // 1. Auto-discover neighboring audio files in same folder
             IReadOnlyList<StorageFile> audioFiles = await GetAudioTracksForFile(file, message.NeighboringFilesQuery);
+            if (player.PlaybackItem != media.Item.Value) return;
+
             foreach (StorageFile audioFile in audioFiles)
             {
                 playbackAudioTrackList.AddExternalAudio(player, audioFile, false);
@@ -142,6 +274,8 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
                     if (System.IO.File.Exists(aExtPath))
                     {
                         StorageFile extAudioFile = await StorageFile.GetFileFromPathAsync(aExtPath);
+                        if (player.PlaybackItem != media.Item.Value) return;
+
                         if (extAudioFile != null)
                         {
                             playbackAudioTrackList.AddExternalAudio(player, extAudioFile, false);
@@ -154,6 +288,7 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
                 LogService.Log(ex);
             }
 
+            if (player.PlaybackItem != media.Item.Value) return;
             TrySetAudioFromLanguage(playbackAudioTrackList, _settingsService.PersistentAudioLanguage);
         }
     }
@@ -371,7 +506,8 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
         // Decrement value by 1 to convert from display index to actual subtitle track index
         value = Math.Max(-1, value - 1);
         if (value >= ItemSubtitleTrackList.Count) return;
-        ItemSubtitleTrackList.SelectedIndex = value;
+        if (ItemSubtitleTrackList.SelectedIndex != value)
+            ItemSubtitleTrackList.SelectedIndex = value;
 
         string mediaKey = (MediaPlayer as MpvMediaPlayer)?.PlaybackItem?.FilePath ?? string.Empty;
         string perMediaKey = !string.IsNullOrEmpty(mediaKey) ? $"MediaSubTrack_{mediaKey.GetHashCode():X8}" : string.Empty;
@@ -404,7 +540,10 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     {
         if (!_flyoutOpened) return;
         if (ItemAudioTrackList != null && value >= 0 && value < ItemAudioTrackList.Count)
-            ItemAudioTrackList.SelectedIndex = value;
+        {
+            if (ItemAudioTrackList.SelectedIndex != value)
+                ItemAudioTrackList.SelectedIndex = value;
+        }
 
         string mediaKey = (MediaPlayer as MpvMediaPlayer)?.PlaybackItem?.FilePath ?? string.Empty;
         string perMediaKey = !string.IsNullOrEmpty(mediaKey) ? $"MediaAudioTrack_{mediaKey.GetHashCode():X8}" : string.Empty;
@@ -437,7 +576,10 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     {
         if (!_flyoutOpened) return;
         if (ItemVideoTrackList != null && value >= 0 && value < ItemVideoTrackList.Count)
-            ItemVideoTrackList.SelectedIndex = value;
+        {
+            if (ItemVideoTrackList.SelectedIndex != value)
+                ItemVideoTrackList.SelectedIndex = value;
+        }
     }
 
     /// <summary>
@@ -464,6 +606,9 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
                 }
                 catch { }
             }
+
+            UpdateSubtitleTrackList();
+            SubtitleTrackIndex = (ItemSubtitleTrackList?.SelectedIndex + 1) ?? 0;
 
             Messenger.Send(new SubtitleAddedNotificationMessage(file));
         }

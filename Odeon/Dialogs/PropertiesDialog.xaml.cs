@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using Odeon.Core.Common;
 using Odeon.Core.ViewModels;
@@ -28,7 +28,7 @@ namespace Odeon.Dialogs
         {
             this.InitializeComponent();
             FlowDirection = GlobalizationHelper.GetFlowDirection();
-            RequestedTheme = ((FrameworkElement)Window.Current.Content).RequestedTheme;
+            RequestedTheme = ElementTheme.Dark;
         }
     }
 }

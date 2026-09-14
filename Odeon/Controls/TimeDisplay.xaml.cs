@@ -129,6 +129,23 @@ namespace Odeon.Controls
         private void MenuFlyout_OnOpening(object sender, object e)
         {
             UpdateTimeFlyoutChecks();
+            UpdateChaptersFlyoutText();
+        }
+
+        private void FlyoutShowChaptersItem_Click(object sender, RoutedEventArgs e)
+        {
+            ShowChapterName = !ShowChapterName;
+            UpdateChaptersFlyoutText();
+        }
+
+        private void UpdateChaptersFlyoutText()
+        {
+            if (FlyoutShowChaptersItem != null)
+            {
+                FlyoutShowChaptersItem.Text = ShowChapterName
+                    ? Strings.Resources.HideChapters
+                    : Strings.Resources.SettingsShowChaptersHeader;
+            }
         }
 
         private void FlyoutElapsedItem_Click(object sender, RoutedEventArgs e)
