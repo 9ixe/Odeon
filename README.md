@@ -149,7 +149,7 @@ Most media players for Windows have grown into bloated media centers — backgro
 
 ### 💬 Subtitle Customization
 
-- **Forced Futura PT Medium typography** across all subtitles for a clean, cinematic look
+- **Forced Futura PT Medium & Linotte typography** across all subtitles and UI elements for a clean, cinematic look
 - Native ASS/SSA override pipeline: strips hardcoded fonts/colors while preserving timing and positioning
 - GDI font discovery via `AddFontResourceExW(FR_PRIVATE)` — no embedded font blobs, no cache management
 - Redesigned subtitle side panel with instant track switching
@@ -178,24 +178,6 @@ Most media players for Windows have grown into bloated media centers — backgro
 - No background library scanning — instant file access
 
 <div align="right"><a href="#odeon">⬆ Back to top</a></div>
-
----
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-| :--- | :--- |
-| <kbd>Tab</kbd> | Toggle Video Properties HUD |
-| <kbd>Space</kbd> / <kbd>K</kbd> | Play / Pause |
-| <kbd>F</kbd> / <kbd>F11</kbd> | Toggle Fullscreen |
-| <kbd>←</kbd> / <kbd>→</kbd> | Seek 5 seconds backward / forward |
-| <kbd>J</kbd> / <kbd>L</kbd> | Seek 10 seconds backward / forward |
-| <kbd>↑</kbd> / <kbd>↓</kbd> | Volume Up / Down |
-| <kbd>M</kbd> | Toggle Mute |
-| <kbd>1</kbd> – <kbd>4</kbd> | Window Resize Presets (50%, 100%, 150%, 200%) |
-| <kbd>Esc</kbd> | Exit Fullscreen / Dismiss Active Menus |
-| <kbd>C</kbd> | Toggle Subtitle Side Panel |
-| <kbd>I</kbd> | Restore from Mini Player |
 
 ---
 
