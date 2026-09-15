@@ -90,7 +90,7 @@ Most media players for Windows have grown into bloated media centers — backgro
 <br>Powered by shinchiro's battle-tested libmpv runtime.
 
 </td>
-</tr>it add .
+</tr>
 <tr>
 <td valign="top">
 
