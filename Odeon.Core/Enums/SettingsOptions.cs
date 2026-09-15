@@ -13,3 +13,10 @@ public enum ThemeOption
     Light,
     Dark
 }
+
+public enum AccentColorOption
+{
+    Red,
+    System,
+    Monochrome
+}

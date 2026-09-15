@@ -397,10 +397,18 @@ desktop.ini
 # Temp, backup, and log files
 log.md
 build_out.txt
+InvalidXamlResources.txt
 *.bak
 *.orig
 *.swp
 *~
 *.env
 *.env.local
+
+# Duplicate font source directory at repo root (canonical copy lives in Odeon/Assets/Fonts/)
+assets/fonts/
+
+# Font build tooling (not needed for app build)
+Odeon/Assets/Fonts/package.json
+Odeon/Assets/Fonts/package-lock.json
 

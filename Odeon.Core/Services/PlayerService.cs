@@ -82,7 +82,28 @@ public sealed class PlayerService : IPlayerService
             ["osd-level"] = "0",
             ["vo"] = "libmpv",
             ["hwdec"] = "auto-copy",
-            ["volume-max"] = "300.0"
+            ["volume-max"] = "300.0",
+            ["video-output-levels"] = "full",
+            // ── HDR Tone-mapping ──────────────────────────────────────────────────────
+            // Root cause (confirmed by log): the video is Dolby Vision (HEVC Main 10,
+            // p010 pixel format). mpv's ffmpeg decoder skips/discards the Dolby Vision
+            // RPU metadata ("Multiple Dolby Vision RPUs found in one AU. Skipping previous."),
+            // which means the raw PQ-encoded HDR pixel values pass through untonmapped
+            // into the SDR 8-bit pipeline. PQ values in sRGB space = massively over-bright.
+            //
+            // hable: Filmic tone-mapping curve (John Hable). Good HDR→SDR perceptual
+            //        balance, preserves highlights without crushing shadows. Industry standard.
+            ["tone-mapping"] = "hable",
+            // hdr-compute-peak=yes: mpv measures the actual peak brightness of each frame
+            // and uses it to scale the tone-mapping curve dynamically. Without this, mpv
+            // falls back to a fixed 1000 nit assumption which can under/overtone-map.
+            ["hdr-compute-peak"] = "yes",
+            // target-trc=auto (the default): for SDR content passes gamma through unchanged;
+            // for HDR after tone-mapping converts to gamma2.2/sRGB for the display.
+            // ["target-trc"] = "auto",
+            ["target-colorspace-hint"] = "no",
+            // Prevent Windows display ICC profiles from double-correcting after mpv's conversion.
+            ["icc-profile-auto"] = "no"
         };
 
         // Add any extra arguments passed from settings or caller

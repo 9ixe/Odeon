@@ -12,8 +12,8 @@
     xmlns:strings="using:Odeon.Strings"
     xmlns:ui="using:CommunityToolkit.WinUI"
     xmlns:viewModels="using:Odeon.Core.ViewModels"
-    d:DesignHeight="600"
-    d:DesignWidth="380"
+    d:DesignHeight="700"
+    d:DesignWidth="480"
     mc:Ignorable="d"
     UseLayoutRounding="True"
     FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular">
@@ -78,17 +78,17 @@
 
             <Style x:Key="PlayQueueItemStyle" TargetType="ListViewItem">
                 <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
-                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontSize" Value="15" />
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
                 <Setter Property="TabNavigation" Value="Local" />
                 <Setter Property="IsHoldingEnabled" Value="True" />
                 <Setter Property="Margin" Value="2,1,2,1" />
-                <Setter Property="MinHeight" Value="34" />
-                <Setter Property="Padding" Value="14,0,10,0" />
+                <Setter Property="MinHeight" Value="38" />
+                <Setter Property="Padding" Value="16,0,12,0" />
                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                 <Setter Property="VerticalContentAlignment" Value="Center" />
-                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="CornerRadius" Value="6" />
                 <Setter Property="UseSystemFocusVisuals" Value="False" />
                 <Setter Property="Template">
                     <Setter.Value>
@@ -118,10 +118,10 @@
                                     </Grid.RenderTransform>
                                     <Rectangle
                                         x:Name="SelectionIndicator"
-                                        Width="3"
-                                        Height="16"
-                                        RadiusX="1.5"
-                                        RadiusY="1.5"
+                                        Width="3.5"
+                                        Height="20"
+                                        RadiusX="1.75"
+                                        RadiusY="1.75"
                                         Fill="{ThemeResource SystemAccentColorBrush}"
                                         Opacity="0"
                                         RenderTransformOrigin="0.5,0.5">
@@ -252,7 +252,7 @@
             </Grid.RowDefinitions>
 
             <!-- Header -->
-            <Grid Grid.Row="0" Margin="18,14,14,8">
+            <Grid Grid.Row="0" Margin="20,16,16,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -261,7 +261,7 @@
                     Grid.Column="0"
                     Text="{strings:Resources Key=PlayNext}"
                     FontWeight="SemiBold"
-                    FontSize="18"
+                    FontSize="20"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                 <Button
@@ -270,11 +270,11 @@
                     Click="CloseButton_OnClick"
                     Style="{StaticResource SubtleButtonStyle}"
                     Padding="0"
-                    Width="32"
-                    Height="32"
+                    Width="34"
+                    Height="34"
                     VerticalAlignment="Center"
                     ToolTipService.ToolTip="Close">
-                    <FontIcon FontSize="12" Glyph="&#xE711;" />
+                    <FontIcon FontSize="13" Glyph="&#xE711;" />
                 </Button>
             </Grid>
 
@@ -282,9 +282,9 @@
             <StackPanel
                 x:Name="ActionButtonRow"
                 Grid.Row="1"
-                Margin="18,0,14,8"
+                Margin="20,0,16,10"
                 Orientation="Horizontal"
-                Spacing="8">
+                Spacing="10">
                 <Button
                     x:Name="AddFilesButton"
                     AutomationProperties.Name="{strings:Resources Key=AddFiles}"
@@ -437,7 +437,7 @@
                 ItemsSource="{x:Bind QueueItems}"
                 SelectionChanged="PlaylistListView_OnSelectionChanged"
                 SingleSelectionFollowsFocus="False"
-                MaxHeight="380"
+                MaxHeight="480"
                 Padding="0"
                 AllowDrop="True"
                 CanDragItems="True"
@@ -449,7 +449,7 @@
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 ScrollViewer.VerticalScrollMode="Enabled"
                 ScrollViewer.HorizontalScrollMode="Disabled"
-                Margin="8,4,8,24"
+                Margin="10,4,10,20"
                 ItemContainerStyle="{StaticResource PlayQueueItemStyle}"
                 ItemContainerTransitions="{x:Null}">
                 <ListView.ItemTemplate>

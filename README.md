@@ -8,7 +8,7 @@
 
 **A modern, distraction-free video and audio player for Windows 10/11, powered by libmpv.**
 <br>
-*The privacy-focused, no-telemetry VLC alternative — 4K/HDR hardware-accelerated playback in a clean, modern dark interface.*
+*The privacy-focused, no-telemetry VLC alternative — 4K/HDR hardware-accelerated playback with native Windows acrylic materials.*
 
 <br>
 
@@ -40,14 +40,14 @@
 
 ## What Is Odeon?
 
-Odeon is a **lightweight, open-source media player for Windows**, built on [libmpv](https://mpv.io) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/). It delivers **hardware-accelerated 4K/HDR playback** via Direct3D 11, **zero telemetry**, and a clean, distraction-free interface — all in a small, fast-loading package with no bundled bloatware.
+Odeon is a **lightweight, open-source media player for Windows**, built on [libmpv](https://mpv.io) (using [shinchiro's Windows builds](https://github.com/shinchiro/mpv-winbuild-cmake)) and [WinUI 3](https://learn.microsoft.com/windows/apps/winui/). It delivers **hardware-accelerated 4K/HDR playback** via Direct3D 11, **zero telemetry**, and a clean, distraction-free interface — all in a small, fast-loading package with no bundled bloatware.
 
 | | |
 | :--- | :--- |
 | 🎞️ | Plays nearly every format without codec packs (MKV, MP4, AVI, WebM, FLAC, AAC, Opus) |
 | ⚡ | **Hardware-accelerated 4K/HDR playback** via Direct3D 11 |
 | 🔒 | **Zero telemetry** — no tracking, no analytics, no phone-home |
-| 🖤 | A clean, modern WinUI 3 dark interface — with an optional Netflix-inspired custom theme |
+| 🎨 | **3 Built-in Accent Themes** — Netflix Style (crimson), Default Windows Dynamic Accent (system color), and Monochromatic (pure white) |
 | 💬 | **Customizable subtitle rendering** with forced Futura PT typography |
 
 ### The Name
@@ -87,10 +87,10 @@ Most media players for Windows have grown into bloated media centers — backgro
 <td valign="top">
 
 **⚙️ libmpv Playback**
-<br>A modern, battle-tested engine in place of LibVLC.
+<br>Powered by shinchiro's battle-tested libmpv runtime.
 
 </td>
-</tr>
+</tr>it add .
 <tr>
 <td valign="top">
 
@@ -100,8 +100,8 @@ Most media players for Windows have grown into bloated media centers — backgro
 </td>
 <td valign="top">
 
-**🎨 Custom Themes**
-<br>A modern dark UI, plus an optional theme inspired by Netflix's look.
+**🎨 3 Accent Themes**
+<br>Netflix Style (Crimson), Default Windows Dynamic Accent, and Monochromatic (Pure White) — all over native Windows acrylic.
 
 </td>
 </tr>
@@ -134,18 +134,22 @@ Most media players for Windows have grown into bloated media centers — backgro
 ### 🎞️ 4K & HDR Hardware-Accelerated Playback
 
 - **Hardware decoding** via Direct3D 11 (`--hwdec=auto-copy`) for smooth 4K/HDR content
+- Powered by the high-performance **libmpv** engine ([shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake))
 - Near-instantaneous playback startup — no cold-start delays
 - Broad format support with no extra codec packs needed: MKV, MP4, AVI, WebM, MOV, FLAC, AAC, Opus, DTS, TrueHD, and more
 - DXGI composition swap chain for pixel-accurate rendering at native resolution
 
-### 🖤 Modern Windows Media Player UI
+### 🖤 Modern Windows Media Player UI & Themes
 
 - WinUI 3 acrylic, glassmorphic backdrops on side panels and context menus
 - Smart, centered titlebar that automatically strips file extensions
 - Auto-dismissing HUD for volume, seek, and status notifications
 - **Properties HUD** (`Tab`) — instant overlay with resolution, bitrate, duration, and file size
 - Dynamic seekbar with spring-physics scrubbing
-- Custom theme with a Netflix-inspired dark look and red accent
+- **3 Curated Visual Accent Themes** (all sharing the same native Windows acrylic background):
+  - **Netflix Style**: Bold crimson/red accent highlights across controls and active elements (Netflix-inspired)
+  - **Default Windows Dynamic Accent**: Seamlessly synchronizes with your active Windows 10/11 system accent color
+  - **Monochromatic**: Ultra-clean, distraction-free minimalist pure white accents
 
 ### 💬 Subtitle Customization
 
@@ -185,7 +189,7 @@ Most media players for Windows have grown into bloated media centers — backgro
 
 Odeon is distributed as a standalone, self-contained Windows package:
 
-1. Download the latest **`Odeon_2.5.0.0_x64.msixbundle`** (or `.zip` bundle) from [Releases](https://github.com/9ixe/Odeon/releases).
+1. Download the latest **Odeon build** (or `.zip` bundle) from [Releases](https://github.com/9ixe/Odeon/releases).
 2. Double-click the `.msixbundle` → click **Install** in the Windows App Installer window.
 3. Launch Odeon from your Start Menu and set it as your default player.
 
@@ -199,12 +203,11 @@ Odeon is distributed as a standalone, self-contained Windows package:
 ### Prerequisites
 
 * **Windows 10 (Build 1903+)** or **Windows 11**
-* **Futura PT Medium** font installed
 * **Visual Studio 2022** with:
   * Universal Windows Platform development workload
   * Windows 10/11 SDK (10.0.2610.0 or compatible)
 * **Windows Developer Mode** enabled
-* **`mpv-2.dll`** — Download the `dev` package from [mpv shinchiro builds](https://github.com/shinchiro/mpv-winbuild-cmake/releases) and place it in the `Odeon/` project folder (git-ignored).
+* **`mpv-2.dll`** — Download the `dev` package from [shinchiro's mpv-winbuild-cmake releases](https://github.com/shinchiro/mpv-winbuild-cmake/releases) and place `mpv-2.dll` in the `Odeon/` project folder (git-ignored).
 
 ### Build Steps
 
@@ -268,10 +271,15 @@ Yes. Odeon includes a redesigned subtitle side panel with instant track switchin
 </details>
 
 <details>
-<summary>🎨 <strong>Does Odeon have a Netflix-style theme?</strong></summary>
+<summary>🎨 <strong>What visual accent themes are available in Odeon?</strong></summary>
 <br>
 
-Odeon's default look is a clean, modern WinUI 3 dark interface. It also includes a custom theme with a Netflix-inspired look and red accent, if you'd like that style. Odeon is not affiliated with, endorsed by, or connected to Netflix — it's simply a visual theme.
+All themes share the **same native Windows acrylic background** — only the accent colors change to suit your style:
+- **Netflix Style**: Bold crimson/red accent highlights across controls, badges, and active elements (Netflix-inspired).
+- **Default Windows Dynamic Accent**: Automatically synchronizes with your active Windows 10/11 system accent color in real time.
+- **Monochromatic**: Ultra-clean, distraction-free minimalist aesthetic featuring crisp, pure white accents.
+
+*(Note: Odeon is an independent project and is not affiliated with, endorsed by, or connected to Netflix.)*
 
 </details>
 
@@ -287,7 +295,7 @@ No. All tracking SDKs (App Center, Sentry, etc.) have been completely removed. O
 <summary>⚙️ <strong>What playback engine does Odeon use?</strong></summary>
 <br>
 
-Odeon uses **libmpv** as its playback engine, paired with a Direct3D 11 rendering pipeline — a change from the LibVLC engine used in the original Screenbox project.
+Odeon uses **libmpv** as its playback engine, powered by **shinchiro's** official Windows build toolchain ([shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake)), paired with a Direct3D 11 rendering pipeline — a massive upgrade from the legacy LibVLC engine.
 
 </details>
 
@@ -295,7 +303,7 @@ Odeon uses **libmpv** as its playback engine, paired with a Direct3D 11 renderin
 <summary>🔀 <strong>What is the difference between Odeon and Screenbox?</strong></summary>
 <br>
 
-Odeon is a fork of Screenbox that replaces LibVLC with libmpv for the playback engine, removes all telemetry, adds forced subtitle typography and an ASS/SSA override pipeline, includes a Netflix-inspired theme, redesigns Play Next with drag-and-drop reordering, and strips unnecessary features like casting.
+Odeon is a modern fork of [Screenbox](https://github.com/huynhsontung/Screenbox) that replaces LibVLC with libmpv (shinchiro builds) for the playback engine, removes all telemetry, adds 3 curated accent themes (Netflix Style, Default Windows Dynamic Accent, Monochromatic), implements forced subtitle typography and an ASS/SSA override pipeline, redesigns Play Next with drag-and-drop reordering, and strips unnecessary bloat.
 
 </details>
 
@@ -338,8 +346,9 @@ Bug reports, feature requests, and pull requests are all welcome — see [CONTRI
 | | |
 | :--- | :--- |
 | **Author & Maintainer** | [Joel Biju (9ixe)](https://github.com/9ixe) |
-| **Original Project** | Fork of [Screenbox](https://github.com/huyn-net/Screenbox) by [Huyn](https://github.com/huyn-net) |
+| **Original Project** | Fork of [Screenbox](https://github.com/huynhsontung/Screenbox) by [Huynh Son Tung (huyn)](https://github.com/huynhsontung) |
 | **Playback Engine** | [libmpv](https://mpv.io) with Direct3D 11 composition |
+| **Windows libmpv Builds** | Native `mpv-2.dll` toolchain & binaries by [shinchiro](https://github.com/shinchiro/mpv-winbuild-cmake) |
 | **Architecture References** | [Richasy/mpv-winui](https://github.com/Richasy/mpv-winui), [WangyuHello/HotPotPlayer](https://github.com/WangyuHello/HotPotPlayer) |
 | **License** | [GNU General Public License v3.0](LICENSE) |
 

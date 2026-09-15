@@ -69,6 +69,16 @@ sealed partial class App : Application
 
         // Eagerly create VolumeViewModel so it registers its ChangeVolumeRequestMessage handler.
         CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<VolumeViewModel>();
+
+        // Listen for accent color theme changes
+        WeakReferenceMessenger.Default.Register<App, SettingsChangedMessage>(this, static (r, m) =>
+        {
+            if (m.SettingsName == nameof(ISettingsService.AccentColor))
+            {
+                var settings = CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<ISettingsService>();
+                ThemeHelper.ApplyAccentColor(settings.AccentColor);
+            }
+        });
     }
 
     private static void OnUnhandledException(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
@@ -257,6 +267,8 @@ sealed partial class App : Application
             {
                 SetupTitleBarColors(ElementTheme.Dark);
             };
+
+            ThemeHelper.Initialize(CommunityToolkit.Mvvm.DependencyInjection.Ioc.Default.GetRequiredService<ISettingsService>());
         }
 
         return rootFrame;

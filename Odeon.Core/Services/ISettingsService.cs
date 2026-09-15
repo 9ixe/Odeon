@@ -57,6 +57,7 @@ public interface ISettingsService
 
     bool ShowRecent { get; set; }
     ThemeOption Theme { get; set; }
+    AccentColorOption AccentColor { get; set; }
     bool EnqueueAllFilesInFolder { get; set; }
     bool RestorePlaybackPosition { get; set; }
     bool SearchRemovableStorage { get; set; }

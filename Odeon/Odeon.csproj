@@ -236,6 +236,9 @@
     <Compile Include="Dialogs\DeletePlaylistDialog.xaml.cs">
       <DependentUpon>DeletePlaylistDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\KeyboardShortcutsDialog.xaml.cs">
+      <DependentUpon>KeyboardShortcutsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\OpenUrlDialog.xaml.cs">
       <DependentUpon>OpenUrlDialog.xaml</DependentUpon>
     </Compile>
@@ -256,6 +259,7 @@
     <Compile Include="Helpers\GlobalizationHelper.cs" />
     <Compile Include="Helpers\ItemLabelHelper.cs" />
     <Compile Include="Helpers\KeyboardAcceleratorHelper.cs" />
+    <Compile Include="Helpers\ThemeHelper.cs" />
     <Compile Include="Pages\AlbumDetailsPage.xaml.cs">
       <DependentUpon>AlbumDetailsPage.xaml</DependentUpon>
     </Compile>
@@ -454,7 +458,6 @@
     <Content Include="Assets\Fonts\FuturaCyrillicLight.ttf" />
     <Content Include="Assets\Fonts\FuturaCyrillicMedium.ttf" />
     <None Include="Package.StoreAssociation.xml" />
-    <None Include="InvalidXamlResources.txt" />
     <Content Include="Properties\Default.rd.xml" />
     <None Include="Odeon_TemporaryKey.pfx" />
   </ItemGroup>
@@ -625,6 +628,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\DeletePlaylistDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialogs\KeyboardShortcutsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -500,7 +500,7 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
         }
         else
         {
-            PlayPause();
+            PlayPauseInternal();
         }
     }
 
@@ -522,7 +522,7 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
     {
         if (!HasActiveItem) return;
         Messenger.Send(new ShowPlayPauseBadgeMessage(!IsPlaying));
-        PlayPause();
+        PlayPauseInternal();
     }
 
     /// <summary>
@@ -838,6 +838,11 @@ public sealed partial class PlayerControlsViewModel : ObservableRecipient,
 
     [RelayCommand(CanExecute = nameof(HasActiveItem))]
     private void PlayPause()
+    {
+        PlayPauseWithBadge();
+    }
+
+    private void PlayPauseInternal()
     {
         if (IsPlaying)
         {

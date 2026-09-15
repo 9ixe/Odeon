@@ -1,7 +1,6 @@
 # 📱 Odeon Project Structure
 
-This document provides a comprehensive overview of the Odeon project's architecture, organization, and practical workflows for development.
-Note: Odeon Now uses Libmpv instead of Libvlc
+> **Note:** Odeon uses **libmpv** (via [shinchiro's Windows builds](https://github.com/shinchiro/mpv-winbuild-cmake)) with Direct3D 11 rendering and supports 3 customizable accent themes over native Windows acrylic (Netflix Style, Default Windows Dynamic Accent, Monochromatic).
 
 ## 📋 Table of Contents
 

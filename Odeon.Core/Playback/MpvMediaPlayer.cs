@@ -546,6 +546,22 @@ namespace Odeon.Core.Playback
             MpvInterop.SetOptionString(_mpv, "audio-device", "auto");
             MpvInterop.SetOptionString(_mpv, "volume-max", "300.0");
 
+            // Color accuracy & Dynamic Range
+            // Force full range output (0-255) so YUV limited range (16-235) is properly expanded
+            // to match PC monitors and the DXGI_FORMAT_B8G8R8A8_UNORM swapchain, eliminating washed-out blacks.
+            MpvInterop.SetOptionString(_mpv, "video-output-levels", "full");
+            // ── HDR Tone-mapping ─────────────────────────────────────────────────────
+            // The video being played is Dolby Vision HEVC Main 10 (p010). mpv discards
+            // the Dolby Vision RPU tone-map metadata, so raw PQ values go unprocessed
+            // into the 8-bit SDR pipeline — causing extreme over-brightness.
+            // Hable filmic tone-mapping correctly maps HDR→SDR with natural highlight rolloff.
+            MpvInterop.SetOptionString(_mpv, "tone-mapping", "hable");
+            MpvInterop.SetOptionString(_mpv, "hdr-compute-peak", "yes");
+            // Do NOT force target-prim — let mpv read primaries from the video stream.
+            // Prevent Windows ICC profiles from double-correcting.
+            MpvInterop.SetOptionString(_mpv, "icc-profile-auto", "no");
+            MpvInterop.SetOptionString(_mpv, "target-colorspace-hint", "no");
+
             // Scaler selection: use high-quality shaders for HD+ content on capable hardware,
             // faster scalers for SD content to reduce GPU workload on integrated graphics.
             // mpv selects the shader at runtime based on video dimensions vs. output size.
@@ -553,16 +569,14 @@ namespace Odeon.Core.Playback
             MpvInterop.SetOptionString(_mpv, "scale", "spline36");
             MpvInterop.SetOptionString(_mpv, "cscale", "spline36");
             MpvInterop.SetOptionString(_mpv, "correct-downscaling", "yes");
-            MpvInterop.SetOptionString(_mpv, "linear-downscaling", "yes");
+            MpvInterop.SetOptionString(_mpv, "linear-downscaling", "no");
             MpvInterop.SetOptionString(_mpv, "sigmoid-upscaling", "yes");
 
-            // Enable fast swscale path for software rendering. This is safe because the GPU shader
-            // path above is preferred when hwdec is active or for larger resolutions; the swscale
-            // fallback only kicks in for small/offline content. On older hardware this avoids
-            // unnecessary spline filtering stalls.
+            // Software scaling & color conversion accuracy
             MpvInterop.SetOptionString(_mpv, "sws-scaler", "bilinear");
-            MpvInterop.SetOptionString(_mpv, "sws-fast", "yes");
+            MpvInterop.SetOptionString(_mpv, "sws-fast", "no");
             MpvInterop.SetOptionString(_mpv, "sws-cscale", "bilinear");
+            MpvInterop.SetOptionString(_mpv, "sws-allow-zimg", "yes");
 
             // Apply custom options
             if (customOptions != null)

@@ -69,6 +69,12 @@ public sealed partial class PlayerPage : Page
         WeakReferenceMessenger.Default.Register<TogglePlayQueueSidePanelMessage>(this, (_, m) => TogglePlayQueueSidePanel(m.ForceState));
         PlayQueueSidePanel.CloseRequested += (_, _) => ClosePlayQueueSidePanel();
 
+        WeakReferenceMessenger.Default.Register<ShowPlayPauseBadgeMessage>(this, (_, _) =>
+        {
+            PlayPauseBadgeStoryboard.Stop();
+            PlayPauseBadgeStoryboard.Begin();
+        });
+
         PreviewKeyDown += PlayerPage_PreviewKeyDown;
     }
 
@@ -152,6 +158,11 @@ public sealed partial class PlayerPage : Page
         UpdateContentState();
         UpdateRootTheme();
         UpdatePreviewType();
+
+        if (LayoutRoot.Transitions.Count == 0)
+        {
+            LayoutRoot.Transitions.Add(new PaneThemeTransition { Edge = EdgeTransitionLocation.Bottom });
+        }
 
         if (ViewModel.PlayerVisibility == PlayerVisibilityState.Visible)
         {

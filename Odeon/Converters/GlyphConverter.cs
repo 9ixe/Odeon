@@ -2,6 +2,7 @@ using System;
 using Odeon.Core.Enums;
 using Odeon.Helpers;
 using Windows.Media;
+using Windows.UI.Xaml;
 
 namespace Odeon.Converters;
 
@@ -137,6 +138,20 @@ public static partial class GlyphConverter
 
         return value ? PauseSolidGlyph : PlaySolidGlyph;
     }
+
+    /// <summary>
+    /// Returns Visible when the badge should show the play triangle (user just started playing).
+    /// isPlaying=false means the action was "pause", so the badge shows play. isPlaying=true means "play" action → show play triangle.
+    /// Mirrors the logic of <see cref="ToPlayPauseSolidGlyph"/>: badge shows the state we're entering.
+    /// </summary>
+    public static Visibility ToPlayVisibility(bool isPlaying)
+        => !isPlaying ? Visibility.Visible : Visibility.Collapsed;
+
+    /// <summary>
+    /// Returns Visible when the badge should show the pause bars (user just paused).
+    /// </summary>
+    public static Visibility ToPauseVisibility(bool isPlaying)
+        => isPlaying ? Visibility.Visible : Visibility.Collapsed;
 
     /// <summary>
     /// Gets the volume glyph code based on mute state and volume value.

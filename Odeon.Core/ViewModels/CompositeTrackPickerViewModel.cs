@@ -157,10 +157,9 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     private void OnSubtitleSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
     {
         int newIndex = (sender.SelectedIndex + 1);
-        if (_subtitleTrackIndex != newIndex)
+        if (SubtitleTrackIndex != newIndex)
         {
-            _subtitleTrackIndex = newIndex;
-            OnPropertyChanged(nameof(SubtitleTrackIndex));
+            SubtitleTrackIndex = newIndex;
         }
     }
 
@@ -173,10 +172,9 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     private void OnAudioSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
     {
         int newIndex = sender.SelectedIndex;
-        if (_audioTrackIndex != newIndex)
+        if (AudioTrackIndex != newIndex)
         {
-            _audioTrackIndex = newIndex;
-            OnPropertyChanged(nameof(AudioTrackIndex));
+            AudioTrackIndex = newIndex;
         }
     }
 
@@ -189,10 +187,9 @@ public sealed partial class CompositeTrackPickerViewModel : ObservableRecipient,
     private void OnVideoSelectedIndexChanged(ISingleSelectMediaTrackList sender, object? args)
     {
         int newIndex = sender.SelectedIndex;
-        if (_videoTrackIndex != newIndex)
+        if (VideoTrackIndex != newIndex)
         {
-            _videoTrackIndex = newIndex;
-            OnPropertyChanged(nameof(VideoTrackIndex));
+            VideoTrackIndex = newIndex;
         }
     }
 

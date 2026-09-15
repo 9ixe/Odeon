@@ -284,7 +284,7 @@
                 <MenuFlyoutSeparator />
                 <MenuFlyoutItem
                     Command="{x:Bind ViewModel.GoBackToMiniplayerCommand}"
-                    Icon="{ui:FontIcon Glyph=&#xE8A1;}"
+                    Icon="{ui:FontIcon Glyph=&#xEE49;}"
                     Text="{strings:Resources Key=MinimizeImmersiveView}" />
 
                 <MenuFlyoutItem

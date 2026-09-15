@@ -304,6 +304,24 @@
                     </ComboBox>
                 </ctc:SettingsCard>
 
+                <ctc:SettingsCard
+                    Margin="{StaticResource SettingsCardMargin}"
+                    Description="{strings:Resources Key=SettingsAccentColorDescription}"
+                    Header="{strings:Resources Key=SettingsAccentColorHeader}"
+                    HeaderIcon="{ui:FontIcon Glyph=&#xE790;}">
+                    <ComboBox
+                        x:Name="AccentColorComboBox"
+                        MinWidth="150"
+                        SelectedIndex="{x:Bind ViewModel.SelectedAccentColor, Mode=TwoWay}">
+                        <ComboBoxItem Content="{strings:Resources Key=AccentColorRed}" />
+                        <ComboBoxItem Content="{strings:Resources Key=AccentColorWindows}" />
+                        <ComboBoxItem Content="{strings:Resources Key=AccentColorMonochrome}" />
+                        <interactivity:Interaction.Behaviors>
+                            <behaviors:ComboBoxWidthFromPopupBehavior />
+                        </interactivity:Interaction.Behaviors>
+                    </ComboBox>
+                </ctc:SettingsCard>
+
                 <!--  General section  -->
                 <TextBlock Style="{StaticResource SettingsSectionHeaderTextBlockStyle}" Text="{strings:Resources Key=SettingsCategoryGeneral}" />
 
@@ -328,6 +346,19 @@
                         x:Name="UseMultipleInstancesToggleSwitch"
                         AutomationProperties.HelpText="{strings:Resources Key=SettingsUseMultipleInstancesDescription}"
                         IsOn="{x:Bind ViewModel.UseMultipleInstances, Mode=TwoWay}" />
+                </ctc:SettingsCard>
+
+                <ctc:SettingsCard
+                    x:Name="KeyboardShortcutsSettingsCard"
+                    Margin="{StaticResource SettingsCardMargin}"
+                    Description="View all keyboard shortcuts and hotkeys"
+                    Header="Keyboard shortcuts"
+                    HeaderIcon="{ui:FontIcon Glyph=&#xE765;}"
+                    Visibility="{x:Bind helpers:DeviceInfoHelper.IsDesktop}">
+                    <Button
+                        MinWidth="{StaticResource SettingsCardButtonMinWidth}"
+                        Click="ShowKeyboardShortcutsButton_OnClick"
+                        Content="View shortcuts" />
                 </ctc:SettingsCard>
 
                 <!--  Player section  -->

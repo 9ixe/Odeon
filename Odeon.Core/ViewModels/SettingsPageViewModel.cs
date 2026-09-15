@@ -49,6 +49,7 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     [ObservableProperty] private bool _useMultipleInstances;
     [ObservableProperty] private bool _isRelaunchRequired;
     [ObservableProperty] private int _selectedLanguage;
+    [ObservableProperty] private int _selectedAccentColor;
     [ObservableProperty] private bool _persistPlaybackPosition;
     [ObservableProperty] private string _globalArguments = string.Empty;
 
@@ -77,9 +78,10 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
     private StorageLibrary? _videosLibrary;
     private StorageLibrary? _musicLibrary;
 
-    private record InitialValues(int Language)
+    private record InitialValues(int Language, int AccentColor)
     {
         public int Language { get; } = Language;
+        public int AccentColor { get; } = AccentColor;
     }
 
     public SettingsPageViewModel(
@@ -146,12 +148,20 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
 
         string currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
         _selectedLanguage = AvailableLanguages.FindIndex(l => l.LanguageTag.Equals(currentLanguage));
+        _selectedAccentColor = (int)_settingsService.AccentColor;
 
         // Setting initial values for relaunch check
-        _initialValues ??= new InitialValues(_selectedLanguage);
+        _initialValues ??= new InitialValues(_selectedLanguage, _selectedAccentColor);
         CheckForRelaunch();
 
         IsActive = true;
+    }
+
+    partial void OnSelectedAccentColorChanged(int value)
+    {
+        _settingsService.AccentColor = (AccentColorOption)value;
+        Messenger.Send(new SettingsChangedMessage(nameof(SettingsService.AccentColor), typeof(SettingsPageViewModel)));
+        CheckForRelaunch();
     }
 
     partial void OnSelectedLanguageChanged(int value)
@@ -527,6 +537,9 @@ public sealed partial class SettingsPageViewModel : ObservableRecipient
         // Check if app language has been changed
         bool languageChanged = _initialValues.Language != SelectedLanguage;
 
-        IsRelaunchRequired = languageChanged;
+        // Check if accent color has been changed
+        bool accentChanged = _initialValues.AccentColor != SelectedAccentColor;
+
+        IsRelaunchRequired = languageChanged || accentChanged;
     }
 }

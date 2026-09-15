@@ -15,6 +15,7 @@ public sealed class SettingsService : ISettingsService
     private static IPropertySet SettingsStorage => ApplicationData.Current.LocalSettings.Values;
 
     private const string GeneralThemeKey = "General/Theme";
+    private const string GeneralAccentColorKey = "General/AccentColor";
     private const string PlayerAutoResizeKey = "Player/AutoResize";
     private const string PlayerShowControlsKey = "Player/ShowControls";
     private const string PlayerControlsHideDelayKey = "Player/ControlsHideDelay";
@@ -62,6 +63,12 @@ public sealed class SettingsService : ISettingsService
     {
         get => ThemeOption.Dark;
         set => SetValue(GeneralThemeKey, (int)ThemeOption.Dark);
+    }
+
+    public AccentColorOption AccentColor
+    {
+        get => (AccentColorOption)GetValue<int>(GeneralAccentColorKey);
+        set => SetValue(GeneralAccentColorKey, (int)value);
     }
 
     public PlayerAutoResizeOption PlayerAutoResize

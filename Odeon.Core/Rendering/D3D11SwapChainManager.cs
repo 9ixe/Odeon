@@ -27,6 +27,8 @@ namespace Odeon.Core.Rendering
         private static readonly Guid IID_ID3D11Texture2D = new Guid("6f15aaf2-d208-4e89-9ab4-489535d34f9c");
         private static readonly Guid IID_ISwapChainPanelNative = new Guid("F92F19D2-3ADE-45A6-A20C-F6F1EA90554B");
         private static readonly Guid IID_IDXGISwapChain2 = new Guid("a8be2ac4-199f-4946-b331-79599fb98de7");
+        // IDXGISwapChain3 — adds SetColorSpace1 which we use to declare our sRGB/HDR10 encoding.
+        private static readonly Guid IID_IDXGISwapChain3 = new Guid("94d99bdb-f1f8-4ab0-b236-7da0170edab1");
 
         private const int D3D11_SDK_VERSION = 7;
         private const int D3D_DRIVER_TYPE_HARDWARE = 1;
@@ -34,11 +36,22 @@ namespace Odeon.Core.Rendering
         private const uint D3D11_CREATE_DEVICE_VIDEO_SUPPORT = 0x0008;
 
         private const uint DXGI_FORMAT_B8G8R8A8_UNORM = 87;
+        private const uint DXGI_FORMAT_R16G16B16A16_FLOAT = 10;  // For HDR10/scRGB output
         private const uint DXGI_USAGE_RENDER_TARGET_OUTPUT = 0x0020;
         private const uint DXGI_SCALING_STRETCH = 0;
         private const uint DXGI_SWAP_EFFECT_FLIP_DISCARD = 4;
         private const uint DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL = 3;
         private const uint DXGI_ALPHA_MODE_IGNORE = 3;
+
+        // DXGI_COLOR_SPACE_TYPE values for IDXGISwapChain3::SetColorSpace1
+        // Declaring the color space prevents the DWM compositor from making wrong
+        // assumptions about the swap chain encoding and applying incorrect transforms.
+        /// <summary>sRGB — G2.2, BT.709, full quantization (0-255). SDR default for B8G8R8A8_UNORM.</summary>
+        private const uint DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 = 0;
+        /// <summary>scRGB linear — linear, BT.709 container, full quantization. Used for HDR composition in RGBA16F.</summary>
+        private const uint DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 = 1;
+        /// <summary>HDR10 — ST2084 (PQ), BT.2020 primaries, full quantization.</summary>
+        private const uint DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 = 12;
 
         // VTable Slots
         private const int Slot_IUnknown_QueryInterface = 0;
@@ -59,6 +72,12 @@ namespace Odeon.Core.Rendering
         private const int Slot_IDXGISwapChain_ResizeBuffers = 13;
         private const int Slot_IDXGISwapChain1_Present1 = 22;
         private const int Slot_IDXGISwapChain2_SetMatrixTransform = 34;
+        // IDXGISwapChain3 inherits IDXGISwapChain2 (last slot = 35, GetMatrixTransform) + adds:
+        //   36: GetCurrentBackBufferIndex
+        //   37: CheckColorSpaceSupport
+        //   38: SetColorSpace1   ← this is the one we use
+        //   39: ResizeBuffers1
+        private const int Slot_IDXGISwapChain3_SetColorSpace1 = 38;
 
         #endregion
 
@@ -154,6 +173,9 @@ namespace Odeon.Core.Rendering
 
         [UnmanagedFunctionPointer(CallingConvention.StdCall)]
         private delegate int ResizeBuffersDelegate(IntPtr thisPtr, uint bufferCount, uint width, uint height, uint newFormat, uint swapChainFlags);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int SetColorSpace1Delegate(IntPtr thisPtr, uint colorSpace);
 
         [DllImport("d3d11.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern int D3D11CreateDevice(
@@ -356,7 +378,14 @@ namespace Odeon.Core.Rendering
                     _scaleX = (float)(panel.CompositionScaleX > 0 ? panel.CompositionScaleX : 1.0f);
                     _scaleY = (float)(panel.CompositionScaleY > 0 ? panel.CompositionScaleY : 1.0f);
 
-                    // 5. Link SwapChain to SwapChainPanel via ISwapChainPanelNative
+                    // 5a. Declare sRGB color space so DWM knows the exact encoding of our bgr0 pixels.
+                    //     Without this, DWM makes wrong assumptions about the swap chain encoding
+                    //     and applies an incorrect gamma decode/encode during composition, producing
+                    //     the brightness lift that makes Odeon look washed out vs. reference players.
+                    //     DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 = sRGB, full range, BT.709 primaries.
+                    SetSwapChainColorSpace(_swapChain, DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+
+                    // 5b. Link SwapChain to SwapChainPanel via ISwapChainPanelNative
                     if (!SetPanelSwapChain(panel, _swapChain))
                     {
                         Debug.WriteLine("[D3D11SwapChainManager] SetPanelSwapChain failed.");
@@ -427,7 +456,75 @@ namespace Odeon.Core.Rendering
 
         #endregion
 
+        #region Color Space Management
+
+        /// <summary>
+        /// Declares the DXGI color space encoding of the swap chain to the DWM compositor.
+        /// This is essential: without it, DWM assumes an incorrect encoding and applies a
+        /// spurious gamma transform during composition, causing the brightness lift / washed-out
+        /// look seen when comparing Odeon output against reference players.
+        ///
+        /// For SDR (normal display): DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 (= 0, sRGB)
+        /// For Windows HDR (scRGB): DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709  (= 1, linear)
+        /// </summary>
+        private static void SetSwapChainColorSpace(IntPtr swapChain, uint colorSpace)
+        {
+            if (swapChain == IntPtr.Zero) return;
+            IntPtr pSC3 = IntPtr.Zero;
+            try
+            {
+                Guid iid3 = IID_IDXGISwapChain3;
+                var qi = GetVTableDelegate<QueryInterfaceDelegate>(swapChain, Slot_IUnknown_QueryInterface);
+                int hr = qi(swapChain, ref iid3, out pSC3);
+                if (hr < 0 || pSC3 == IntPtr.Zero)
+                {
+                    // IDXGISwapChain3 not available (pre-DXGI 1.4, very rare). Not fatal.
+                    Debug.WriteLine($"[D3D11SwapChainManager] IDXGISwapChain3 unavailable (hr=0x{hr:X8}); color space not set.");
+                    return;
+                }
+
+                var setCS = GetVTableDelegate<SetColorSpace1Delegate>(pSC3, Slot_IDXGISwapChain3_SetColorSpace1);
+                hr = setCS(pSC3, colorSpace);
+                Debug.WriteLine(hr >= 0
+                    ? $"[D3D11SwapChainManager] SetColorSpace1({colorSpace}) succeeded."
+                    : $"[D3D11SwapChainManager] SetColorSpace1({colorSpace}) failed: 0x{hr:X8}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[D3D11SwapChainManager] SetSwapChainColorSpace exception: {ex.Message}");
+            }
+            finally
+            {
+                SafeRelease(ref pSC3);
+            }
+        }
+
+        /// <summary>
+        /// Call this when Windows HDR mode changes (on/off) for the display containing the player.
+        /// Switches the DXGI color space so DWM composites the video correctly under HDR.
+        ///
+        /// When HDR is ON:  swap chain must declare scRGB linear (G10/P709) so DWM's HDR
+        ///                  compositor handles the video correctly alongside other HDR surfaces.
+        /// When HDR is OFF: swap chain must declare sRGB gamma (G22/P709) for standard SDR blending.
+        ///
+        /// mpv itself does not need to change render settings because the SW renderer always
+        /// writes sRGB-encoded pixels — the DXGI color space declaration is what tells DWM
+        /// how to treat those pixels.
+        /// </summary>
+        public void NotifyHdrChanged(bool hdrActive)
+        {
+            if (_swapChain == IntPtr.Zero) return;
+            uint colorSpace = hdrActive
+                ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709   // scRGB linear — HDR compositor path
+                : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;  // sRGB gamma  — SDR compositor path
+            SetSwapChainColorSpace(_swapChain, colorSpace);
+            Debug.WriteLine($"[D3D11SwapChainManager] HDR={hdrActive}: color space set to {colorSpace}.");
+        }
+
+        #endregion
+
         #region Attach / Detach Player
+
 
         /// <summary>
         /// Attaches this swap chain manager to an MpvMediaPlayer instance.

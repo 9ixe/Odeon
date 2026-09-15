@@ -972,6 +972,21 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Use system language</value>
   </data>
+  <data name="SettingsAccentColorHeader" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="SettingsAccentColorDescription" xml:space="preserve">
+    <value>Choose between signature Odeon Red, Windows system accent color, or Monochromatic White</value>
+  </data>
+  <data name="AccentColorRed" xml:space="preserve">
+    <value>Netflix Style</value>
+  </data>
+  <data name="AccentColorWindows" xml:space="preserve">
+    <value>Windows accent</value>
+  </data>
+  <data name="AccentColorMonochrome" xml:space="preserve">
+    <value>Monochromatic</value>
+  </data>
   <data name="SearchNoResults" xml:space="preserve">
     <value>No results for "{0}"</value>
     <comment>#Format[String searchQuery]</comment>

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Odeon.Core.ViewModels;
@@ -38,6 +39,12 @@ namespace Odeon.Pages
         {
             base.OnNavigatedFrom(e);
             ViewModel.OnNavigatedFrom();
+        }
+
+        private async void ShowKeyboardShortcutsButton_OnClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            var dialog = new Dialogs.KeyboardShortcutsDialog();
+            await dialog.ShowAsync();
         }
     }
 }

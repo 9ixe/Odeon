@@ -52,7 +52,6 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
     [ObservableProperty] private bool _isPlayingBadge;
     [ObservableProperty] private bool _isOpening;
     [ObservableProperty] private bool _audioOnly;
-    [ObservableProperty] private bool _showPlayPauseBadge;
     [ObservableProperty] private WindowViewMode _viewMode;
     [ObservableProperty] private NavigationViewDisplayMode _navigationViewDisplayMode;
     [ObservableProperty] private MediaViewModel? _media;
@@ -85,7 +84,6 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
     private readonly DispatcherQueueTimer _openingTimer;
     private readonly DispatcherQueueTimer _controlsVisibilityTimer;
     private readonly DispatcherQueueTimer _statusMessageTimer;
-    private readonly DispatcherQueueTimer _playPauseBadgeTimer;
     private readonly DispatcherQueueTimer _spaceKeyHoldTimer;
     private readonly IWindowService _windowService;
     private readonly ISettingsService _settingsService;
@@ -108,7 +106,6 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
         _openingTimer = _dispatcherQueue.CreateTimer();
         _controlsVisibilityTimer = _dispatcherQueue.CreateTimer();
         _statusMessageTimer = _dispatcherQueue.CreateTimer();
-        _playPauseBadgeTimer = _dispatcherQueue.CreateTimer();
         _spaceKeyHoldTimer = _dispatcherQueue.CreateTimer();
         _navigationViewDisplayMode = Messenger.Send<NavigationViewDisplayModeRequestMessage>();
         _playerVisibility = PlayerVisibilityState.Hidden;
@@ -236,7 +233,6 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
     public void Receive(ShowPlayPauseBadgeMessage message)
     {
         IsPlayingBadge = message.IsPlaying;
-        BlinkPlayPauseBadge();
     }
 
     public void Receive(OverrideControlsHideDelayMessage message)
@@ -726,12 +722,6 @@ public sealed partial class PlayerPageViewModel : ObservableRecipient,
     private void RestorePlayer()
     {
         PlayerVisibility = PlayerVisibilityState.Visible;
-    }
-
-    private void BlinkPlayPauseBadge()
-    {
-        ShowPlayPauseBadge = true;
-        _playPauseBadgeTimer.Debounce(() => ShowPlayPauseBadge = false, TimeSpan.FromMilliseconds(100));
     }
 
     /// <summary>

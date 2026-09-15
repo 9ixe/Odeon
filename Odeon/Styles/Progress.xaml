@@ -356,14 +356,12 @@
                 <ControlTemplate TargetType="Slider">
                     <Grid Margin="{TemplateBinding Padding}">
                         <Grid.Resources>
-                            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemAccentColor" Color="#FFE81123" />
+                            <StaticResource x:Key="SliderTrackValueFill" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderTrackValueFillPointerOver" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderTrackValueFillPressed" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderThumbBackground" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderThumbBackgroundPointerOver" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderThumbBackgroundPressed" ResourceKey="SystemControlHighlightAccentBrush" />
                         </Grid.Resources>
 
                         <VisualStateManager.VisualStateGroups>
@@ -625,14 +623,12 @@
                 <ControlTemplate TargetType="Slider">
                     <Grid Margin="{TemplateBinding Padding}">
                         <Grid.Resources>
-                            <SolidColorBrush x:Key="SliderTrackValueFill" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderThumbBackground" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
-                            <SolidColorBrush x:Key="SystemAccentColor" Color="#FFE81123" />
+                            <StaticResource x:Key="SliderTrackValueFill" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderTrackValueFillPointerOver" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderTrackValueFillPressed" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderThumbBackground" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderThumbBackgroundPointerOver" ResourceKey="SystemControlHighlightAccentBrush" />
+                            <StaticResource x:Key="SliderThumbBackgroundPressed" ResourceKey="SystemControlHighlightAccentBrush" />
                         </Grid.Resources>
 
                         <VisualStateManager.VisualStateGroups>

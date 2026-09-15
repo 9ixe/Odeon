@@ -5,6 +5,15 @@ This software incorporates third party material from the projects listed below.
 
 
 
+## libmpv (mpv media player library)
+
+**Source**: [https://github.com/mpv-player/mpv](https://github.com/mpv-player/mpv)
+**Windows Builds**: [https://github.com/shinchiro/mpv-winbuild-cmake](https://github.com/shinchiro/mpv-winbuild-cmake) by shinchiro
+```
+GNU Lesser General Public License (LGPL v2.1 or later) / GNU General Public License (GPL v3 or later)
+Copyright (C) mpv developers and contributors
+```
+
 ## Windows UI Library
 
 **Source**: [https://github.com/microsoft/microsoft-ui-xaml](https://github.com/microsoft/microsoft-ui-xaml)

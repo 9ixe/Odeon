@@ -100,7 +100,7 @@ namespace Odeon.Core.Interop
                             if (valNode.Format == MpvFormat.String && string.IsNullOrEmpty(track.Title))
                             {
                                 string? extFile = Utf8ToString(valNode.Value.String);
-                                if (!string.IsNullOrEmpty(extFile) && !extFile.StartsWith("fdclose://", StringComparison.OrdinalIgnoreCase))
+                                if (!string.IsNullOrEmpty(extFile) && !extFile!.StartsWith("fdclose://", StringComparison.OrdinalIgnoreCase))
                                 {
                                     track.Title = System.IO.Path.GetFileName(extFile);
                                 }

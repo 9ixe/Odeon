@@ -1,0 +1,417 @@
+<ContentDialog
+    x:Class="Odeon.Dialogs.KeyboardShortcutsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:strings="using:Odeon.Strings"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    Title="Keyboard Shortcuts"
+    CloseButtonStyle="{StaticResource AccentButtonStyle}"
+    CloseButtonText="{strings:Resources Key=Close}"
+    DefaultButton="Close"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    BorderThickness="0"
+    CornerRadius="12"
+    FontFamily="ms-appx:///Assets/Fonts/Linotte-Regular.otf#Linotte-Regular"
+    mc:Ignorable="d">
+
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Default">
+                    <media:AcrylicBrush
+                        x:Key="SidePanelBackgroundBrush"
+                        BackgroundSource="Backdrop"
+                        FallbackColor="#1E1E1E"
+                        TintColor="#141414"
+                        TintOpacity="0.88" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#33FFFFFF" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <media:AcrylicBrush
+                        x:Key="SidePanelBackgroundBrush"
+                        BackgroundSource="Backdrop"
+                        FallbackColor="#F4F4F4"
+                        TintColor="#FAFAFA"
+                        TintOpacity="0.88" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="#22000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="HighContrast">
+                    <SolidColorBrush x:Key="SidePanelBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="SidePanelBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+
+            <Style x:Key="KeyBadgeBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="4" />
+                <Setter Property="Padding" Value="7,2,7,2" />
+                <Setter Property="Margin" Value="2,0,2,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="KeyBadgeTextStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="12" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+                <Setter Property="HorizontalAlignment" Value="Center" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
+            <Style x:Key="ShortcutRowStyle" TargetType="Grid">
+                <Setter Property="Padding" Value="10,6,10,6" />
+                <Setter Property="CornerRadius" Value="6" />
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Margin" Value="0,0,0,3" />
+            </Style>
+
+            <Style x:Key="CategoryHeaderStyle" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="13" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <Setter Property="Margin" Value="2,10,0,5" />
+            </Style>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
+    <ContentDialog.Background>
+        <StaticResource ResourceKey="SidePanelBackgroundBrush" />
+    </ContentDialog.Background>
+
+    <Grid Width="500" MaxHeight="520">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <StackPanel Padding="0,0,12,0" Spacing="0">
+
+                <!-- 1. Playback & Seeking -->
+                <TextBlock Style="{StaticResource CategoryHeaderStyle}" Text="Playback &amp; Seeking" Margin="2,0,0,5" />
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Play / Pause" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Space" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="K" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="P" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Temporary fast-forward (hold)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Hold Space" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Seek backward / forward" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="←" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="→" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="J" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="L" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Seek 2× step" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl" /></Border>
+                        <TextBlock VerticalAlignment="Center" Text="+" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="← / →" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Micro-seek (1/5× step)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Shift" /></Border>
+                        <TextBlock VerticalAlignment="Center" Text="+" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="← / →" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Jump to percentage (0% – 90%)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="NumPad 0 – 9" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Jump to start / end" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Home" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="End" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Previous / Next track" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="PageUp" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="PageDown" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Frame step backward / forward (paused)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="," /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="." /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Playback speed (±0.25x)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Shift" /></Border>
+                        <TextBlock VerticalAlignment="Center" Text="+" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="&lt;" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="&gt;" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 2. Audio & Subtitles -->
+                <TextBlock Style="{StaticResource CategoryHeaderStyle}" Text="Audio &amp; Subtitles" />
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Volume up / down (±5%)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="↑ / ↓" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="+ / -" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Mute / Unmute" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="M" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Toggle / Cycle subtitles" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="C" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl+C" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 3. Window & Display -->
+                <TextBlock Style="{StaticResource CategoryHeaderStyle}" Text="Window &amp; Display" />
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Toggle Fullscreen" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Enter" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="F11" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Minimize / Restore immersive view" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Alt+Enter" /></Border>
+                        <TextBlock VerticalAlignment="Center" Margin="2,0" Text="/" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="I" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Resize window (50% / 100% / 150% / Fill)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="1" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="2" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="3" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="4" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Scale window size (±10%)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl" /></Border>
+                        <TextBlock VerticalAlignment="Center" Text="+" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="+ / -" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Save snapshot of current frame" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Shift" /></Border>
+                        <TextBlock VerticalAlignment="Center" Text="+" />
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="S" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="View media properties" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Tab" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 4. Navigation & Queue -->
+                <TextBlock Style="{StaticResource CategoryHeaderStyle}" Text="Navigation &amp; Library" />
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Focus Search" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl+F" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Toggle sidebar navigation pane" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl+E" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Go to Home / Music / Videos / Settings" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl+H" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="U" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="D" /></Border>
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="G" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Select / Deselect all items" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Ctrl+A" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Remove selected item(s)" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Delete" /></Border>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Style="{StaticResource ShortcutRowStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" Text="Clear selection / Dismiss panel" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Border Style="{StaticResource KeyBadgeBorderStyle}"><TextBlock Style="{StaticResource KeyBadgeTextStyle}" Text="Escape" /></Border>
+                    </StackPanel>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

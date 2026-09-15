@@ -185,7 +185,7 @@
                 <DoubleAnimation
                     Storyboard.TargetName="PlayQueuePanelTransform"
                     Storyboard.TargetProperty="X"
-                    From="440"
+                    From="540"
                     To="0"
                     Duration="0:0:0.35">
                     <DoubleAnimation.EasingFunction>
@@ -205,7 +205,7 @@
                     Storyboard.TargetName="PlayQueuePanelTransform"
                     Storyboard.TargetProperty="X"
                     From="0"
-                    To="440"
+                    To="540"
                     Duration="0:0:0.28">
                     <DoubleAnimation.EasingFunction>
                         <BackEase Amplitude="0.1" EasingMode="EaseIn" />
@@ -218,6 +218,42 @@
                     To="0"
                     Duration="0:0:0.2" />
             </Storyboard>
+            <Storyboard x:Name="PlayPauseBadgeStoryboard">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayerStateBadge" Storyboard.TargetProperty="Opacity">
+                    <DiscreteDoubleKeyFrame KeyTime="0:0:0.0" Value="0.0" />
+                    <SplineDoubleKeyFrame KeyTime="0:0:0.18" Value="1.0" KeySpline="0.1,0.9,0.2,1.0" />
+                    <LinearDoubleKeyFrame KeyTime="0:0:0.60" Value="1.0" />
+                    <SplineDoubleKeyFrame KeyTime="0:0:0.85" Value="0.0" KeySpline="0.7,0.0,0.9,0.1" />
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayerStateBadgeTransform" Storyboard.TargetProperty="ScaleX">
+                    <DiscreteDoubleKeyFrame KeyTime="0:0:0.0" Value="0.75" />
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                        <EasingDoubleKeyFrame.EasingFunction>
+                            <BackEase Amplitude="0.3" EasingMode="EaseOut" />
+                        </EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                    <LinearDoubleKeyFrame KeyTime="0:0:0.60" Value="1.0" />
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.85" Value="1.1">
+                        <EasingDoubleKeyFrame.EasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                </DoubleAnimationUsingKeyFrames>
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="PlayerStateBadgeTransform" Storyboard.TargetProperty="ScaleY">
+                    <DiscreteDoubleKeyFrame KeyTime="0:0:0.0" Value="0.75" />
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.22" Value="1.0">
+                        <EasingDoubleKeyFrame.EasingFunction>
+                            <BackEase Amplitude="0.3" EasingMode="EaseOut" />
+                        </EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                    <LinearDoubleKeyFrame KeyTime="0:0:0.60" Value="1.0" />
+                    <EasingDoubleKeyFrame KeyTime="0:0:0.85" Value="1.1">
+                        <EasingDoubleKeyFrame.EasingFunction>
+                            <CubicEase EasingMode="EaseIn" />
+                        </EasingDoubleKeyFrame.EasingFunction>
+                    </EasingDoubleKeyFrame>
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
         </ResourceDictionary>
     </Page.Resources>
 
@@ -228,7 +264,12 @@
             PointerMoved="{x:Bind ViewModel.OnPointerMoved}"
             PreviewKeyDown="LayoutRoot_OnPreviewKeyDown"
             PreviewKeyUp="LayoutRoot_OnPreviewKeyUp">
-        <Grid.RowDefinitions>
+            <Grid.Transitions>
+                <TransitionCollection>
+                    <PaneThemeTransition Edge="Bottom" />
+                </TransitionCollection>
+            </Grid.Transitions>
+            <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -543,33 +584,46 @@
             x:Name="PlayerStateBadgeContainer"
             Grid.Row="0"
             Grid.RowSpan="3"
-            Grid.Column="0">
-        <Border
-            x:Name="PlayerStateBadge"
-            Width="160"
-            Height="160"
-            ui:VisualExtensions.NormalizedCenterPoint="0.5"
-            Background="{ThemeResource SubtleButtonBackground}"
-            CornerRadius="{ThemeResource ControlCornerRadius}"
-            BorderBrush="{ThemeResource SubtleButtonBorderBrush}"
-            BorderThickness="1"
-            Visibility="{x:Bind ViewModel.ShowPlayPauseBadge, Mode=OneWay}">
-            <animations:Implicit.ShowAnimations>
-                <animations:OpacityAnimation To="0.8" Duration="0:0:0.03" />
-                <animations:ScaleAnimation To="1" Duration="0:0:0.03" />
-            </animations:Implicit.ShowAnimations>
-            <animations:Implicit.HideAnimations>
-                <animations:OpacityAnimation To="0.0" Duration="0:0:0.6" />
-                <animations:ScaleAnimation To="1.25" Duration="0:0:0.6" />
-            </animations:Implicit.HideAnimations>
-            <FontIcon
-                x:Name="PlayerStateBadgeIcon"
-                d:Glyph="{StaticResource PlaySolidGlyph}"
-                FontFamily="{StaticResource OdeonSymbolThemeFontFamily}"
-                FontSize="48"
-                Foreground="{ThemeResource SubtleButtonForeground}"
-                Glyph="{x:Bind converters:GlyphConverter.ToPlayPauseSolidGlyph(ViewModel.IsPlayingBadge), Mode=OneWay}" />
-        </Border>
+            Grid.Column="0"
+            IsHitTestVisible="False">
+            <Border
+                x:Name="PlayerStateBadge"
+                Width="88"
+                Height="88"
+                Opacity="0"
+                RenderTransformOrigin="0.5,0.5"
+                Background="{ThemeResource AcrylicInAppFillColorBaseBrush}"
+                BorderThickness="0"
+                CornerRadius="44">
+                <Border.RenderTransform>
+                    <CompositeTransform x:Name="PlayerStateBadgeTransform" ScaleX="0.75" ScaleY="0.75" />
+                </Border.RenderTransform>
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <!--  Play triangle path (solid white with smooth rounded corners)  -->
+                    <Viewbox Width="30" Height="32" Margin="3,0,0,0">
+                        <Path
+                            x:Name="PlayerStateBadgePlayIcon"
+                            Data="M 6,3.5 C 3.2,1.9 0,3.9 0,7.2 L 0,24.8 C 0,28.1 3.2,30.1 6,28.5 L 21.4,19.7 C 24.2,18.1 24.2,13.9 21.4,12.3 Z"
+                            Fill="White"
+                            Stretch="Fill"
+                            Visibility="{x:Bind converters:GlyphConverter.ToPlayVisibility(ViewModel.IsPlayingBadge), Mode=OneWay}" />
+                    </Viewbox>
+                    <!--  Pause icon (two vertical bars with rounded pill corners)  -->
+                    <Grid
+                        x:Name="PlayerStateBadgePauseIcon"
+                        Width="28"
+                        Height="30"
+                        Visibility="{x:Bind converters:GlyphConverter.ToPauseVisibility(ViewModel.IsPlayingBadge), Mode=OneWay}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="10" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="10" />
+                        </Grid.ColumnDefinitions>
+                        <Rectangle Grid.Column="0" Fill="White" RadiusX="4" RadiusY="4" />
+                        <Rectangle Grid.Column="2" Fill="White" RadiusX="4" RadiusY="4" />
+                    </Grid>
+                </Grid>
+            </Border>
         </Border>
 
         <muxc:ProgressRing
@@ -643,12 +697,7 @@
                     Command="{x:Bind ViewModel.GoBackCommand}"
                     Style="{StaticResource SubtleButtonStyle}"
                     ToolTipService.ToolTip="{x:Bind strings:Resources.MinimizeImmersiveView}">
-                    <muxc:AnimatedIcon Width="20" Height="20">
-                        <animatedVisuals:AnimatedChevronDownSmallVisualSource />
-                        <muxc:AnimatedIcon.FallbackIconSource>
-                            <muxc:FontIconSource Glyph="&#xE70D;" />
-                        </muxc:AnimatedIcon.FallbackIconSource>
-                    </muxc:AnimatedIcon>
+                    <FontIcon FontSize="16" Glyph="&#xEE49;" />
                 </Button>
 
                 <Button
@@ -741,11 +790,11 @@
         HorizontalAlignment="Right"
         VerticalAlignment="Bottom"
         Margin="0,0,24,56"
-        Width="380"
-        MaxHeight="700"
+        Width="480"
+        MaxHeight="750"
         Visibility="Collapsed">
         <controls:PlayQueueSidePanel.RenderTransform>
-            <TranslateTransform x:Name="PlayQueuePanelTransform" X="440" />
+            <TranslateTransform x:Name="PlayQueuePanelTransform" X="540" />
         </controls:PlayQueueSidePanel.RenderTransform>
     </controls:PlayQueueSidePanel>
 

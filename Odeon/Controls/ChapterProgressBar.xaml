@@ -20,7 +20,6 @@
             </ResourceDictionary.MergedDictionaries>
 
             <SolidColorBrush x:Key="ProgressBarBackground" Color="#40FFFFFF" />
-            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#FFE81123" />
 
             <DataTemplate x:Key="ItemTemplate" x:DataType="viewModels:ChapterViewModel">
                 <Grid

@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Odeon.Core.Playback;
 using Odeon.Core.Rendering;
 using Odeon.Core.ViewModels;
+using Windows.Graphics.Display;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -29,6 +30,7 @@ public sealed partial class PlayerElement : UserControl
     private readonly GestureRecognizer _gestureRecognizer;
     private bool _shouldSuppressNextClick;
     private D3D11SwapChainManager? _swapChainManager;
+    private DisplayInformation? _displayInfo;
 
     public event RoutedEventHandler? Click;
 
@@ -66,6 +68,21 @@ public sealed partial class PlayerElement : UserControl
         ViewModel.MediaPlayerReady += ViewModel_OnMediaPlayerReady;
         ViewModel.ClearViewRequested += ViewModel_OnClearViewRequested;
 
+        // Subscribe to Windows HDR state changes so the DXGI swap chain color space
+        // is updated whenever the user toggles HDR in Windows Settings.
+        try
+        {
+            _displayInfo = DisplayInformation.GetForCurrentView();
+            _displayInfo.AdvancedColorInfoChanged += DisplayInfo_AdvancedColorInfoChanged;
+            // Apply current HDR state immediately on load
+            var aci = _displayInfo.GetAdvancedColorInfo();
+            _swapChainManager?.NotifyHdrChanged(aci.CurrentAdvancedColorKind == AdvancedColorKind.HighDynamicRange);
+        }
+        catch
+        {
+            // Not fatal — fallback to SDR (sRGB) color space which was set during Initialize()
+        }
+
         if (ViewModel.MpvPlayer != null)
         {
             _swapChainManager.AttachPlayer(ViewModel.MpvPlayer);
@@ -80,6 +97,12 @@ public sealed partial class PlayerElement : UserControl
         ViewModel.MediaPlayerReady -= ViewModel_OnMediaPlayerReady;
         ViewModel.ClearViewRequested -= ViewModel_OnClearViewRequested;
 
+        if (_displayInfo != null)
+        {
+            _displayInfo.AdvancedColorInfoChanged -= DisplayInfo_AdvancedColorInfoChanged;
+            _displayInfo = null;
+        }
+
         if (_gestureRecognizer is not null)
         {
             _gestureRecognizer.CompleteGesture();
@@ -89,6 +112,22 @@ public sealed partial class PlayerElement : UserControl
 
         _swapChainManager?.Dispose();
         _swapChainManager = null;
+    }
+
+    /// <summary>
+    /// Fired by Windows whenever the display's HDR mode changes (user toggle in Settings → System → Display).
+    /// Updates the DXGI swap chain color space so DWM composites the video correctly.
+    /// </summary>
+    private void DisplayInfo_AdvancedColorInfoChanged(DisplayInformation sender, object args)
+    {
+        try
+        {
+            var aci = sender.GetAdvancedColorInfo();
+            bool hdr = aci.CurrentAdvancedColorKind == AdvancedColorKind.HighDynamicRange;
+            // Color space must be set on the render thread or any thread; IDXGISwapChain3::SetColorSpace1 is thread-safe.
+            _swapChainManager?.NotifyHdrChanged(hdr);
+        }
+        catch { /* non-fatal */ }
     }
 
     private void ViewModel_OnMediaPlayerReady(object? sender, IMediaPlayer? player)
